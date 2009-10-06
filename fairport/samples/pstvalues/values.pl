@@ -79,15 +79,13 @@ print "\n";
 print "using namespace fairport;\n";
 print "using namespace fairport::disk;\n";
 print "\n";
-print "namespace {\n";
-print "    struct value\n";
-print "    {\n";
-print "        const wchar_t* name;\n";
-print "        int v;\n";
-print "    };\n";
-print "}\n";
+print "struct pstvalue\n";
+print "{\n";
+print "    const wchar_t* name;\n";
+print "    int v;\n";
+print "};\n";
 print "\n";
-print "const value values[] = {\n";
+print "const pstvalue values[] = {\n";
 
 # further lines are of the format
 # { L"name", value },\n
