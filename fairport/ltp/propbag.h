@@ -1,12 +1,6 @@
 #ifndef FAIRPORT_LTP_PROPBAG_H
 #define FAIRPORT_LTP_PROPBAG_H
 
-/* ISSUES
- *
- * property_bag assignment operator
- * property_bag move assign operator
- * property_bag should use a unique_ptr, not a raw pointer
- */
 #include <vector>
 #include <algorithm>
 
