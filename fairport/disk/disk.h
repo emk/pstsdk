@@ -703,7 +703,7 @@ struct heap_page_map
 {
     ushort num_allocs;
     ushort num_frees;
-    ushort allocs[1];
+    ushort allocs[1]; // contains num_allocs+1
 };
 
 //
