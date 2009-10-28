@@ -49,11 +49,7 @@ bool test_bit(const byte* pbytes, ulong bit);
 inline fairport::file::file(const std::wstring& filename)
 : m_filename(filename)
 {
-#ifdef HIDDEN_API
-    const char* mode = "r+b";
-#else
     const char* mode = "rb";
-#endif
 
 #ifdef _MSC_VER 
     errno_t err = fopen_s(&m_pfile, std::string(filename.begin(), filename.end()).c_str(), mode);
