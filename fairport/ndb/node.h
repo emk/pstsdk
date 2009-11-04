@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <memory>
 #include <cassert>
 
 #include "fairport/util/util.h"
@@ -37,13 +38,9 @@ public:
     block_id get_sub_id() const { return m_sub; }
     node_id get_parent_id() const { return m_parent_id; }
     node_id get_root_node_id() const { return m_root_node_id; }
-    std::shared_ptr<data_block> get_data_block()
+    std::shared_ptr<data_block> get_data_block() const
         { ensure_data_block(); return m_pdata; }
-    std::shared_ptr<const data_block> get_data_block() const
-        { ensure_data_block(); return m_pdata; }
-    std::shared_ptr<subnode_block> get_subnode_block()
-        { ensure_sub_block(); return m_psub; }
-    std::shared_ptr<const subnode_block> get_subnode_block() const 
+    std::shared_ptr<subnode_block> get_subnode_block() const 
         { ensure_sub_block(); return m_psub; }
    
     size_t read(std::vector<byte>& buffer, ulong offset) const;
@@ -69,11 +66,11 @@ private:
     shared_db_ptr m_db;
 
     void ensure_data_block() const;
-	mutable std::shared_ptr<data_block> m_pdata;
+    mutable std::shared_ptr<data_block> m_pdata;
     block_id m_data;
 
     void ensure_sub_block() const;
-	mutable std::shared_ptr<subnode_block> m_psub;
+    mutable std::shared_ptr<subnode_block> m_psub;
     block_id m_sub;
 
     node_id m_id;
@@ -109,9 +106,7 @@ public:
 
     virtual size_t read(std::vector<byte>& buffer, ulong offset) const = 0;
     virtual uint get_page_count() const = 0;
-    virtual std::shared_ptr<external_block> get_page(uint page_num) = 0;
-    virtual std::shared_ptr<const external_block> get_page(uint page_num) const = 0;
-    virtual std::shared_ptr<data_block> clone() const = 0;
+    virtual std::shared_ptr<external_block> get_page(uint page_num) const = 0;
     
     size_t total_size() const { return m_total_size; }
 
@@ -119,7 +114,7 @@ protected:
     size_t m_total_size;
 };
 
-class extended_block : public data_block
+class extended_block : public data_block, public std::enable_shared_from_this<extended_block>
 {
 public:
     extended_block(const shared_db_ptr& db, size_t size, size_t total_size, size_t sub_size, ulong sub_page_count, ushort level, block_id id, ulonglong address, std::vector<block_id>& bi)
@@ -136,9 +131,7 @@ public:
     
     size_t read(std::vector<byte>& buffer, ulong offset) const;
     uint get_page_count() const;
-    std::shared_ptr<external_block> get_page(uint page_num);
-    std::shared_ptr<const external_block> get_page(uint page_num) const;
-    std::shared_ptr<data_block> clone() const;
+    std::shared_ptr<external_block> get_page(uint page_num) const;
 
     ushort get_level() const { return m_level; }
 
@@ -152,7 +145,7 @@ private:
     mutable std::vector<std::shared_ptr<data_block>> m_child_blocks;
 };
 
-class external_block : public std::enable_shared_from_this<external_block>, public data_block
+class external_block : public data_block, public std::enable_shared_from_this<external_block>
 {
 public:
     external_block(const shared_db_ptr& db, size_t size, size_t max_size, block_id id, ulonglong address, const std::vector<byte>& buffer)
@@ -172,9 +165,7 @@ public:
 
     size_t read(std::vector<byte>& buffer, ulong offset) const;
     uint get_page_count() const { return 1; }
-    std::shared_ptr<external_block> get_page(uint page_num);
-    std::shared_ptr<const external_block> get_page(uint page_num) const;
-    std::shared_ptr<data_block> clone() const;
+    std::shared_ptr<external_block> get_page(uint page_num) const;
 
     const byte * get_ptr(ulong offset)
         { return &m_buffer[0] + offset; }
@@ -195,8 +186,6 @@ public:
     ushort get_level() const { return m_level; }
     node_id get_root_node_id() const { return m_root_node_id; }
     
-    virtual std::shared_ptr<subnode_block> clone() const = 0;
-
 protected:
     ushort m_level;
     node_id m_root_node_id;
@@ -217,8 +206,6 @@ public:
     const btree_node<node_id, node>* get_child(const uint pos) const;
     uint num_values() const { return m_subnode_info.size(); }
     
-    virtual std::shared_ptr<subnode_block> clone() const;
-
 private:
     std::vector<std::pair<node_id, block_id>> m_subnode_info;
     mutable std::vector<std::shared_ptr<subnode_block>> m_child_blocks;
@@ -240,7 +227,6 @@ public:
     uint num_values() const
         { return m_subnodes.size(); }
 
-	virtual std::shared_ptr<subnode_block> clone() const;
 private:
     std::vector<std::pair<node_id, node>> m_subnodes;
 };
@@ -248,13 +234,8 @@ private:
 } // end fairport namespace
 
 inline fairport::node::node(const node& other)
-: m_db(other.m_db), m_data(other.m_data), m_sub(other.m_sub), m_id(other.m_id), m_parent_id(other.m_parent_id), m_root_node_id(other.m_root_node_id) 
+: m_db(other.m_db), m_data(other.m_data), m_sub(other.m_sub), m_id(other.m_id), m_parent_id(other.m_parent_id), m_root_node_id(other.m_root_node_id), m_pdata(other.m_pdata), m_psub(other.m_psub)
 { 
-    if(other.m_pdata)
-        m_pdata = other.m_pdata->clone();
-
-    if(other.m_psub)
-        m_psub = other.m_psub->clone();
 }
 
 inline fairport::node::node(node&& other)
@@ -268,10 +249,10 @@ inline fairport::node& fairport::node::operator=(const node& other)
     {
         m_db = other.m_db;
         
-        m_pdata = other.m_pdata ? other.m_pdata->clone() : other.m_pdata;
+        m_pdata = other.m_pdata; 
         m_data = other.m_data;
         
-        m_psub = other.m_psub ? other.m_psub->clone() : other.m_psub;
+        m_psub = other.m_psub;
         m_sub = other.m_sub;
         m_id = other.m_id;
         m_parent_id = other.m_parent_id;
@@ -293,38 +274,32 @@ inline fairport::node& fairport::node::operator=(node&& other)
 
 inline const fairport::byte * fairport::node::get_ptr(uint page_num, ulong offset) const
 {
-    ensure_data_block();
-    return m_pdata->get_page(page_num)->get_ptr(offset);
+    return get_data_block()->get_page(page_num)->get_ptr(offset);
 }
 
 inline size_t fairport::node::size() const
 {
-    ensure_data_block();
-    return m_pdata->total_size();
+    return get_data_block()->total_size();
 }
 
 inline size_t fairport::node::get_page_size(uint page_num) const
 {
-    ensure_data_block();
-    return m_pdata->get_page(page_num)->size();
+    return get_data_block()->get_page(page_num)->size();
 }
     
 inline fairport::uint fairport::node::get_page_count() const 
 { 
-    ensure_data_block(); 
-    return m_pdata->get_page_count(); 
+    return get_data_block()->get_page_count(); 
 }
 
 inline size_t fairport::node::read(std::vector<byte>& buffer, ulong offset) const
 { 
-    ensure_data_block(); 
-    return m_pdata->read(buffer, offset); 
+    return get_data_block()->read(buffer, offset); 
 }
     
 inline size_t fairport::node::read(std::vector<byte>& buffer, uint page_num, ulong offset) const
 { 
-    ensure_data_block(); 
-    return m_pdata->get_page(page_num)->read(buffer, offset); 
+    return get_data_block()->get_page(page_num)->read(buffer, offset); 
 }
 
 inline void fairport::node::ensure_data_block() const
@@ -408,32 +383,18 @@ inline std::shared_ptr<fairport::data_block> fairport::extended_block::get_child
     return m_child_blocks[index];
 }
 
-inline std::shared_ptr<const fairport::external_block> fairport::extended_block::get_page(uint page_num) const
+inline std::shared_ptr<fairport::external_block> fairport::extended_block::get_page(uint page_num) const
 {
     uint page = page_num / m_sub_page_count;
     return get_child_block(page)->get_page(page_num % m_sub_page_count);
 }
 
-inline std::shared_ptr<fairport::external_block> fairport::extended_block::get_page(uint page_num)
-{
-    uint page = page_num / m_sub_page_count;
-    return get_child_block(page)->get_page(page_num % m_sub_page_count);
-}
-
-inline std::shared_ptr<const fairport::external_block> fairport::external_block::get_page(uint index) const
+inline std::shared_ptr<fairport::external_block> fairport::external_block::get_page(uint index) const
 {
     if(index != 0)
         throw std::out_of_range("index > 0");
 
-    return this->shared_from_this();
-}
-
-inline std::shared_ptr<fairport::external_block> fairport::external_block::get_page(uint index)
-{
-    if(index != 0)
-        throw std::out_of_range("index > 0");
-
-    return this->shared_from_this();
+    return std::const_pointer_cast<external_block>(this->shared_from_this());
 }
 
 inline fairport::external_block& fairport::external_block::operator=(const external_block& other)
@@ -475,11 +436,6 @@ inline size_t fairport::external_block::read(std::vector<byte>& buffer, ulong of
     return read_size;
 }
 
-inline std::shared_ptr<fairport::data_block> fairport::external_block::clone() const
-{
-    return std::shared_ptr<external_block>(new external_block(*this));
-}
-
 inline size_t fairport::extended_block::read(std::vector<byte>& buffer, ulong offset) const
 {
     std::vector<byte> sub_page_buffer(m_sub_size);
@@ -510,55 +466,33 @@ inline size_t fairport::extended_block::read(std::vector<byte>& buffer, ulong of
     return total_bytes_read;
 }
 
-inline std::shared_ptr<fairport::data_block> fairport::extended_block::clone() const
-{
-    return std::shared_ptr<data_block>(new extended_block(*this));
-}
-
 inline fairport::node_iterator fairport::node::subnode_begin() 
 {
-    ensure_sub_block();
-    return m_psub->begin();
+    return get_subnode_block()->begin();
 }
 
 inline fairport::const_node_iterator fairport::node::subnode_begin() const
 {
-    ensure_sub_block();
-    return std::const_pointer_cast<const subnode_block>(m_psub)->begin();
+    return std::const_pointer_cast<const subnode_block>(get_subnode_block())->begin();
 }
 
 inline fairport::node_iterator fairport::node::subnode_end()
 {
-    ensure_sub_block();
-    return m_psub->end();
+    return get_subnode_block()->end();
 }
 
 inline fairport::const_node_iterator fairport::node::subnode_end() const
 {
-    ensure_sub_block();
-    return std::const_pointer_cast<const subnode_block>(m_psub)->end();
+    return std::const_pointer_cast<const subnode_block>(get_subnode_block())->end();
 }
 
 inline fairport::node& fairport::node::lookup(node_id id)
 {
-    ensure_sub_block();
-    return m_psub->lookup(id);
+    return get_subnode_block()->lookup(id);
 }
 
 inline const fairport::node& fairport::node::lookup(node_id id) const
 {
-    ensure_sub_block();
-    return std::const_pointer_cast<const subnode_block>(m_psub)->lookup(id);
+    return std::const_pointer_cast<const subnode_block>(get_subnode_block())->lookup(id);
 }
-
-inline std::shared_ptr<fairport::subnode_block> fairport::subnode_leaf_block::clone() const
-{
-	return std::shared_ptr<subnode_block>(new subnode_leaf_block(*this));
-}
-
-inline std::shared_ptr<fairport::subnode_block> fairport::subnode_nonleaf_block::clone() const
-{
-	return std::shared_ptr<subnode_block>(new subnode_nonleaf_block(*this));
-}
-
 #endif

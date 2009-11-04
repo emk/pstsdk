@@ -54,7 +54,6 @@ private:
 } // end fairport namespace
 
 inline fairport::property_bag::property_bag(const fairport::node& n)
-: m_pbth(NULL)
 {
     heap h(n);
 
@@ -65,7 +64,6 @@ inline fairport::property_bag::property_bag(const fairport::node& n)
 }
 
 inline fairport::property_bag::property_bag(const fairport::heap& h)
-: m_pbth(NULL)
 {
     heap my_heap(h.get_node());
 
@@ -76,7 +74,6 @@ inline fairport::property_bag::property_bag(const fairport::heap& h)
 }
 
 inline fairport::property_bag::property_bag(const pc_bth_node* pbth)
-: m_pbth(NULL)
 {
     heap h(pbth->get_node());
 
@@ -87,7 +84,6 @@ inline fairport::property_bag::property_bag(const pc_bth_node* pbth)
 }
 
 inline fairport::property_bag::property_bag(const property_bag& other)
-: m_pbth(NULL)
 {
     heap h(other.m_pbth->get_node());
 
