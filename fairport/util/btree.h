@@ -39,7 +39,7 @@ public:
     virtual V& lookup(const K&) = 0;
     virtual const V& lookup(const K&) const = 0;
     
-    virtual const K& get_key(const uint pos) const = 0;
+    virtual const K& get_key(uint pos) const = 0;
     virtual uint num_values() const = 0;
 
     iterator begin() 
@@ -77,8 +77,8 @@ public:
     V& lookup(const K&);
     const V& lookup(const K&) const;
 
-    virtual V& get_value(const uint pos) = 0;
-    virtual const V& get_value(const uint pos) const = 0;
+    virtual V& get_value(uint pos) = 0;
+    virtual const V& get_value(uint pos) const = 0;
 
 protected:
     // iter support
@@ -104,8 +104,8 @@ public:
 
 protected:
     // returns a non-owning pointer
-    virtual btree_node<K,V>* get_child(const uint i) = 0;
-    virtual const btree_node<K,V>* get_child(const uint i) const = 0;
+    virtual btree_node<K,V>* get_child(uint i) = 0;
+    virtual const btree_node<K,V>* get_child(uint i) const = 0;
 
     // iter support
     friend class btree_node_iter<K,V>;

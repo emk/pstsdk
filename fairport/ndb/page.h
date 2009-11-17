@@ -50,15 +50,15 @@ public:
     bt_nonleaf_page(const shared_db_ptr& db, page_id pid, ulonglong address, ushort level, std::vector<std::pair<K, ulonglong>>&& page_info)
         : bt_page<K,V>(db, pid, address, level), m_page_info(page_info), m_child_pages(page_info.size()) { }
 
-    bt_page<K,V>* get_child_page(const uint pos)
+    bt_page<K,V>* get_child_page(uint pos)
         { (void)get_child(pos); return m_child_pages[pos].get(); }
-    const bt_page<K,V>* get_child_page(const uint pos) const
+    const bt_page<K,V>* get_child_page(uint pos) const
         { (void)get_child(pos); return m_child_pages[pos].get(); }
     
     // btree_node_nonleaf implementation
-    const K& get_key(const uint pos) const { return m_page_info[pos].first; }
-    btree_node<K,V>* get_child(const uint pos);
-    const btree_node<K,V>* get_child(const uint pos) const;
+    const K& get_key(uint pos) const { return m_page_info[pos].first; }
+    btree_node<K,V>* get_child(uint pos);
+    const btree_node<K,V>* get_child(uint pos) const;
     uint num_values() const { return m_child_pages.size(); }
 
 private:
@@ -76,11 +76,11 @@ public:
         : bt_page<K,V>(db, pid, address, 0), m_page_data(data) { }
 
     // btree_node_leaf implementation
-    V& get_value(const uint pos)
+    V& get_value(uint pos)
         { return m_page_data[pos].second; }
-    const V& get_value(const uint pos) const
+    const V& get_value(uint pos) const
         { return m_page_data[pos].second; }
-    const K& get_key(const uint pos) const
+    const K& get_key(uint pos) const
         { return m_page_data[pos].first; }
     uint num_values() const
         { return m_page_data.size(); }
@@ -90,7 +90,7 @@ private:
 };
 
 template<>
-inline btree_node<block_id, block_info>* bt_nonleaf_page<block_id, block_info>::get_child(const uint pos)
+inline btree_node<block_id, block_info>* bt_nonleaf_page<block_id, block_info>::get_child(uint pos)
 {
     if(m_child_pages[pos] == NULL)
     {
@@ -101,7 +101,7 @@ inline btree_node<block_id, block_info>* bt_nonleaf_page<block_id, block_info>::
 }
 
 template<>
-inline const btree_node<block_id, block_info>* bt_nonleaf_page<block_id, block_info>::get_child(const uint pos) const
+inline const btree_node<block_id, block_info>* bt_nonleaf_page<block_id, block_info>::get_child(uint pos) const
 {
     if(m_child_pages[pos] == NULL)
     {
@@ -112,7 +112,7 @@ inline const btree_node<block_id, block_info>* bt_nonleaf_page<block_id, block_i
 }
 
 template<>
-inline btree_node<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::get_child(const uint pos)
+inline btree_node<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::get_child(uint pos)
 {
     if(m_child_pages[pos] == NULL)
     {
@@ -123,7 +123,7 @@ inline btree_node<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::get_
 }
 
 template<>
-inline const btree_node<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::get_child(const uint pos) const
+inline const btree_node<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::get_child(uint pos) const
 {
     if(m_child_pages[pos] == NULL)
     {

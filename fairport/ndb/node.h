@@ -252,11 +252,11 @@ public:
     subnode_nonleaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, std::vector<std::pair<node_id, block_id>>&& subnodes)
         : subnode_block(db, size, id, address, 1), m_subnode_info(subnodes) { }
 
-    const node_id& get_key(const uint pos) const
+    const node_id& get_key(uint pos) const
         { return m_subnode_info[pos].first; }
 
-    btree_node<node_id, subnode_info>* get_child(const uint pos);
-    const btree_node<node_id, subnode_info>* get_child(const uint pos) const;
+    btree_node<node_id, subnode_info>* get_child(uint pos);
+    const btree_node<node_id, subnode_info>* get_child(uint pos) const;
     uint num_values() const { return m_subnode_info.size(); }
     
 private:
@@ -271,11 +271,11 @@ public:
         : subnode_block(db, size, id, address, 0), m_subnodes(subnodes) { }
     subnode_leaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, std::vector<std::pair<node_id, subnode_info>>&& subnodes)
         : subnode_block(db, size, id, address, 0), m_subnodes(subnodes) { }
-    subnode_info& get_value(const uint pos)
+    subnode_info& get_value(uint pos)
         { return m_subnodes[pos].second; }
-    const subnode_info& get_value(const uint pos) const 
+    const subnode_info& get_value(uint pos) const 
         { return m_subnodes[pos].second; }
-    const node_id& get_key(const uint pos) const
+    const node_id& get_key(uint pos) const
         { return m_subnodes[pos].first; }
     uint num_values() const
         { return m_subnodes.size(); }
@@ -344,7 +344,7 @@ inline void fairport::node_impl::ensure_sub_block() const
         m_psub = m_db->read_subnode_block(m_original_sub_id); 
 }
 
-inline fairport::btree_node<fairport::node_id, fairport::subnode_info>* fairport::subnode_nonleaf_block::get_child(const uint pos)
+inline fairport::btree_node<fairport::node_id, fairport::subnode_info>* fairport::subnode_nonleaf_block::get_child(uint pos)
 {
     if(m_child_blocks[pos] == NULL)
     {
@@ -354,7 +354,7 @@ inline fairport::btree_node<fairport::node_id, fairport::subnode_info>* fairport
     return m_child_blocks[pos].get();
 }
 
-inline const fairport::btree_node<fairport::node_id, fairport::subnode_info>* fairport::subnode_nonleaf_block::get_child(const uint pos) const
+inline const fairport::btree_node<fairport::node_id, fairport::subnode_info>* fairport::subnode_nonleaf_block::get_child(uint pos) const
 {
     if(m_child_blocks[pos] == NULL)
     {

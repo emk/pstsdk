@@ -85,9 +85,7 @@ public:
     virtual std::shared_ptr<bbt_page> read_bbt_page(ulonglong location) = 0;
     virtual std::shared_ptr<nbt_page> read_nbt_page(ulonglong location) = 0;
     virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page_for_key(node_id key) = 0;
     virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location) = 0;
-    virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page_for_key(block_id key) = 0;
     virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location) = 0;
     virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location) = 0;
  

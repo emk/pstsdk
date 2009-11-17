@@ -135,13 +135,13 @@ public:
     virtual ~bth_nonleaf_node();
 
     // btree_node_nonleaf implementation
-    const K& get_key(const uint pos) const { return m_bth_info[pos].first; }
-    btree_node<K,V>* get_child(const uint pos);
-    const btree_node<K,V>* get_child(const uint pos) const;
+    const K& get_key(uint pos) const { return m_bth_info[pos].first; }
+    btree_node<K,V>* get_child(uint pos);
+    const btree_node<K,V>* get_child(uint pos) const;
     uint num_values() const { return m_child_nodes.size(); }
 
-    bth_node<K,V>* get_bth_child(const uint pos);
-    const bth_node<K,V>* get_bth_child(const uint pos) const;
+    bth_node<K,V>* get_bth_child(uint pos);
+    const bth_node<K,V>* get_bth_child(uint pos) const;
 
 private:
     std::vector<std::pair<K, heap_id>> m_bth_info;
@@ -159,11 +159,11 @@ public:
     virtual ~bth_leaf_node() { }
 
     // btree_node_leaf implementation
-    V& get_value(const uint pos)
+    V& get_value(uint pos)
         { return m_bth_data[pos].second; }
-    const V& get_value(const uint pos) const
+    const V& get_value(uint pos) const
         { return m_bth_data[pos].second; }
-    const K& get_key(const uint pos) const
+    const K& get_key(uint pos) const
         { return m_bth_data[pos].first; }
     uint num_values() const
         { return m_bth_data.size(); }
@@ -267,13 +267,13 @@ inline fairport::bth_nonleaf_node<K,V>::~bth_nonleaf_node()
 }
 
 template<typename K, typename V>
-inline fairport::btree_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child(const uint pos)
+inline fairport::btree_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child(uint pos)
 {
     return get_bth_child(pos);
 }
 
 template<typename K, typename V>
-inline fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_bth_child(const uint pos)
+inline fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_bth_child(uint pos)
 {
     if(m_child_nodes[pos] == NULL)
     {
@@ -287,13 +287,13 @@ inline fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_bth_child(c
 }
 
 template<typename K, typename V>
-inline const fairport::btree_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child(const uint pos) const
+inline const fairport::btree_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child(uint pos) const
 {
     return get_bth_child(pos);
 }
 
 template<typename K, typename V>
-inline const fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_bth_child(const uint pos) const
+inline const fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_bth_child(uint pos) const
 {
     if(m_child_nodes[pos] == NULL)
     {

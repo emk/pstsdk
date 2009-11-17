@@ -13,11 +13,11 @@ public:
     leaf(int k1, string v1, int k2, string v2, int k3, string v3);
     ~leaf() { }
 
-    string& get_value(const uint pos)
+    string& get_value(uint pos)
         { return values[pos]; }
-    const string& get_value(const uint pos) const 
+    const string& get_value(uint pos) const 
         { return values[pos]; }
-    const int& get_key(const uint pos) const 
+    const int& get_key(uint pos) const 
         { return keys[pos]; }
     uint num_values() const 
         { return 3; }
@@ -33,11 +33,11 @@ public:
     non_leaf(int k1, leaf* l1, int k2, leaf* l2, int k3, leaf* l3);
     ~non_leaf() { }
 
-    const int& get_key(const uint pos) const 
+    const int& get_key(uint pos) const 
         { return keys[pos]; }
-    btree_node<int,string>* get_child(const uint i)
+    btree_node<int,string>* get_child(uint i)
         { return leafs[i]; }
-    const btree_node<int,string>* get_child(const uint i) const 
+    const btree_node<int,string>* get_child(uint i) const 
         { return leafs[i]; }
     uint num_values() const 
         { return 3; }

@@ -46,9 +46,7 @@ public:
     std::shared_ptr<bbt_page> read_bbt_page(ulonglong location);
     std::shared_ptr<nbt_page> read_nbt_page(ulonglong location);
     std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location);
-    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page_for_key(node_id key);
     std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location);
-    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page_for_key(block_id key);
     std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location);
     std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location);
 
@@ -375,38 +373,6 @@ inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_
     {
         throw unexpected_page("page_type != page_type_nbt");
     }  
-}
-
-template<typename T>
-inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page_for_key(block_id key)
-{
-    std::shared_ptr<bbt_page> root = read_bbt_root();
-    bbt_page* current = root.get();
-
-    while(current->get_level() != 0)
-    {
-        bbt_nonleaf_page* non_leaf = (bbt_nonleaf_page*)current;
-        int pos = non_leaf->binary_search(key);
-        current = non_leaf->get_child_page(pos);
-    }
-
-    return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(std::move(*(bbt_leaf_page*)current)));
-}
-
-template<typename T>
-inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page_for_key(node_id key)
-{
-    std::shared_ptr<nbt_page> root = read_nbt_root();
-    nbt_page* current = root.get();
-
-    while(current->get_level() != 0)
-    {
-        nbt_nonleaf_page* non_leaf = (nbt_nonleaf_page*)current;
-        int pos = non_leaf->binary_search(key);
-        current = non_leaf->get_child_page(pos);
-    }
-
-    return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(std::move(*(nbt_leaf_page*)current)));
 }
 
 template<typename T>
