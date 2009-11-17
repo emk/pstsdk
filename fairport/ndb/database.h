@@ -36,53 +36,55 @@ class database_impl :
 {
 public:
 
-    node lookup_node(node_id nid);
+    node lookup_node(node_id nid)
+        { return node(this->shared_from_this(), lookup_node_info(nid)); }
+    node_info lookup_node_info(node_id nid);
     block_info lookup_block_info(block_id bid); 
     
-	std::shared_ptr<bbt_page> read_bbt_root();
-	std::shared_ptr<nbt_page> read_nbt_root();
-	std::shared_ptr<bbt_page> read_bbt_page(ulonglong location);
-	std::shared_ptr<nbt_page> read_nbt_page(ulonglong location);
-	std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location);
+    std::shared_ptr<bbt_page> read_bbt_root();
+    std::shared_ptr<nbt_page> read_nbt_root();
+    std::shared_ptr<bbt_page> read_bbt_page(ulonglong location);
+    std::shared_ptr<nbt_page> read_nbt_page(ulonglong location);
+    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location);
     std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page_for_key(node_id key);
-	std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location);
-	std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page_for_key(block_id key);
-	std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location);
-	std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location);
+    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location);
+    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page_for_key(block_id key);
+    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location);
+    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location);
 
-	std::shared_ptr<block> read_block(block_id bid)
+    std::shared_ptr<block> read_block(block_id bid)
         { return read_block(lookup_block_info(bid)); }
-	std::shared_ptr<data_block> read_data_block(block_id bid)
+    std::shared_ptr<data_block> read_data_block(block_id bid)
         { return read_data_block(lookup_block_info(bid)); }
-	std::shared_ptr<extended_block> read_extended_block(block_id bid)
+    std::shared_ptr<extended_block> read_extended_block(block_id bid)
         { return read_extended_block(lookup_block_info(bid)); }
-	std::shared_ptr<external_block> read_external_block(block_id bid)
+    std::shared_ptr<external_block> read_external_block(block_id bid)
         { return read_external_block(lookup_block_info(bid)); }
-	std::shared_ptr<subnode_block> read_subnode_block(node_id root_node_id, block_id bid)
-        { return read_subnode_block(root_node_id, lookup_block_info(bid)); }
-	std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(node_id root_node_id, block_id bid)
-        { return read_subnode_leaf_block(root_node_id, lookup_block_info(bid)); }
-	std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(node_id root_node_id, block_id bid)
-        { return read_subnode_nonleaf_block(root_node_id, lookup_block_info(bid)); }
+    std::shared_ptr<subnode_block> read_subnode_block(block_id bid)
+        { return read_subnode_block(lookup_block_info(bid)); }
+    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_id bid)
+        { return read_subnode_leaf_block(lookup_block_info(bid)); }
+    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_id bid)
+        { return read_subnode_nonleaf_block(lookup_block_info(bid)); }
 
-	std::shared_ptr<block> read_block(block_info bi);
-	std::shared_ptr<data_block> read_data_block(block_info bi);
-	std::shared_ptr<extended_block> read_extended_block(block_info bi);
-	std::shared_ptr<external_block> read_external_block(block_info bi);
-	std::shared_ptr<subnode_block> read_subnode_block(node_id root_node_id, block_info bi);
-	std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(node_id root_node_id, block_info bi);
-	std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(node_id root_node_id, block_info bi);
+    std::shared_ptr<block> read_block(block_info bi);
+    std::shared_ptr<data_block> read_data_block(block_info bi);
+    std::shared_ptr<extended_block> read_extended_block(block_info bi);
+    std::shared_ptr<external_block> read_external_block(block_info bi);
+    std::shared_ptr<subnode_block> read_subnode_block(block_info bi);
+    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_info bi);
+    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_info bi);
    
 protected:
     database_impl();
     database_impl(const std::wstring& filename);
     void validate_header();
-	std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location, disk::nbt_leaf_page<T>& the_page);
-	std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location, disk::bbt_leaf_page<T>& the_page);
-	std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location, disk::nbt_nonleaf_page<T>& the_page);
-	std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location, disk::bbt_nonleaf_page<T>& the_page);
-	std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(node_id root_node_id, block_info bi, disk::sub_leaf_block<T>& sub_block);
-	std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(node_id root_node_id, block_info bi, disk::sub_nonleaf_block<T>& sub_block);
+    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location, disk::nbt_leaf_page<T>& the_page);
+    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location, disk::bbt_leaf_page<T>& the_page);
+    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location, disk::nbt_nonleaf_page<T>& the_page);
+    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location, disk::bbt_nonleaf_page<T>& the_page);
+    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_info bi, disk::sub_leaf_block<T>& sub_block);
+    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_info bi, disk::sub_nonleaf_block<T>& sub_block);
 
     friend shared_db_ptr open_database(const std::wstring& filename);
     friend std::shared_ptr<small_pst> open_small_pst(const std::wstring& filename);
@@ -199,16 +201,20 @@ inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read
 template<typename T>
 inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(ulonglong location, disk::nbt_leaf_page<T>& the_page)
 {
-    std::vector<std::pair<node_id, node>> nodes;
+    node_info ni;
+    std::vector<std::pair<node_id, node_info>> nodes;
 
     for(int i = 0; i < the_page.num_entries; ++i)
     {
-        node n(this->shared_from_this(), (node_id)the_page.entries[i].nid, the_page.entries[i].parent_nid, (node_id)the_page.entries[i].nid, the_page.entries[i].data, the_page.entries[i].sub);
+        ni.id = static_cast<node_id>(the_page.entries[i].nid);
+        ni.data_bid = the_page.entries[i].data;
+        ni.sub_bid = the_page.entries[i].sub;
+        ni.parent_id = the_page.entries[i].parent_nid;
 
-        nodes.push_back(std::make_pair(n.get_id(), n));
+        nodes.push_back(std::make_pair(ni.id, ni));
     }
 
-	return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(this->shared_from_this(), the_page.trailer.bid, location, std::move(nodes)));
+    return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(this->shared_from_this(), the_page.trailer.bid, location, std::move(nodes)));
 }
 
 template<typename T>
@@ -246,7 +252,7 @@ inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read
         blocks.push_back(std::make_pair(bi.id, bi));
     }
 
-	return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(this->shared_from_this(), the_page.trailer.bid, location, std::move(blocks)));
+    return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(this->shared_from_this(), the_page.trailer.bid, location, std::move(blocks)));
 }
 
 template<typename T>
@@ -278,7 +284,7 @@ inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::r
         nodes.push_back(std::make_pair((node_id)the_page.entries[i].key, the_page.entries[i].ref.ib));
     }
 
-	return std::shared_ptr<nbt_nonleaf_page>(new nbt_nonleaf_page(this->shared_from_this(), the_page.trailer.bid, location, the_page.level, std::move(nodes)));
+    return std::shared_ptr<nbt_nonleaf_page>(new nbt_nonleaf_page(this->shared_from_this(), the_page.trailer.bid, location, the_page.level, std::move(nodes)));
 }
 
 template<typename T>
@@ -311,7 +317,7 @@ inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::r
         blocks.push_back(std::make_pair(the_page.entries[i].key, the_page.entries[i].ref.ib));
     }
 
-	return std::shared_ptr<bbt_nonleaf_page>(new bbt_nonleaf_page(this->shared_from_this(), the_page.trailer.bid, location, the_page.level, std::move(blocks)));
+    return std::shared_ptr<bbt_nonleaf_page>(new bbt_nonleaf_page(this->shared_from_this(), the_page.trailer.bid, location, the_page.level, std::move(blocks)));
 
 }
 
@@ -374,7 +380,7 @@ inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_
 template<typename T>
 inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page_for_key(block_id key)
 {
-	std::shared_ptr<bbt_page> root = read_bbt_root();
+    std::shared_ptr<bbt_page> root = read_bbt_root();
     bbt_page* current = root.get();
 
     while(current->get_level() != 0)
@@ -384,14 +390,14 @@ inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read
         current = non_leaf->get_child_page(pos);
     }
 
-	return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(std::move(*(bbt_leaf_page*)current)));
+    return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(std::move(*(bbt_leaf_page*)current)));
 }
 
 template<typename T>
 inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page_for_key(node_id key)
 {
-	std::shared_ptr<nbt_page> root = read_nbt_root();
-	nbt_page* current = root.get();
+    std::shared_ptr<nbt_page> root = read_nbt_root();
+    nbt_page* current = root.get();
 
     while(current->get_level() != 0)
     {
@@ -400,11 +406,11 @@ inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read
         current = non_leaf->get_child_page(pos);
     }
 
-	return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(std::move(*(nbt_leaf_page*)current)));
+    return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(std::move(*(nbt_leaf_page*)current)));
 }
 
 template<typename T>
-inline fairport::node fairport::database_impl<T>::lookup_node(node_id nid)
+inline fairport::node_info fairport::database_impl<T>::lookup_node_info(node_id nid)
 {
     return read_nbt_root()->lookup(nid); 
 }
@@ -474,7 +480,7 @@ inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::rea
 #endif
     uint sub_page_count = peblock->level == 1 ? 1 : disk::extended_block<T>::max_count;
 
-	return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), bi.size, sub_size, sub_page_count, peblock->total_size, peblock->level, bi.id, bi.address, std::move(child_blocks)));
+    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), bi.size, sub_size, sub_page_count, peblock->total_size, peblock->level, bi.id, bi.address, std::move(child_blocks)));
 }
 
 template<typename T>
@@ -495,48 +501,48 @@ inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::rea
         disk::cyclic(&buffer[0], bi.size, (ulong)bi.id);
     }
 
-	return std::shared_ptr<external_block>(new external_block(this->shared_from_this(), bi.size, disk::external_block<T>::max_size, bi.id, bi.address, std::move(buffer)));
+    return std::shared_ptr<external_block>(new external_block(this->shared_from_this(), bi.size, disk::external_block<T>::max_size, bi.id, bi.address, std::move(buffer)));
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_block> fairport::database_impl<T>::read_subnode_block(node_id root_node_id, block_info bi)
+inline std::shared_ptr<fairport::subnode_block> fairport::database_impl<T>::read_subnode_block(block_info bi)
 {
     if(bi.id == 0)
     {
-        std::vector<std::pair<node_id, node>> empty;
-		return std::shared_ptr<subnode_block>(new subnode_leaf_block(this->shared_from_this(), 0, 0, 0, 0, std::move(empty)));
+        std::vector<std::pair<node_id, subnode_info>> empty;
+        return std::shared_ptr<subnode_block>(new subnode_leaf_block(this->shared_from_this(), 0, 0, 0, std::move(empty)));
     }
     
     std::vector<byte> buffer(disk::align_disk<T>(bi.size));
     disk::sub_leaf_block<T>* psub = (disk::sub_leaf_block<T>*)&buffer[0];
-	std::shared_ptr<subnode_block> sub_block;
+    std::shared_ptr<subnode_block> sub_block;
 
     m_file.read(buffer, bi.address);
 
     if(psub->level == 0)
     {
-        sub_block = read_subnode_leaf_block(root_node_id, bi, *psub);
+        sub_block = read_subnode_leaf_block(bi, *psub);
     }
     else
     {
-        sub_block = read_subnode_nonleaf_block(root_node_id, bi, *(disk::sub_nonleaf_block<T>*)&buffer[0]);
+        sub_block = read_subnode_nonleaf_block(bi, *(disk::sub_nonleaf_block<T>*)&buffer[0]);
     }
 
     return sub_block;
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(node_id root_node_id, block_info bi)
+inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(block_info bi)
 {
     std::vector<byte> buffer(disk::align_disk<T>(bi.size));
     disk::sub_leaf_block<T>* psub = (disk::sub_leaf_block<T>*)&buffer[0];
-	std::shared_ptr<subnode_leaf_block> sub_block;
+    std::shared_ptr<subnode_leaf_block> sub_block;
 
     m_file.read(buffer, bi.address);
 
     if(psub->level == 0)
     {
-        sub_block = read_subnode_leaf_block(root_node_id, bi, *psub);
+        sub_block = read_subnode_leaf_block(bi, *psub);
     }
     else
     {
@@ -547,17 +553,17 @@ inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>:
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(node_id root_node_id, block_info bi)
+inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(block_info bi)
 {
     std::vector<byte> buffer(disk::align_disk<T>(bi.size));
     disk::sub_nonleaf_block<T>* psub = (disk::sub_nonleaf_block<T>*)&buffer[0];
-	std::shared_ptr<subnode_nonleaf_block> sub_block;
+    std::shared_ptr<subnode_nonleaf_block> sub_block;
 
     m_file.read(buffer, bi.address);
 
     if(psub->level != 0)
     {
-        sub_block = read_subnode_nonleaf_block(root_node_id, bi, *psub);
+        sub_block = read_subnode_nonleaf_block(bi, *psub);
     }
     else
     {
@@ -568,22 +574,25 @@ inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(node_id root_node_id, block_info bi, disk::sub_leaf_block<T>& sub_block)
+inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(block_info bi, disk::sub_leaf_block<T>& sub_block)
 {
-    std::vector<std::pair<node_id, node>> subnodes;
+    subnode_info ni;
+    std::vector<std::pair<node_id, subnode_info>> subnodes;
 
     for(int i = 0; i < sub_block.count; ++i)
     {
-        node n(this->shared_from_this(), sub_block.entry[i].nid, 0, root_node_id, sub_block.entry[i].data, sub_block.entry[i].sub);
+        ni.id = sub_block.entry[i].nid;
+        ni.data_bid = sub_block.entry[i].data;
+        ni.sub_bid = sub_block.entry[i].sub;
 
-        subnodes.push_back(std::make_pair(sub_block.entry[i].nid, n));
+        subnodes.push_back(std::make_pair(sub_block.entry[i].nid, ni));
     }
 
-	return std::shared_ptr<subnode_leaf_block>(new subnode_leaf_block(this->shared_from_this(), bi.size, root_node_id, bi.id, bi.address, std::move(subnodes)));
+    return std::shared_ptr<subnode_leaf_block>(new subnode_leaf_block(this->shared_from_this(), bi.size, bi.id, bi.address, std::move(subnodes)));
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(node_id root_node_id, block_info bi, disk::sub_nonleaf_block<T>& sub_block)
+inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(block_info bi, disk::sub_nonleaf_block<T>& sub_block)
 {
     std::vector<std::pair<node_id, block_id>> subnodes;
 
@@ -592,6 +601,6 @@ inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<
         subnodes.push_back(std::make_pair(sub_block.entry[i].nid_key, sub_block.entry[i].sub_block_bid));
     }
 
-	return std::shared_ptr<subnode_nonleaf_block>(new subnode_nonleaf_block(this->shared_from_this(), bi.size, root_node_id, bi.id, bi.address, sub_block.level, std::move(subnodes)));
+    return std::shared_ptr<subnode_nonleaf_block>(new subnode_nonleaf_block(this->shared_from_this(), bi.size, bi.id, bi.address, std::move(subnodes)));
 }
 #endif

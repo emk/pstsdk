@@ -14,30 +14,27 @@
 namespace fairport
 {
 
-struct block_info
-{
-    block_id id;
-    ulonglong address;
-    ushort size;
-    ushort ref_count;
-};
-
-class node
+class node_impl : public std::enable_shared_from_this<node_impl>
 {
 public:
-    node(const shared_db_ptr& db, node_id id, node_id parent_id, node_id root_node_id, block_id data, block_id sub)
-        : m_db(db), m_data(data), m_sub(sub), m_id(id), m_parent_id(parent_id), m_root_node_id(root_node_id) { } 
-    node(const node& other);
-    node(node&& other);
+    // constructor for top level nodes
+    node_impl(const shared_db_ptr& db, const node_info& info)
+        : m_db(db), m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(info.parent_id), m_parent_id(info.parent_id) { } 
 
-    node& operator=(const node& other);
-    node& operator=(node&& other);
+    // constructor for subnodes
+    node_impl(const std::shared_ptr<node_impl>& container_node, const subnode_info& info)
+        : m_db(container_node->m_db), m_pcontainer_node(container_node), m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(0), m_parent_id(0) { } 
+
+    node_impl& operator=(const node_impl& other)
+        { m_pdata = other.m_pdata; m_psub = other.m_psub; return *this; }
 
     node_id get_id() const { return m_id; }
-    block_id get_data_id() const { return m_data; }
-    block_id get_sub_id() const { return m_sub; }
+    block_id get_data_id() const;
+    block_id get_sub_id() const; 
+
     node_id get_parent_id() const { return m_parent_id; }
-    node_id get_root_node_id() const { return m_root_node_id; }
+    bool is_subnode() { return m_pcontainer_node; }
+
     std::shared_ptr<data_block> get_data_block() const
         { ensure_data_block(); return m_pdata; }
     std::shared_ptr<subnode_block> get_subnode_block() const 
@@ -51,31 +48,94 @@ public:
     uint get_page_count() const;
 
     // iterate over subnodes
-    node_iterator subnode_begin();
-    const_node_iterator subnode_begin() const;
-    node_iterator subnode_end();
-    const_node_iterator subnode_end() const;
-    node& lookup(node_id id);
-    const node& lookup(node_id id) const;
+    subnode_iterator subnode_begin();
+    const_subnode_iterator subnode_begin() const;
+    subnode_iterator subnode_end();
+    const_subnode_iterator subnode_end() const;
+    node lookup(node_id id) const;
 
     const byte * get_ptr(uint page_num, ulong offset) const;
 
 private:
-    node();
-
-    shared_db_ptr m_db;
+    node_impl(); // = delete
 
     void ensure_data_block() const;
-    mutable std::shared_ptr<data_block> m_pdata;
-    block_id m_data;
-
     void ensure_sub_block() const;
-    mutable std::shared_ptr<subnode_block> m_psub;
-    block_id m_sub;
+    
+    const node_id m_id;
+    block_id m_original_data_id;
+    block_id m_original_sub_id;
+    node_id m_original_parent_id;
 
-    node_id m_id;
+    mutable std::shared_ptr<data_block> m_pdata;
+    mutable std::shared_ptr<subnode_block> m_psub;
     node_id m_parent_id;
-    node_id m_root_node_id;
+    std::shared_ptr<node_impl> m_pcontainer_node;
+
+    shared_db_ptr m_db;
+};
+
+class node
+{
+public:
+    // constructor for top level nodes
+    node(const shared_db_ptr& db, const node_info& info)
+        : m_pimpl(new node_impl(db, info)) { }
+
+    // constructor for subnodes
+    node(const node& container_node, const subnode_info& info)
+        : m_pimpl(new node_impl(container_node.m_pimpl, info)) { }
+    node(const std::shared_ptr<node_impl>& container_node, const subnode_info& info)
+        : m_pimpl(new node_impl(container_node, info)) { }
+
+
+    node(const node& other)
+        : m_pimpl(new node_impl(*other.m_pimpl)) { }
+    node(node&& other)
+        : m_pimpl(std::move(other.m_pimpl)) { }
+
+    node& operator=(const node& other)
+        { m_pimpl = other.m_pimpl; return *this; }
+
+    node_id get_id() const { return m_pimpl->get_id(); }
+    block_id get_data_id() const { return m_pimpl->get_data_id(); }
+    block_id get_sub_id() const { return m_pimpl->get_sub_id(); }
+
+    node_id get_parent_id() const { return m_pimpl->get_parent_id(); } 
+    bool is_subnode() { return m_pimpl->is_subnode(); } 
+
+    std::shared_ptr<data_block> get_data_block() const
+        { return m_pimpl->get_data_block(); }
+    std::shared_ptr<subnode_block> get_subnode_block() const 
+        { return m_pimpl->get_subnode_block(); } 
+   
+    size_t read(std::vector<byte>& buffer, ulong offset) const
+        { return m_pimpl->read(buffer, offset); }
+    size_t read(std::vector<byte>& buffer, uint page_num, ulong offset) const
+        { return m_pimpl->read(buffer, page_num, offset); }
+
+    size_t size() const { return m_pimpl->size(); }
+    size_t get_page_size(uint page_num) const 
+        { return m_pimpl->get_page_size(page_num); }
+    uint get_page_count() const { return m_pimpl->get_page_count(); }
+
+    // iterate over subnodes
+    subnode_iterator subnode_begin() { return m_pimpl->subnode_begin(); }
+    const_subnode_iterator subnode_begin() const
+        { return std::const_pointer_cast<const node_impl>(m_pimpl)->subnode_begin(); }
+    subnode_iterator subnode_end() { return m_pimpl->subnode_end(); }
+    const_subnode_iterator subnode_end() const
+        { return std::const_pointer_cast<const node_impl>(m_pimpl)->subnode_end(); } 
+    node lookup(node_id id) const
+        { return m_pimpl->lookup(id); }
+
+    const byte * get_ptr(uint page_num, ulong offset) const
+        { return m_pimpl->get_ptr(page_num, offset); }
+
+private:
+    node(); // = delete
+
+    std::shared_ptr<node_impl> m_pimpl;
 };
 
 class block
@@ -126,8 +186,6 @@ public:
     extended_block(extended_block&& other)
         : data_block(other), m_sub_size(other.m_sub_size), m_sub_page_count(other.m_sub_page_count), m_level(other.m_level), m_block_info(std::move(other.m_block_info)), m_child_blocks(std::move(other.m_child_blocks)) { }
     
-    extended_block& operator=(const extended_block& other);
-    extended_block& operator=(extended_block&& other);
     
     size_t read(std::vector<byte>& buffer, ulong offset) const;
     uint get_page_count() const;
@@ -136,6 +194,9 @@ public:
     ushort get_level() const { return m_level; }
 
 private:
+    extended_block& operator=(const extended_block& other); // = delete
+    extended_block& operator=(extended_block&& other); // = delete
+
     std::shared_ptr<data_block> get_child_block(uint index) const;
 
     size_t m_sub_size;
@@ -154,15 +215,6 @@ public:
     external_block(const shared_db_ptr& db, size_t size, size_t max_size, block_id id, ulonglong address, std::vector<byte>&& buffer)
         : data_block(db, size, size, id, address), m_buffer(buffer), m_max_size(max_size) { }
 
-    external_block(const external_block& other)
-        : data_block(other), m_max_size(other.m_max_size), m_buffer(other.m_buffer) { }
-
-    external_block(external_block&& other)
-        : data_block(other), m_max_size(other.m_max_size), m_buffer(std::move(other.m_buffer)) { }
-
-    external_block& operator=(const external_block& other);
-    external_block& operator=(external_block&& other);
-
     size_t read(std::vector<byte>& buffer, ulong offset) const;
     uint get_page_count() const { return 1; }
     std::shared_ptr<external_block> get_page(uint page_num) const;
@@ -171,39 +223,40 @@ public:
         { return &m_buffer[0] + offset; }
 
 private:
+    external_block(const external_block&); // = delete
+    external_block& operator=(const external_block&); // = delete
+
     size_t m_max_size;
     std::vector<byte> m_buffer;
 };
 
-class subnode_block : public block, public virtual btree_node<node_id, node>
+class subnode_block : public block, public virtual btree_node<node_id, subnode_info>
 {
 public:
-    subnode_block(const shared_db_ptr& db, size_t size, node_id root_node_id, block_id id, ulonglong address, ushort level)
-        : block(db, size, id, address), m_level(level), m_root_node_id(root_node_id) { }
+    subnode_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, ushort level)
+        : block(db, size, id, address), m_level(level) { }
 
     virtual ~subnode_block() { }
 
     ushort get_level() const { return m_level; }
-    node_id get_root_node_id() const { return m_root_node_id; }
     
 protected:
     ushort m_level;
-    node_id m_root_node_id;
 };
 
-class subnode_nonleaf_block : public subnode_block, public btree_node_nonleaf<node_id, node>
+class subnode_nonleaf_block : public subnode_block, public btree_node_nonleaf<node_id, subnode_info>
 {
 public:
-    subnode_nonleaf_block(const shared_db_ptr& db, size_t size, node_id root_node_id, block_id id, ulonglong address, ushort level, const std::vector<std::pair<node_id, block_id>>& subnode_info)
-        : subnode_block(db, size, root_node_id, id, address, level), m_subnode_info(subnode_info) { }
-     subnode_nonleaf_block(const shared_db_ptr& db, size_t size, node_id root_node_id, block_id id, ulonglong address, ushort level, std::vector<std::pair<node_id, block_id>>&& subnode_info)
-        : subnode_block(db, size, root_node_id, id, address, level), m_subnode_info(subnode_info) { }
+    subnode_nonleaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, const std::vector<std::pair<node_id, block_id>>& subnodes)
+        : subnode_block(db, size, id, address, 1), m_subnode_info(subnodes) { }
+    subnode_nonleaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, std::vector<std::pair<node_id, block_id>>&& subnodes)
+        : subnode_block(db, size, id, address, 1), m_subnode_info(subnodes) { }
 
     const node_id& get_key(const uint pos) const
         { return m_subnode_info[pos].first; }
 
-    btree_node<node_id, node>* get_child(const uint pos);
-    const btree_node<node_id, node>* get_child(const uint pos) const;
+    btree_node<node_id, subnode_info>* get_child(const uint pos);
+    const btree_node<node_id, subnode_info>* get_child(const uint pos) const;
     uint num_values() const { return m_subnode_info.size(); }
     
 private:
@@ -211,16 +264,16 @@ private:
     mutable std::vector<std::shared_ptr<subnode_block>> m_child_blocks;
 };
 
-class subnode_leaf_block : public subnode_block, public btree_node_leaf<node_id, node>
+class subnode_leaf_block : public subnode_block, public btree_node_leaf<node_id, subnode_info>
 {
 public:
-    subnode_leaf_block(const shared_db_ptr& db, size_t size, node_id root_node_id, block_id id, ulonglong address, const std::vector<std::pair<node_id, node>>& subnodes)
-        : subnode_block(db, size, root_node_id, id, address, 0), m_subnodes(subnodes) { }
-     subnode_leaf_block(const shared_db_ptr& db, size_t size, node_id root_node_id, block_id id, ulonglong address, std::vector<std::pair<node_id, node>>&& subnodes)
-        : subnode_block(db, size, root_node_id, id, address, 0), m_subnodes(subnodes) { }
-    node& get_value(const uint pos)
+    subnode_leaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, const std::vector<std::pair<node_id, subnode_info>>& subnodes)
+        : subnode_block(db, size, id, address, 0), m_subnodes(subnodes) { }
+    subnode_leaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, std::vector<std::pair<node_id, subnode_info>>&& subnodes)
+        : subnode_block(db, size, id, address, 0), m_subnodes(subnodes) { }
+    subnode_info& get_value(const uint pos)
         { return m_subnodes[pos].second; }
-    const node& get_value(const uint pos) const 
+    const subnode_info& get_value(const uint pos) const 
         { return m_subnodes[pos].second; }
     const node_id& get_key(const uint pos) const
         { return m_subnodes[pos].first; }
@@ -228,138 +281,87 @@ public:
         { return m_subnodes.size(); }
 
 private:
-    std::vector<std::pair<node_id, node>> m_subnodes;
+    std::vector<std::pair<node_id, subnode_info>> m_subnodes;
 };
 
 } // end fairport namespace
 
-inline fairport::node::node(const node& other)
-: m_db(other.m_db), m_data(other.m_data), m_sub(other.m_sub), m_id(other.m_id), m_parent_id(other.m_parent_id), m_root_node_id(other.m_root_node_id), m_pdata(other.m_pdata), m_psub(other.m_psub)
+inline fairport::block_id fairport::node_impl::get_data_id() const
 { 
+    if(m_pdata)
+        return m_pdata->get_id();
+    
+    return m_original_data_id;
 }
 
-inline fairport::node::node(node&& other)
-: m_db(other.m_db), m_pdata(std::move(other.m_pdata)), m_data(other.m_data), m_psub(std::move(other.m_psub)), m_sub(other.m_sub), m_id(other.m_id), m_parent_id(other.m_parent_id), m_root_node_id(other.m_root_node_id) 
+inline fairport::block_id fairport::node_impl::get_sub_id() const
 { 
+    if(m_psub)
+        return m_psub->get_id();
+    
+    return m_original_sub_id;
 }
 
-inline fairport::node& fairport::node::operator=(const node& other)
-{
-    if(this != &other)
-    {
-        m_db = other.m_db;
-        
-        m_pdata = other.m_pdata; 
-        m_data = other.m_data;
-        
-        m_psub = other.m_psub;
-        m_sub = other.m_sub;
-        m_id = other.m_id;
-        m_parent_id = other.m_parent_id;
-        m_root_node_id = other.m_root_node_id;
-    }
-}
-
-inline fairport::node& fairport::node::operator=(node&& other)
-{
-    m_db = std::move(other.m_db);
-    std::swap(m_pdata, other.m_pdata);
-    m_data = other.m_data;
-    std::swap(m_psub, other.m_psub);
-    m_sub = other.m_sub;
-    m_id = other.m_id;
-    m_parent_id = other.m_parent_id;
-    m_root_node_id = other.m_root_node_id;
-}
-
-inline const fairport::byte * fairport::node::get_ptr(uint page_num, ulong offset) const
+inline const fairport::byte * fairport::node_impl::get_ptr(uint page_num, ulong offset) const
 {
     return get_data_block()->get_page(page_num)->get_ptr(offset);
 }
 
-inline size_t fairport::node::size() const
+inline size_t fairport::node_impl::size() const
 {
     return get_data_block()->total_size();
 }
 
-inline size_t fairport::node::get_page_size(uint page_num) const
+inline size_t fairport::node_impl::get_page_size(uint page_num) const
 {
     return get_data_block()->get_page(page_num)->size();
 }
     
-inline fairport::uint fairport::node::get_page_count() const 
+inline fairport::uint fairport::node_impl::get_page_count() const 
 { 
     return get_data_block()->get_page_count(); 
 }
 
-inline size_t fairport::node::read(std::vector<byte>& buffer, ulong offset) const
+inline size_t fairport::node_impl::read(std::vector<byte>& buffer, ulong offset) const
 { 
     return get_data_block()->read(buffer, offset); 
 }
     
-inline size_t fairport::node::read(std::vector<byte>& buffer, uint page_num, ulong offset) const
+inline size_t fairport::node_impl::read(std::vector<byte>& buffer, uint page_num, ulong offset) const
 { 
     return get_data_block()->get_page(page_num)->read(buffer, offset); 
 }
 
-inline void fairport::node::ensure_data_block() const
+inline void fairport::node_impl::ensure_data_block() const
 { 
     if(!m_pdata) 
-        m_pdata = m_db->read_data_block(m_data); 
+        m_pdata = m_db->read_data_block(m_original_data_id); 
 }
     
-inline void fairport::node::ensure_sub_block() const
+inline void fairport::node_impl::ensure_sub_block() const
 { 
     if(!m_psub) 
-        m_psub = m_db->read_subnode_block(get_root_node_id(), m_sub); 
+        m_psub = m_db->read_subnode_block(m_original_sub_id); 
 }
 
-inline fairport::btree_node<fairport::node_id, fairport::node>* fairport::subnode_nonleaf_block::get_child(const uint pos)
+inline fairport::btree_node<fairport::node_id, fairport::subnode_info>* fairport::subnode_nonleaf_block::get_child(const uint pos)
 {
     if(m_child_blocks[pos] == NULL)
     {
-        m_child_blocks[pos] = m_db->read_subnode_block(get_root_node_id(), m_subnode_info[pos].second);
+        m_child_blocks[pos] = m_db->read_subnode_block(m_subnode_info[pos].second);
     }
 
     return m_child_blocks[pos].get();
 }
 
-inline const fairport::btree_node<fairport::node_id, fairport::node>* fairport::subnode_nonleaf_block::get_child(const uint pos) const
+inline const fairport::btree_node<fairport::node_id, fairport::subnode_info>* fairport::subnode_nonleaf_block::get_child(const uint pos) const
 {
     if(m_child_blocks[pos] == NULL)
     {
-        m_child_blocks[pos] = m_db->read_subnode_block(get_root_node_id(), m_subnode_info[pos].second);
+        m_child_blocks[pos] = m_db->read_subnode_block(m_subnode_info[pos].second);
     }
 
     return m_child_blocks[pos].get();
-}
-
-inline fairport::extended_block& fairport::extended_block::operator=(const extended_block& other)
-{
-    if(this != &other)
-    {
-        data_block::operator=(other);
-        m_sub_size = other.m_sub_size;
-        m_sub_page_count = other.m_sub_page_count;
-        m_level = other.m_level;
-        m_block_info = other.m_block_info;
-   
-        m_child_blocks.resize(0); 
-        m_child_blocks.resize(other.m_child_blocks.size());
-    }
-
-    return *this;
-}
-
-inline fairport::extended_block& fairport::extended_block::operator=(extended_block&& other)
-{
-    data_block::operator=(other);
-
-    m_sub_size = other.m_sub_size;
-    m_sub_page_count = other.m_sub_page_count;
-    m_level = other.m_level;
-    m_block_info = std::move(other.m_block_info);
-    m_child_blocks = std::move(other.m_child_blocks);
 }
 
 inline fairport::uint fairport::extended_block::get_page_count() const
@@ -395,27 +397,6 @@ inline std::shared_ptr<fairport::external_block> fairport::external_block::get_p
         throw std::out_of_range("index > 0");
 
     return std::const_pointer_cast<external_block>(this->shared_from_this());
-}
-
-inline fairport::external_block& fairport::external_block::operator=(const external_block& other)
-{
-    if(this != &other)
-    {
-        // call base operator=
-        data_block::operator=(other);
-
-        m_buffer = other.m_buffer;
-        m_max_size = other.m_max_size;
-    }
-}
-
-inline fairport::external_block& fairport::external_block::operator=(external_block&& other)
-{
-    // call base operator=
-    data_block::operator=(other);
-
-    m_buffer = std::move(other.m_buffer);
-    m_max_size = other.m_max_size;
 }
 
 inline size_t fairport::external_block::read(std::vector<byte>& buffer, ulong offset) const
@@ -466,33 +447,28 @@ inline size_t fairport::extended_block::read(std::vector<byte>& buffer, ulong of
     return total_bytes_read;
 }
 
-inline fairport::node_iterator fairport::node::subnode_begin() 
+inline fairport::subnode_iterator fairport::node_impl::subnode_begin() 
 {
     return get_subnode_block()->begin();
 }
 
-inline fairport::const_node_iterator fairport::node::subnode_begin() const
+inline fairport::const_subnode_iterator fairport::node_impl::subnode_begin() const
 {
     return std::const_pointer_cast<const subnode_block>(get_subnode_block())->begin();
 }
 
-inline fairport::node_iterator fairport::node::subnode_end()
+inline fairport::subnode_iterator fairport::node_impl::subnode_end()
 {
     return get_subnode_block()->end();
 }
 
-inline fairport::const_node_iterator fairport::node::subnode_end() const
+inline fairport::const_subnode_iterator fairport::node_impl::subnode_end() const
 {
     return std::const_pointer_cast<const subnode_block>(get_subnode_block())->end();
 }
 
-inline fairport::node& fairport::node::lookup(node_id id)
+inline fairport::node fairport::node_impl::lookup(node_id id) const
 {
-    return get_subnode_block()->lookup(id);
-}
-
-inline const fairport::node& fairport::node::lookup(node_id id) const
-{
-    return std::const_pointer_cast<const subnode_block>(get_subnode_block())->lookup(id);
+    return node(std::const_pointer_cast<node_impl>(shared_from_this()), get_subnode_block()->lookup(id));
 }
 #endif

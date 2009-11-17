@@ -54,12 +54,13 @@ void iterate(fairport::shared_db_ptr pdb)
             iter != nbt_root->end();
             ++iter)
     {
-        std::vector<byte> buffer(iter->size());
-        iter->read(buffer, 0);
+        node n(pdb, *iter);
+        std::vector<byte> buffer(n.size());
+        n.read(buffer, 0);
 
         try
         {
-            property_bag bag(*iter);
+            property_bag bag(n);
             std::vector<ushort> proplist(bag.get_prop_list());
         } 
         catch(exception&)
@@ -67,9 +68,9 @@ void iterate(fairport::shared_db_ptr pdb)
         }
 
 
-        if(get_nid_type(iter->get_id()) == nid_type_message)
+        if(get_nid_type(n.get_id()) == nid_type_message)
         {
-            property_bag pc(*iter);
+            property_bag pc(n);
             std::vector<ushort> proplist(pc.get_prop_list());
             for(uint i = 0; i < proplist.size(); ++i)
             {
@@ -81,7 +82,7 @@ void iterate(fairport::shared_db_ptr pdb)
         }
     
         try{
-            heap h(*iter);
+            heap h(n);
             bth_node<ushort, disk::prop_entry>* bth = h.open_bth<ushort, disk::prop_entry>(h.get_root_id());
 
             delete bth;
@@ -90,21 +91,21 @@ void iterate(fairport::shared_db_ptr pdb)
         {
         }
 
-        if(get_nid_type(iter->get_id()) == nid_type_contents_table)
+        if(get_nid_type(n.get_id()) == nid_type_contents_table)
         {
-            table tc(*iter);
+            table tc(n);
             wcout << "Found TC: " << tc.size() << endl;
             test_table(tc);
         }
-        else if(get_nid_type(iter->get_id()) == nid_type_associated_contents_table)
+        else if(get_nid_type(n.get_id()) == nid_type_associated_contents_table)
         {
-            table tc(*iter);
+            table tc(n);
             wcout << "Found Associated TC: " << tc.size() << endl;
             test_table(tc);
         }
-        else if(get_nid_type(iter->get_id()) == nid_type_hierarchy_table)
+        else if(get_nid_type(n.get_id()) == nid_type_hierarchy_table)
         {
-            table tc(*iter);
+            table tc(n);
             wcout << "Found Hierarchy TC: " << tc.size() << endl;
             test_table(tc);
         }

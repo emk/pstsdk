@@ -74,11 +74,11 @@ void process_node(const fairport::node& n)
     using namespace std;
     using namespace fairport;
 
-    for(const_node_iterator iter = n.subnode_begin();
+    for(const_subnode_iterator iter = n.subnode_begin();
                     iter != n.subnode_end();
                     ++iter)
     {
-        process_node(*iter);
+        process_node(node(n, *iter));
     }
     
 }
@@ -125,9 +125,10 @@ void test_db()
                     iter != nbt_root->end();
                     ++iter, ++node)
     {
-        assert(iter->get_id() == node_info_uni[node].node);
-        assert(iter->get_parent_id() == node_info_uni[node].parent);
-        process_node(*iter);
+        assert(iter->id == node_info_uni[node].node);
+        assert(iter->parent_id == node_info_uni[node].parent);
+        fairport::node n(db_2, *iter);
+        process_node(n);
     }
     
     block = 0;
@@ -147,9 +148,10 @@ void test_db()
                     iter != nbt_root2->end();
                     ++iter, ++node)
     {
-        assert(iter->get_id() == node_info_ansi[node].node);
-        assert(iter->get_parent_id() == node_info_ansi[node].parent);
-        process_node(*iter);
+        assert(iter->id == node_info_ansi[node].node);
+        assert(iter->parent_id == node_info_ansi[node].parent);
+        fairport::node n(db_3, *iter);
+        process_node(n);
     }
 
     block = 0;

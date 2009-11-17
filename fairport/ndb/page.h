@@ -112,7 +112,7 @@ inline const btree_node<block_id, block_info>* bt_nonleaf_page<block_id, block_i
 }
 
 template<>
-inline btree_node<node_id, node>* bt_nonleaf_page<node_id, node>::get_child(const uint pos)
+inline btree_node<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::get_child(const uint pos)
 {
     if(m_child_pages[pos] == NULL)
     {
@@ -123,7 +123,7 @@ inline btree_node<node_id, node>* bt_nonleaf_page<node_id, node>::get_child(cons
 }
 
 template<>
-inline const btree_node<node_id, node>* bt_nonleaf_page<node_id, node>::get_child(const uint pos) const
+inline const btree_node<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::get_child(const uint pos) const
 {
     if(m_child_pages[pos] == NULL)
     {
