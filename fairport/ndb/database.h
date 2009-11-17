@@ -67,13 +67,13 @@ public:
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_id bid)
         { return read_subnode_nonleaf_block(lookup_block_info(bid)); }
 
-    std::shared_ptr<block> read_block(block_info bi);
-    std::shared_ptr<data_block> read_data_block(block_info bi);
-    std::shared_ptr<extended_block> read_extended_block(block_info bi);
-    std::shared_ptr<external_block> read_external_block(block_info bi);
-    std::shared_ptr<subnode_block> read_subnode_block(block_info bi);
-    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_info bi);
-    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_info bi);
+    std::shared_ptr<block> read_block(const block_info& bi);
+    std::shared_ptr<data_block> read_data_block(const block_info& bi);
+    std::shared_ptr<extended_block> read_extended_block(const block_info& bi);
+    std::shared_ptr<external_block> read_external_block(const block_info& bi);
+    std::shared_ptr<subnode_block> read_subnode_block(const block_info& bi);
+    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi);
+    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi);
    
 protected:
     database_impl();
@@ -83,8 +83,8 @@ protected:
     std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location, disk::bbt_leaf_page<T>& the_page);
     std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location, disk::nbt_nonleaf_page<T>& the_page);
     std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location, disk::bbt_nonleaf_page<T>& the_page);
-    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_info bi, disk::sub_leaf_block<T>& sub_block);
-    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_info bi, disk::sub_nonleaf_block<T>& sub_block);
+    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi, disk::sub_leaf_block<T>& sub_block);
+    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi, disk::sub_nonleaf_block<T>& sub_block);
 
     friend shared_db_ptr open_database(const std::wstring& filename);
     friend std::shared_ptr<small_pst> open_small_pst(const std::wstring& filename);
@@ -135,7 +135,7 @@ inline fairport::shared_db_ptr fairport::open_database(const std::wstring& filen
         shared_db_ptr db = open_small_pst(filename);
         return db;
     }
-    catch(fairport::invalid_format&)
+    catch(invalid_format&)
     {
         // well, that didn't work
     }
@@ -431,13 +431,24 @@ inline fairport::block_info fairport::database_impl<T>::lookup_block_info(block_
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::block> fairport::database_impl<T>::read_block(block_info bi)
+inline std::shared_ptr<fairport::block> fairport::database_impl<T>::read_block(const block_info& bi)
 {
-    return read_data_block(bi);
+    std::shared_ptr<block> pblock;
+
+    try
+    {
+        pblock = read_data_block(bi);
+    }
+    catch(unexpected_block&)
+    {
+        pblock = read_subnode_block(bi);
+    }
+
+    return pblock;
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::data_block> fairport::database_impl<T>::read_data_block(block_info bi)
+inline std::shared_ptr<fairport::data_block> fairport::database_impl<T>::read_data_block(const block_info& bi)
 {
     if(disk::bid_is_external(bi.id))
         return read_external_block(bi);
@@ -453,7 +464,7 @@ inline std::shared_ptr<fairport::data_block> fairport::database_impl<T>::read_da
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::read_extended_block(block_info bi)
+inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::read_extended_block(const block_info& bi)
 {
     if(!disk::bid_is_internal(bi.id))
         throw unexpected_block("Internal BID expected");
@@ -484,7 +495,7 @@ inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::rea
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::read_external_block(block_info bi)
+inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::read_external_block(const block_info& bi)
 {
     if(!disk::bid_is_external(bi.id))
         throw unexpected_block("External BID expected");
@@ -505,7 +516,7 @@ inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::rea
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_block> fairport::database_impl<T>::read_subnode_block(block_info bi)
+inline std::shared_ptr<fairport::subnode_block> fairport::database_impl<T>::read_subnode_block(const block_info& bi)
 {
     if(bi.id == 0)
     {
@@ -532,7 +543,7 @@ inline std::shared_ptr<fairport::subnode_block> fairport::database_impl<T>::read
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(block_info bi)
+inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(const block_info& bi)
 {
     std::vector<byte> buffer(disk::align_disk<T>(bi.size));
     disk::sub_leaf_block<T>* psub = (disk::sub_leaf_block<T>*)&buffer[0];
@@ -553,7 +564,7 @@ inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>:
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(block_info bi)
+inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(const block_info& bi)
 {
     std::vector<byte> buffer(disk::align_disk<T>(bi.size));
     disk::sub_nonleaf_block<T>* psub = (disk::sub_nonleaf_block<T>*)&buffer[0];
@@ -574,7 +585,7 @@ inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(block_info bi, disk::sub_leaf_block<T>& sub_block)
+inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(const block_info& bi, disk::sub_leaf_block<T>& sub_block)
 {
     subnode_info ni;
     std::vector<std::pair<node_id, subnode_info>> subnodes;
@@ -592,7 +603,7 @@ inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>:
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(block_info bi, disk::sub_nonleaf_block<T>& sub_block)
+inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(const block_info& bi, disk::sub_nonleaf_block<T>& sub_block)
 {
     std::vector<std::pair<node_id, block_id>> subnodes;
 

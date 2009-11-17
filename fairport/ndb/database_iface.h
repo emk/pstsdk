@@ -80,7 +80,6 @@ public:
     virtual block_info lookup_block_info(block_id bid) = 0;
    
     // page factory functions
-    // the caller owns the objects returned from the following functions
     virtual std::shared_ptr<bbt_page> read_bbt_root() = 0;
     virtual std::shared_ptr<nbt_page> read_nbt_root() = 0;
     virtual std::shared_ptr<bbt_page> read_bbt_page(ulonglong location) = 0;
@@ -93,7 +92,6 @@ public:
     virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location) = 0;
  
     // block factory functions
-    // the caller owns the objects returned from the following functions
     virtual std::shared_ptr<block> read_block(block_id bid) = 0;
     virtual std::shared_ptr<data_block> read_data_block(block_id bid) = 0;
     virtual std::shared_ptr<extended_block> read_extended_block(block_id bid) = 0;
@@ -102,13 +100,13 @@ public:
     virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_id bid) = 0;
     virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_id bid) = 0;
 
-    virtual std::shared_ptr<block> read_block(block_info bi) = 0;
-    virtual std::shared_ptr<data_block> read_data_block(block_info bi) = 0;
-    virtual std::shared_ptr<extended_block> read_extended_block(block_info bi) = 0;
-    virtual std::shared_ptr<external_block> read_external_block(block_info bi) = 0;
-    virtual std::shared_ptr<subnode_block> read_subnode_block(block_info bi) = 0;
-    virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_info bi) = 0;
-    virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_info bi) = 0;
+    virtual std::shared_ptr<block> read_block(const block_info& bi) = 0;
+    virtual std::shared_ptr<data_block> read_data_block(const block_info& bi) = 0;
+    virtual std::shared_ptr<extended_block> read_extended_block(const block_info& bi) = 0;
+    virtual std::shared_ptr<external_block> read_external_block(const block_info& bi) = 0;
+    virtual std::shared_ptr<subnode_block> read_subnode_block(const block_info& bi) = 0;
+    virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi) = 0;
+    virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi) = 0;
 
 };
 
