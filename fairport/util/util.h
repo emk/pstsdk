@@ -5,6 +5,7 @@
 #include <time.h>
 #include <memory>
 #include <vector>
+#include <boost/utility.hpp>
 
 #include "fairport/util/errors.h"
 #include "fairport/util/primatives.h"
@@ -12,7 +13,7 @@
 namespace fairport
 {
 
-class file
+class file : private boost::noncopyable
 {
 public:
     file(const std::wstring& filename);
@@ -25,8 +26,6 @@ public:
     size_t write(const std::vector<byte>& buffer, ulonglong offset);
 
 private:
-    file(const file& other); // = delete
-    file& operator=(const file& other); // = delete
     std::wstring m_filename;
     FILE * m_pfile;
 };

@@ -57,8 +57,6 @@ public:
     const byte * get_ptr(uint page_num, ulong offset) const;
 
 private:
-    node_impl(); // = delete
-
     void ensure_data_block() const;
     void ensure_sub_block() const;
     
@@ -133,8 +131,6 @@ public:
         { return m_pimpl->get_ptr(page_num, offset); }
 
 private:
-    node(); // = delete
-
     std::shared_ptr<node_impl> m_pimpl;
 };
 
@@ -177,15 +173,10 @@ protected:
 class extended_block : public data_block, public std::enable_shared_from_this<extended_block>
 {
 public:
-    extended_block(const shared_db_ptr& db, size_t size, size_t total_size, size_t sub_size, ulong sub_page_count, ushort level, block_id id, ulonglong address, std::vector<block_id>& bi)
+    extended_block(const shared_db_ptr& db, size_t size, size_t total_size, size_t sub_size, ulong sub_page_count, ushort level, block_id id, ulonglong address, const std::vector<block_id>& bi)
         : data_block(db, size, total_size, id, address), m_sub_size(sub_size), m_sub_page_count(sub_page_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
     extended_block(const shared_db_ptr& db, size_t size, size_t total_size, size_t sub_size, ulong sub_page_count, ushort level, block_id id, ulonglong address, std::vector<block_id>&& bi)
         : data_block(db, size, total_size, id, address), m_sub_size(sub_size), m_sub_page_count(sub_page_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
-    extended_block(const extended_block& other)
-        : data_block(other), m_sub_size(other.m_sub_size), m_sub_page_count(other.m_sub_page_count), m_level(other.m_level), m_block_info(other.m_block_info), m_child_blocks(other.m_child_blocks.size()) { }
-    extended_block(extended_block&& other)
-        : data_block(other), m_sub_size(other.m_sub_size), m_sub_page_count(other.m_sub_page_count), m_level(other.m_level), m_block_info(std::move(other.m_block_info)), m_child_blocks(std::move(other.m_child_blocks)) { }
-    
     
     size_t read(std::vector<byte>& buffer, ulong offset) const;
     uint get_page_count() const;
@@ -194,9 +185,6 @@ public:
     ushort get_level() const { return m_level; }
 
 private:
-    extended_block& operator=(const extended_block& other); // = delete
-    extended_block& operator=(extended_block&& other); // = delete
-
     std::shared_ptr<data_block> get_child_block(uint index) const;
 
     size_t m_sub_size;
@@ -211,7 +199,6 @@ class external_block : public data_block, public std::enable_shared_from_this<ex
 public:
     external_block(const shared_db_ptr& db, size_t size, size_t max_size, block_id id, ulonglong address, const std::vector<byte>& buffer)
         : data_block(db, size, size, id, address), m_buffer(buffer), m_max_size(max_size) { }
-
     external_block(const shared_db_ptr& db, size_t size, size_t max_size, block_id id, ulonglong address, std::vector<byte>&& buffer)
         : data_block(db, size, size, id, address), m_buffer(buffer), m_max_size(max_size) { }
 
@@ -223,9 +210,6 @@ public:
         { return &m_buffer[0] + offset; }
 
 private:
-    external_block(const external_block&); // = delete
-    external_block& operator=(const external_block&); // = delete
-
     size_t m_max_size;
     std::vector<byte> m_buffer;
 };

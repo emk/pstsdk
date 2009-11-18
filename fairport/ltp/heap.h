@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <boost/noncopyable.hpp>
 
 #include "fairport/util/primatives.h"
 
@@ -91,7 +92,7 @@ private:
 };
 
 template<typename K, typename V>
-class bth_node : public virtual btree_node<K,V>
+class bth_node : public virtual btree_node<K,V>, private boost::noncopyable
 {
 public:
 	static std::unique_ptr<bth_node<K,V>> open_root(const heap_ptr& h, heap_id bth_root);
@@ -117,8 +118,6 @@ protected:
     heap_ptr m_heap;
 
 private:
-    bth_node(const bth_node& other); // = delete
-    bth_node& operator=(const bth_node& other); // = delete
     heap_id m_id;
     ushort m_level;
 };
