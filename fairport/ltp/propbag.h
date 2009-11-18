@@ -60,7 +60,7 @@ inline fairport::property_bag::property_bag(const fairport::node& n)
     if(h.get_client_signature() != disk::heap_sig_pc)
         throw sig_mismatch("expected heap_sig_pc");
 
-    m_pbth.reset(h.open_bth<prop_id, disk::prop_entry>(h.get_root_id()));
+    m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
 inline fairport::property_bag::property_bag(const fairport::heap& h)
@@ -70,7 +70,7 @@ inline fairport::property_bag::property_bag(const fairport::heap& h)
     if(my_heap.get_client_signature() != disk::heap_sig_pc)
         throw sig_mismatch("expected heap_sig_pc");
 
-    m_pbth.reset(my_heap.open_bth<prop_id, disk::prop_entry>(my_heap.get_root_id()));
+    m_pbth = my_heap.open_bth<prop_id, disk::prop_entry>(my_heap.get_root_id());
 }
 
 inline fairport::property_bag::property_bag(const pc_bth_node* pbth)
@@ -80,7 +80,7 @@ inline fairport::property_bag::property_bag(const pc_bth_node* pbth)
     if(h.get_client_signature() != disk::heap_sig_pc)
         throw sig_mismatch("expected heap_sig_pc");
 
-    m_pbth.reset(h.open_bth<prop_id, disk::prop_entry>(h.get_root_id()));
+    m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
 inline fairport::property_bag::property_bag(const property_bag& other)
@@ -90,7 +90,7 @@ inline fairport::property_bag::property_bag(const property_bag& other)
     if(h.get_client_signature() != disk::heap_sig_pc)
         throw sig_mismatch("expected heap_sig_pc");
 
-    m_pbth.reset(h.open_bth<prop_id, disk::prop_entry>(h.get_root_id()));
+    m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
 inline fairport::property_bag& fairport::property_bag::operator=(const property_bag& other)
@@ -100,7 +100,7 @@ inline fairport::property_bag& fairport::property_bag::operator=(const property_
     
     heap h(other.m_pbth->get_node());
 
-    m_pbth.reset(h.open_bth<prop_id, disk::prop_entry>(h.get_root_id()));
+    m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 
     return *this;
 }
@@ -119,7 +119,7 @@ inline void fairport::property_bag::get_prop_list_impl(std::vector<prop_id>& pro
     if(pbth_node->get_level() == 0)
     {
         // leaf
-        pc_bth_leaf_node* pleaf = (pc_bth_leaf_node*)pbth_node; 
+        const pc_bth_leaf_node* pleaf = static_cast<const pc_bth_leaf_node*>(pbth_node);
 
         for(uint i = 0; i < pleaf->num_values(); ++i)
             proplist.push_back(pleaf->get_key(i));
@@ -127,7 +127,7 @@ inline void fairport::property_bag::get_prop_list_impl(std::vector<prop_id>& pro
     else
     {
         // non-leaf
-        pc_bth_nonleaf_node* pnonleaf = (pc_bth_nonleaf_node*)pbth_node; 
+        const pc_bth_nonleaf_node* pnonleaf = static_cast<const pc_bth_nonleaf_node*>(pbth_node); 
         for(uint i = 0; i < pnonleaf->num_values(); ++i)
             get_prop_list_impl(proplist, pnonleaf->get_child(i));
     }

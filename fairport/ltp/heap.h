@@ -34,7 +34,7 @@ public:
     const node& get_node() const { return m_node; }
     node& get_node() { return m_node; }
     template<typename K, typename V>
-    bth_node<K,V>* open_bth(heap_id root);
+	std::unique_ptr<bth_node<K,V>> open_bth(heap_id root);
     
     friend class heap;
 
@@ -84,7 +84,7 @@ public:
     
     // caller owns
     template<typename K, typename V>
-    bth_node<K,V>* open_bth(heap_id root)
+	std::unique_ptr<bth_node<K,V>> open_bth(heap_id root)
         { return m_pheap->open_bth<K,V>(root); }
 
 private:
@@ -95,9 +95,9 @@ template<typename K, typename V>
 class bth_node : public virtual btree_node<K,V>
 {
 public:
-    static bth_node<K,V>* open_root(const heap_ptr& h, heap_id bth_root);
-    static bth_nonleaf_node<K,V>* open_nonleaf(const heap_ptr& h, heap_id id, ushort level);
-    static bth_leaf_node<K,V>* open_leaf(const heap_ptr& h, heap_id id);
+	static std::unique_ptr<bth_node<K,V>> open_root(const heap_ptr& h, heap_id bth_root);
+	static std::unique_ptr<bth_nonleaf_node<K,V>> open_nonleaf(const heap_ptr& h, heap_id id, ushort level);
+	static std::unique_ptr<bth_leaf_node<K,V>> open_leaf(const heap_ptr& h, heap_id id);
 
     bth_node(const heap_ptr& h, heap_id id, ushort level)
         : m_heap(h), m_id(id), m_level(level) { }
@@ -132,7 +132,6 @@ public:
         : bth_node<K,V>(h, id, level), m_bth_info(bth_info), m_child_nodes(bth_info.size(), NULL) { }
     bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, std::vector<std::pair<K, heap_id>>&& bth_info)
         : bth_node<K,V>(h, id, level), m_bth_info(bth_info), m_child_nodes(bth_info.size(), NULL) { }
-    virtual ~bth_nonleaf_node();
 
     // btree_node_nonleaf implementation
     const K& get_key(uint pos) const { return m_bth_info[pos].first; }
@@ -142,7 +141,7 @@ public:
 
 private:
     std::vector<std::pair<K, heap_id>> m_bth_info;
-    mutable std::vector<bth_node<K,V>*> m_child_nodes;
+	mutable std::vector<std::shared_ptr<bth_node<K,V>>> m_child_nodes;
 };
 
 template<typename K, typename V>
@@ -181,7 +180,7 @@ inline fairport::heap& fairport::heap::operator=(const heap& other)
 }
 
 template<typename K, typename V>
-inline fairport::bth_node<K,V>* fairport::bth_node<K,V>::open_root(const heap_ptr& h, heap_id bth_root)
+inline std::unique_ptr<fairport::bth_node<K,V>> fairport::bth_node<K,V>::open_root(const heap_ptr& h, heap_id bth_root)
 {
     disk::bth_header* pheader;
     std::vector<byte> buffer(sizeof(disk::bth_header));
@@ -205,7 +204,7 @@ inline fairport::bth_node<K,V>* fairport::bth_node<K,V>::open_root(const heap_pt
 }
 
 template<typename K, typename V>
-inline fairport::bth_nonleaf_node<K,V>* fairport::bth_node<K,V>::open_nonleaf(const heap_ptr& h, heap_id id, ushort level)
+inline std::unique_ptr<fairport::bth_nonleaf_node<K,V>> fairport::bth_node<K,V>::open_nonleaf(const heap_ptr& h, heap_id id, ushort level)
 {
     uint num_entries = h->size(id) / sizeof(disk::bth_nonleaf_entry<K>);
     std::vector<byte> buffer(h->size(id));
@@ -221,11 +220,11 @@ inline fairport::bth_nonleaf_node<K,V>* fairport::bth_node<K,V>::open_nonleaf(co
         child_nodes.push_back(std::make_pair(pbth_nonleaf_node->entries[i].key, pbth_nonleaf_node->entries[i].page));
     }
 
-    return new bth_nonleaf_node<K,V>(h, id, level, std::move(child_nodes));
+	return std::unique_ptr<bth_nonleaf_node<K,V>>(new bth_nonleaf_node<K,V>(h, id, level, std::move(child_nodes)));
 }
     
 template<typename K, typename V>
-inline fairport::bth_leaf_node<K,V>* fairport::bth_node<K,V>::open_leaf(const heap_ptr& h, heap_id id)
+inline std::unique_ptr<fairport::bth_leaf_node<K,V>> fairport::bth_node<K,V>::open_leaf(const heap_ptr& h, heap_id id)
 {
     std::vector<std::pair<K, V>> entries; 
 
@@ -244,23 +243,13 @@ inline fairport::bth_leaf_node<K,V>* fairport::bth_node<K,V>::open_leaf(const he
             entries.push_back(std::make_pair(pbth_leaf_node->entries[i].key, pbth_leaf_node->entries[i].value));
         }
 
-        return new bth_leaf_node<K,V>(h, id, std::move(entries));
+        return std::unique_ptr<bth_leaf_node<K,V>>(new bth_leaf_node<K,V>(h, id, std::move(entries)));
     }
     else
     {
         // id == 0 means an empty tree
-        return new bth_leaf_node<K,V>(h, id, entries);
+        return std::unique_ptr<bth_leaf_node<K,V>>(new bth_leaf_node<K,V>(h, id, entries));
     }
-}
-
-template<typename K, typename V>
-inline fairport::bth_nonleaf_node<K,V>::~bth_nonleaf_node()
-{
-    std::for_each(m_child_nodes.cbegin(), m_child_nodes.cend(), [](bth_node<K,V>* pnode) 
-    {
-        delete pnode;
-    });
-   
 }
 
 template<typename K, typename V>
@@ -274,7 +263,7 @@ inline fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child(uint 
             m_child_nodes[pos] = bth_node<K,V>::open_leaf(this->get_heap_ptr(), m_bth_info[pos].second);
     }
 
-    return m_child_nodes[pos];
+    return m_child_nodes[pos].get();
 }
 
 template<typename K, typename V>
@@ -288,7 +277,7 @@ inline const fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child
             m_child_nodes[pos] = bth_node<K,V>::open_leaf(this->get_heap_ptr(), m_bth_info[pos].second);
     }
 
-    return m_child_nodes[pos];
+    return m_child_nodes[pos].get();
 }
 
 inline fairport::heap_impl::heap_impl(const node& n)
@@ -367,7 +356,7 @@ inline std::vector<fairport::byte> fairport::heap_impl::read(heap_id id) const
 }
 
 template<typename K, typename V>
-inline fairport::bth_node<K,V>* fairport::heap_impl::open_bth(heap_id root)
+inline std::unique_ptr<fairport::bth_node<K,V>> fairport::heap_impl::open_bth(heap_id root)
 { 
     return bth_node<K,V>::open_root(shared_from_this(), root); 
 }

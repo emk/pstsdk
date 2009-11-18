@@ -252,9 +252,9 @@ public:
     subnode_nonleaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, std::vector<std::pair<node_id, block_id>>&& subnodes)
         : subnode_block(db, size, id, address, 1), m_subnode_info(subnodes) { }
 
+	// btree_node_nonleaf implementation
     const node_id& get_key(uint pos) const
         { return m_subnode_info[pos].first; }
-
     subnode_block* get_child(uint pos);
     const subnode_block* get_child(uint pos) const;
     uint num_values() const { return m_subnode_info.size(); }
@@ -271,6 +271,8 @@ public:
         : subnode_block(db, size, id, address, 0), m_subnodes(subnodes) { }
     subnode_leaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, std::vector<std::pair<node_id, subnode_info>>&& subnodes)
         : subnode_block(db, size, id, address, 0), m_subnodes(subnodes) { }
+
+	// btree_node_leaf implementation
     subnode_info& get_value(uint pos)
         { return m_subnodes[pos].second; }
     const subnode_info& get_value(uint pos) const 

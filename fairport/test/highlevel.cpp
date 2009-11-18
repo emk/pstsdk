@@ -83,9 +83,7 @@ void iterate(fairport::shared_db_ptr pdb)
     
         try{
             heap h(n);
-            bth_node<ushort, disk::prop_entry>* bth = h.open_bth<ushort, disk::prop_entry>(h.get_root_id());
-
-            delete bth;
+			std::unique_ptr<bth_node<ushort, disk::prop_entry>> bth = h.open_bth<ushort, disk::prop_entry>(h.get_root_id());
          }
         catch(exception&)
         {

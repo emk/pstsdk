@@ -111,8 +111,6 @@ template<typename T>
 class basic_table : public table_impl
 {
 public:
-    ~basic_table() { delete m_prows; delete m_pnode_rowarray; }
-
     node& get_node() 
         { return m_prows->get_node(); }
     const node& get_node() const
@@ -131,11 +129,11 @@ private:
     friend table_ptr open_table(const node& n);
     basic_table(const node& n);
 
-    bth_node<row_id, T>* m_prows;
+	std::unique_ptr<bth_node<row_id, T>> m_prows;
 
     // only one of the following two items is valid
     std::vector<byte> m_vec_rowarray;
-    node* m_pnode_rowarray;
+    std::unique_ptr<node> m_pnode_rowarray;
 
     std::unordered_map<prop_id, disk::column_description> m_columns; 
     typedef std::unordered_map<prop_id, disk::column_description>::iterator column_iter;
@@ -258,7 +256,6 @@ inline std::vector<fairport::byte> fairport::const_table_row::get_value_variable
 
 template<typename T>
 inline fairport::basic_table<T>::basic_table(const node& n)
-: m_pnode_rowarray(NULL)
 {
     heap h(n);
 
@@ -278,7 +275,7 @@ inline fairport::basic_table<T>::basic_table(const node& n)
 
     if(is_subnode_id(pheader->row_matrix_id))
     {
-        m_pnode_rowarray = new node(n.lookup(pheader->row_matrix_id));
+        m_pnode_rowarray.reset(new node(n.lookup(pheader->row_matrix_id)));
     }
     else if(pheader->row_matrix_id)
     {
