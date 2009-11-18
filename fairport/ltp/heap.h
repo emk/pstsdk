@@ -82,7 +82,6 @@ public:
     node& get_node()
         { return m_pheap->get_node(); }
     
-    // caller owns
     template<typename K, typename V>
 	std::unique_ptr<bth_node<K,V>> open_bth(heap_id root)
         { return m_pheap->open_bth<K,V>(root); }
