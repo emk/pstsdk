@@ -129,7 +129,7 @@ inline void fairport::property_bag::get_prop_list_impl(std::vector<prop_id>& pro
         // non-leaf
         pc_bth_nonleaf_node* pnonleaf = (pc_bth_nonleaf_node*)pbth_node; 
         for(uint i = 0; i < pnonleaf->num_values(); ++i)
-            get_prop_list_impl(proplist, pnonleaf->get_bth_child(i));
+            get_prop_list_impl(proplist, pnonleaf->get_child(i));
     }
 }
 
