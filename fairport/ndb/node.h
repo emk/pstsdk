@@ -170,7 +170,9 @@ protected:
     size_t m_total_size;
 };
 
-class extended_block : public data_block, public std::enable_shared_from_this<extended_block>
+class extended_block : 
+    public data_block, 
+    public std::enable_shared_from_this<extended_block>
 {
 public:
     extended_block(const shared_db_ptr& db, size_t size, size_t total_size, size_t sub_size, ulong sub_page_count, ushort level, block_id id, ulonglong address, const std::vector<block_id>& bi)
@@ -194,7 +196,9 @@ private:
     mutable std::vector<std::shared_ptr<data_block>> m_child_blocks;
 };
 
-class external_block : public data_block, public std::enable_shared_from_this<external_block>
+class external_block : 
+    public data_block, 
+    public std::enable_shared_from_this<external_block>
 {
 public:
     external_block(const shared_db_ptr& db, size_t size, size_t max_size, block_id id, ulonglong address, const std::vector<byte>& buffer)
@@ -214,7 +218,9 @@ private:
     std::vector<byte> m_buffer;
 };
 
-class subnode_block : public block, public virtual btree_node<node_id, subnode_info>
+class subnode_block : 
+    public block, 
+    public virtual btree_node<node_id, subnode_info>
 {
 public:
     subnode_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, ushort level)
@@ -228,7 +234,10 @@ protected:
     ushort m_level;
 };
 
-class subnode_nonleaf_block : public subnode_block, public btree_node_nonleaf<node_id, subnode_info>
+class subnode_nonleaf_block : 
+    public subnode_block, 
+    public btree_node_nonleaf<node_id, subnode_info>, 
+    public std::enable_shared_from_this<subnode_nonleaf_block>
 {
 public:
     subnode_nonleaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, const std::vector<std::pair<node_id, block_id>>& subnodes)
@@ -248,7 +257,10 @@ private:
     mutable std::vector<std::shared_ptr<subnode_block>> m_child_blocks;
 };
 
-class subnode_leaf_block : public subnode_block, public btree_node_leaf<node_id, subnode_info>
+class subnode_leaf_block : 
+    public subnode_block, 
+    public btree_node_leaf<node_id, subnode_info>, 
+    public std::enable_shared_from_this<subnode_leaf_block>
 {
 public:
     subnode_leaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, const std::vector<std::pair<node_id, subnode_info>>& subnodes)

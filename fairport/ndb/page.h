@@ -29,7 +29,9 @@ private:
 };
 
 template<typename K, typename V>
-class bt_page : public page, public virtual btree_node<K,V>
+class bt_page : 
+    public page, 
+    public virtual btree_node<K,V>
 {
 public:
     bt_page(const shared_db_ptr& db, page_id pid, ulonglong address, ushort level)
@@ -42,7 +44,10 @@ private:
 };
 
 template<typename K, typename V>
-class bt_nonleaf_page : public bt_page<K,V>, public btree_node_nonleaf<K,V>
+class bt_nonleaf_page : 
+    public bt_page<K,V>, 
+    public btree_node_nonleaf<K,V>, 
+    public std::enable_shared_from_this<bt_nonleaf_page>
 {
 public:
     bt_nonleaf_page(const shared_db_ptr& db, page_id pid, ulonglong address, ushort level, const std::vector<std::pair<K, ulonglong>>& page_info)
@@ -62,7 +67,10 @@ private:
 };
 
 template<typename K, typename V>
-class bt_leaf_page : public bt_page<K,V>, public btree_node_leaf<K,V>
+class bt_leaf_page : 
+    public bt_page<K,V>, 
+    public btree_node_leaf<K,V>, 
+    public std::enable_shared_from_this<bt_leaf_page>
 {
 public:
     bt_leaf_page(const shared_db_ptr& db, page_id pid, ulonglong address, const std::vector<std::pair<K,V>>& data)

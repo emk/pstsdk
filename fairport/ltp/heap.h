@@ -92,7 +92,9 @@ private:
 };
 
 template<typename K, typename V>
-class bth_node : public virtual btree_node<K,V>, private boost::noncopyable
+class bth_node : 
+    public virtual btree_node<K,V>, 
+    private boost::noncopyable
 {
 public:
 	static std::unique_ptr<bth_node<K,V>> open_root(const heap_ptr& h, heap_id bth_root);
@@ -123,7 +125,9 @@ private:
 };
 
 template<typename K, typename V>
-class bth_nonleaf_node : public bth_node<K,V>, public btree_node_nonleaf<K,V>
+class bth_nonleaf_node : 
+    public bth_node<K,V>, 
+    public btree_node_nonleaf<K,V>
 {
 public:
     bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, const std::vector<std::pair<K, heap_id>>& bth_info)
@@ -143,7 +147,9 @@ private:
 };
 
 template<typename K, typename V>
-class bth_leaf_node : public bth_node<K,V>, public btree_node_leaf<K,V>
+class bth_leaf_node : 
+    public bth_node<K,V>, 
+    public btree_node_leaf<K,V>
 {
 public:
     bth_leaf_node(const heap_ptr& h, heap_id id, const std::vector<std::pair<K,V>>& data)
