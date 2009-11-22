@@ -71,6 +71,8 @@ inline fairport::file& fairport::file::operator=(file&& other)
 {
     std::swap(m_pfile, other.m_pfile);
     std::swap(m_filename, other.m_filename);
+
+    return *this;
 }
 
 inline fairport::file::~file()
