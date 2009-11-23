@@ -543,8 +543,11 @@ size_t align_disk(size_t size);
 
 size_t align_slot(size_t size);
 
+const uint block_id_internal_bit = 0x2;
+const uint block_id_increment = 0x4;
+
 template<typename T>
-bool bid_is_external(T bid) { return ((bid & 0x2) == 0); }
+bool bid_is_external(T bid) { return ((bid & block_id_internal_bit) == 0); }
 
 template<typename T>
 bool bid_is_internal(T bid) { return !bid_is_external(bid); } 
