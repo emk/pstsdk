@@ -72,6 +72,11 @@ public:
     std::shared_ptr<subnode_block> read_subnode_block(const block_info& bi);
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi);
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi);
+
+    std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<external_block>& pblock);
+    std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<extended_block>& pblock);
+
+    block_id alloc_bid(bool is_internal);
    
 protected:
     database_impl();
@@ -457,12 +462,35 @@ inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::rea
 #endif
     uint sub_page_count = peblock->level == 1 ? 1 : disk::extended_block<T>::max_count;
 
-    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), bi.size, sub_size, sub_page_count, peblock->total_size, peblock->level, bi.id, bi.address, std::move(child_blocks)));
+    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), bi, peblock->level, peblock->total_size, sub_size, sub_page_count, std::move(child_blocks)));
 }
+
+template<typename T>
+std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::create_extended_block(std::shared_ptr<external_block>& pchild_block)
+{
+    std::vector<std::shared_ptr<data_block>> child_blocks;
+    child_blocks.push_back(pchild_block);
+
+    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), 1, pchild_block->get_total_size(), disk::external_block<T>::max_size, 1, std::move(child_blocks)));
+}
+
+template<typename T>
+std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::create_extended_block(std::shared_ptr<extended_block>& pchild_block)
+{
+    std::vector<std::shared_ptr<data_block>> child_blocks;
+    child_blocks.push_back(pchild_block);
+
+    assert(pchild_block->get_level() == 1);
+
+    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), 2, pchild_block->get_total_size(), disk::extended_block<T>::max_size, disk::extended_block<T>::max_count, std::move(child_blocks)));
+}
+
 
 template<typename T>
 inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::read_external_block(const block_info& bi)
 {
+    // TODO: Handle bi.id == 0
+
     if(!disk::bid_is_external(bi.id))
         throw unexpected_block("External BID expected");
 
@@ -478,7 +506,7 @@ inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::rea
         disk::cyclic(&buffer[0], bi.size, (ulong)bi.id);
     }
 
-    return std::shared_ptr<external_block>(new external_block(this->shared_from_this(), bi.size, disk::external_block<T>::max_size, bi.id, bi.address, std::move(buffer)));
+    return std::shared_ptr<external_block>(new external_block(this->shared_from_this(), bi, disk::external_block<T>::max_size, std::move(buffer)));
 }
 
 template<typename T>
@@ -487,7 +515,7 @@ inline std::shared_ptr<fairport::subnode_block> fairport::database_impl<T>::read
     if(bi.id == 0)
     {
         std::vector<std::pair<node_id, subnode_info>> empty;
-        return std::shared_ptr<subnode_block>(new subnode_leaf_block(this->shared_from_this(), 0, 0, 0, std::move(empty)));
+        return std::shared_ptr<subnode_block>(new subnode_leaf_block(this->shared_from_this(), bi, std::move(empty)));
     }
     
     std::vector<byte> buffer(disk::align_disk<T>(bi.size));
@@ -565,7 +593,7 @@ inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>:
         subnodes.push_back(std::make_pair(sub_block.entry[i].nid, ni));
     }
 
-    return std::shared_ptr<subnode_leaf_block>(new subnode_leaf_block(this->shared_from_this(), bi.size, bi.id, bi.address, std::move(subnodes)));
+    return std::shared_ptr<subnode_leaf_block>(new subnode_leaf_block(this->shared_from_this(), bi, std::move(subnodes)));
 }
 
 template<typename T>
@@ -578,6 +606,19 @@ inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<
         subnodes.push_back(std::make_pair(sub_block.entry[i].nid_key, sub_block.entry[i].sub_block_bid));
     }
 
-    return std::shared_ptr<subnode_nonleaf_block>(new subnode_nonleaf_block(this->shared_from_this(), bi.size, bi.id, bi.address, std::move(subnodes)));
+    return std::shared_ptr<subnode_nonleaf_block>(new subnode_nonleaf_block(this->shared_from_this(), bi, std::move(subnodes)));
+}
+
+template<typename T>
+inline fairport::block_id fairport::database_impl<T>::alloc_bid(bool is_internal)
+{
+    block_id next_bid = m_header.bidNextB;
+
+    m_header.bidNextB += disk::block_id_increment;
+
+    if(is_internal)
+        next_bid &= disk::block_id_internal_bit;
+
+    return next_bid;
 }
 #endif

@@ -23,9 +23,6 @@ protected:
     shared_db_ptr m_db;
     page_id m_pid;
     ulonglong m_address;
-
-private:
-    page();
 };
 
 template<typename K, typename V>

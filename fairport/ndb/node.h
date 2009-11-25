@@ -42,8 +42,13 @@ public:
    
     size_t read(std::vector<byte>& buffer, ulong offset) const;
     size_t read(std::vector<byte>& buffer, uint page_num, ulong offset) const;
-
+    
+    size_t write(const std::vector<byte>& buffer, ulong offset);
+    size_t write(const std::vector<byte>& buffer, uint page_num, ulong offset);
+    
     size_t size() const;
+    size_t resize(size_t size);
+    
     size_t get_page_size(uint page_num) const;
     uint get_page_count() const;
 
@@ -112,6 +117,14 @@ public:
     size_t read(std::vector<byte>& buffer, uint page_num, ulong offset) const
         { return m_pimpl->read(buffer, page_num, offset); }
 
+    // TODO: Working on it
+    //size_t write(std::vector<byte>& buffer, ulong offset) 
+    //    { return m_pimpl->write(buffer, offset); }
+    //size_t write(std::vector<byte>& buffer, uint page_num, ulong offset) 
+    //    { return m_pimpl->write(buffer, page_num, offset); }
+    //size_t resize(size_t size)
+    //    { return m_pimpl->resize(size); }
+
     size_t size() const { return m_pimpl->size(); }
     size_t get_page_size(uint page_num) const 
         { return m_pimpl->get_page_size(page_num); }
@@ -137,37 +150,50 @@ private:
 class block
 {
 public:
-    block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address)
-        : m_db(db), m_size(size), m_id(id), m_address(address) { }
+    block(const shared_db_ptr& db, const block_info& info)
+        : m_db(db), m_size(info.size), m_id(info.id), m_address(info.address), m_modified(false) { }
+    block(const block& block)
+        : m_db(block.m_db), m_size(block.m_size), m_id(0), m_address(0), m_modified(false) { touch(); }
 
     virtual ~block() { }
 
-    size_t size() const { return m_size; }
+    virtual bool is_internal() const = 0;
+
+    size_t get_disk_size() const { return m_size; }
+    void set_size(size_t new_size) { m_size = new_size; }
     block_id get_id() const { return m_id; }
     ulonglong get_address() const { return m_address; }
     
+    void touch();
+
 protected:
+    bool m_modified;
     shared_db_ptr m_db;
-    size_t m_size;
+    size_t m_size;          // the size of this specific block on disk
     block_id m_id;
-    ulonglong m_address;
+    ulonglong m_address;    // the address of this specific block on disk, 0 if unknown
 };
 
 class data_block : public block
 {
 public:
-    data_block(const shared_db_ptr& db, size_t size, size_t t_size, block_id id, ulonglong address)
-        : block(db, size, id, address), m_total_size(t_size) { }
+    data_block(const shared_db_ptr& db, const block_info& info, size_t total_size)
+        : block(db, info), m_total_size(total_size) { }
     virtual ~data_block() { }
 
-    virtual size_t read(std::vector<byte>& buffer, ulong offset) const = 0;
+    size_t read(std::vector<byte>& buffer, ulong offset) const;
+    virtual size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const = 0;
+    size_t write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult);
+    virtual size_t write_raw(const byte* pdest_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult) = 0;
+
     virtual uint get_page_count() const = 0;
     virtual std::shared_ptr<external_block> get_page(uint page_num) const = 0;
-    
-    size_t total_size() const { return m_total_size; }
+
+    size_t get_total_size() const { return m_total_size; }
+    virtual size_t resize(size_t size, std::shared_ptr<data_block>& presult) = 0;
 
 protected:
-    size_t m_total_size;
+    size_t m_total_size;    // the total or logical size (sum of all external child blocks)
 };
 
 class extended_block : 
@@ -175,23 +201,40 @@ class extended_block :
     public std::enable_shared_from_this<extended_block>
 {
 public:
-    extended_block(const shared_db_ptr& db, size_t size, size_t total_size, size_t sub_size, ulong sub_page_count, ushort level, block_id id, ulonglong address, const std::vector<block_id>& bi)
-        : data_block(db, size, total_size, id, address), m_sub_size(sub_size), m_sub_page_count(sub_page_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
-    extended_block(const shared_db_ptr& db, size_t size, size_t total_size, size_t sub_size, ulong sub_page_count, ushort level, block_id id, ulonglong address, std::vector<block_id>&& bi)
-        : data_block(db, size, total_size, id, address), m_sub_size(sub_size), m_sub_page_count(sub_page_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
+    // old block constructors (from disk)
+    extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong child_page_max_count, const std::vector<block_id>& bi)
+        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
+    extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong child_page_max_count, std::vector<block_id>&& bi)
+        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_level(level), m_block_info(bi)
+        { m_child_blocks.resize(m_block_info.size()); }
+
+    // new block constructors
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong child_page_max_count, const std::vector<std::shared_ptr<data_block>>& child_blocks)
+        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_level(level), m_block_info(child_blocks.size()), m_child_blocks(child_blocks) 
+        { touch(); }
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong child_page_max_count, std::vector<std::shared_ptr<data_block>>&& child_blocks)
+        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_level(level), m_child_blocks(child_blocks)
+        { m_block_info.resize(m_child_blocks.size()); touch(); }
+
+    size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
+    size_t write_raw(const byte* pdest_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
     
-    size_t read(std::vector<byte>& buffer, ulong offset) const;
     uint get_page_count() const;
     std::shared_ptr<external_block> get_page(uint page_num) const;
-
+    
+    size_t resize(size_t size, std::shared_ptr<data_block>& presult);
+    
     ushort get_level() const { return m_level; }
+    bool is_internal() const { return true; }
 
 private:
-    std::shared_ptr<data_block> get_child_block(uint index) const;
+    extended_block& operator=(const extended_block& other); // = delete
+    data_block* get_child_block(uint index) const;
 
-    size_t m_sub_size;
-    ulong m_sub_page_count;
-    ushort m_level;
+    const size_t m_child_max_total_size;    // maximum (logical) size of a child block
+    const ulong m_child_max_page_count;     // maximum number of child blocks a child can contain
+
+    const ushort m_level;
     std::vector<block_id> m_block_info;
     mutable std::vector<std::shared_ptr<data_block>> m_child_blocks;
 };
@@ -201,20 +244,27 @@ class external_block :
     public std::enable_shared_from_this<external_block>
 {
 public:
-    external_block(const shared_db_ptr& db, size_t size, size_t max_size, block_id id, ulonglong address, const std::vector<byte>& buffer)
-        : data_block(db, size, size, id, address), m_buffer(buffer), m_max_size(max_size) { }
-    external_block(const shared_db_ptr& db, size_t size, size_t max_size, block_id id, ulonglong address, std::vector<byte>&& buffer)
-        : data_block(db, size, size, id, address), m_buffer(buffer), m_max_size(max_size) { }
+    external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, const std::vector<byte>& buffer)
+        : data_block(db, info, info.size), m_buffer(buffer), m_max_size(max_size) { }
+    external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, std::vector<byte>&& buffer)
+        : data_block(db, info, info.size), m_buffer(buffer), m_max_size(max_size) { }
 
-    size_t read(std::vector<byte>& buffer, ulong offset) const;
+    size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
+    size_t write_raw(const byte* pdest_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
+
     uint get_page_count() const { return 1; }
     std::shared_ptr<external_block> get_page(uint page_num) const;
+
+    size_t resize(size_t size, std::shared_ptr<data_block>& presult);
+
+    bool is_internal() const { return false; }
 
     const byte * get_ptr(ulong offset)
         { return &m_buffer[0] + offset; }
 
 private:
-    size_t m_max_size;
+    external_block& operator=(const external_block& other); // = delete
+    const size_t m_max_size;
     std::vector<byte> m_buffer;
 };
 
@@ -223,12 +273,14 @@ class subnode_block :
     public virtual btree_node<node_id, subnode_info>
 {
 public:
-    subnode_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, ushort level)
-        : block(db, size, id, address), m_level(level) { }
+    subnode_block(const shared_db_ptr& db, const block_info& info, ushort level)
+        : block(db, info), m_level(level) { }
 
     virtual ~subnode_block() { }
 
     ushort get_level() const { return m_level; }
+
+    bool is_internal() const { return true; }
     
 protected:
     ushort m_level;
@@ -240,10 +292,10 @@ class subnode_nonleaf_block :
     public std::enable_shared_from_this<subnode_nonleaf_block>
 {
 public:
-    subnode_nonleaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, const std::vector<std::pair<node_id, block_id>>& subnodes)
-        : subnode_block(db, size, id, address, 1), m_subnode_info(subnodes) { }
-    subnode_nonleaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, std::vector<std::pair<node_id, block_id>>&& subnodes)
-        : subnode_block(db, size, id, address, 1), m_subnode_info(subnodes) { }
+    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, block_id>>& subnodes)
+        : subnode_block(db, info, 1), m_subnode_info(subnodes) { }
+    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>>&& subnodes)
+        : subnode_block(db, info, 1), m_subnode_info(subnodes) { }
 
 	// btree_node_nonleaf implementation
     const node_id& get_key(uint pos) const
@@ -263,10 +315,10 @@ class subnode_leaf_block :
     public std::enable_shared_from_this<subnode_leaf_block>
 {
 public:
-    subnode_leaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, const std::vector<std::pair<node_id, subnode_info>>& subnodes)
-        : subnode_block(db, size, id, address, 0), m_subnodes(subnodes) { }
-    subnode_leaf_block(const shared_db_ptr& db, size_t size, block_id id, ulonglong address, std::vector<std::pair<node_id, subnode_info>>&& subnodes)
-        : subnode_block(db, size, id, address, 0), m_subnodes(subnodes) { }
+    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, subnode_info>>& subnodes)
+        : subnode_block(db, info, 0), m_subnodes(subnodes) { }
+    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info>>&& subnodes)
+        : subnode_block(db, info, 0), m_subnodes(subnodes) { }
 
 	// btree_node_leaf implementation
     subnode_info& get_value(uint pos)
@@ -307,12 +359,12 @@ inline const fairport::byte * fairport::node_impl::get_ptr(uint page_num, ulong 
 
 inline size_t fairport::node_impl::size() const
 {
-    return get_data_block()->total_size();
+    return get_data_block()->get_total_size();
 }
 
 inline size_t fairport::node_impl::get_page_size(uint page_num) const
 {
-    return get_data_block()->get_page(page_num)->size();
+    return get_data_block()->get_page(page_num)->get_total_size();
 }
     
 inline fairport::uint fairport::node_impl::get_page_count() const 
@@ -330,6 +382,21 @@ inline size_t fairport::node_impl::read(std::vector<byte>& buffer, uint page_num
     return get_data_block()->get_page(page_num)->read(buffer, offset); 
 }
 
+inline size_t fairport::node_impl::write(const std::vector<byte>& buffer, ulong offset)
+{
+    return get_data_block()->write(buffer, offset, m_pdata);
+}
+
+inline size_t fairport::node_impl::write(const std::vector<byte>& buffer, uint page_num, ulong offset)
+{
+    return get_data_block()->write(buffer, page_num * get_page_size(0) + offset, m_pdata);
+}
+
+inline size_t fairport::node_impl::resize(size_t size)
+{
+    return get_data_block()->resize(size, m_pdata);
+}
+
 inline void fairport::node_impl::ensure_data_block() const
 { 
     if(!m_pdata) 
@@ -340,6 +407,17 @@ inline void fairport::node_impl::ensure_sub_block() const
 { 
     if(!m_psub) 
         m_psub = m_db->read_subnode_block(m_original_sub_id); 
+}
+
+inline void fairport::block::touch()
+{ 
+    if(!m_modified)
+    {
+        m_modified = true; 
+        m_address = 0;
+        m_size = 0;
+        m_id = m_db->alloc_bid(is_internal()); 
+    }
 }
 
 inline fairport::subnode_block* fairport::subnode_nonleaf_block::get_child(uint pos)
@@ -362,17 +440,47 @@ inline const fairport::subnode_block* fairport::subnode_nonleaf_block::get_child
     return m_child_blocks[pos].get();
 }
 
+inline size_t fairport::data_block::read(std::vector<byte>& buffer, ulong offset) const
+{
+    size_t read_size = buffer.size();
+    
+    if(read_size > 0)
+    {
+        if(offset >= get_total_size())
+            throw std::out_of_range("offset >= size()");
+
+        read_size = read_raw(&buffer[0], read_size, offset);
+    }
+
+    return read_size;
+}
+
+inline size_t fairport::data_block::write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult)
+{
+    size_t write_size = buffer.size();
+    
+    if(write_size > 0)
+    {
+        if(offset >= get_total_size())
+            throw std::out_of_range("offset >= size()");
+
+        write_size = write_raw(&buffer[0], write_size, offset, presult);
+    }
+
+    return write_size;
+}
+
 inline fairport::uint fairport::extended_block::get_page_count() const
 {
-    assert(m_sub_size % m_sub_page_count == 0);
-    uint page_size = m_sub_size / m_sub_page_count;
-    uint page_count = (total_size() / page_size) + ((total_size() % page_size) != 0 ? 1 : 0);
+    assert(m_child_max_total_size % m_child_max_page_count == 0);
+    uint page_size = m_child_max_total_size / m_child_max_page_count;
+    uint page_count = (get_total_size() / page_size) + ((get_total_size() % page_size) != 0 ? 1 : 0);
     assert(get_level() == 2 || page_count == m_block_info.size());
 
     return page_count;
 }
 
-inline std::shared_ptr<fairport::data_block> fairport::extended_block::get_child_block(uint index) const
+inline fairport::data_block* fairport::extended_block::get_child_block(uint index) const
 {
     if(index >= m_child_blocks.size())
         throw std::out_of_range("index >= m_child_blocks.size()");
@@ -380,13 +488,13 @@ inline std::shared_ptr<fairport::data_block> fairport::extended_block::get_child
     if(m_child_blocks[index] == NULL)
         m_child_blocks[index] = m_db->read_data_block(m_block_info[index]);
 
-    return m_child_blocks[index];
+    return m_child_blocks[index].get();
 }
 
 inline std::shared_ptr<fairport::external_block> fairport::extended_block::get_page(uint page_num) const
 {
-    uint page = page_num / m_sub_page_count;
-    return get_child_block(page)->get_page(page_num % m_sub_page_count);
+    uint page = page_num / m_child_max_page_count;
+    return get_child_block(page)->get_page(page_num % m_child_max_page_count);
 }
 
 inline std::shared_ptr<fairport::external_block> fairport::external_block::get_page(uint index) const
@@ -397,52 +505,161 @@ inline std::shared_ptr<fairport::external_block> fairport::external_block::get_p
     return std::const_pointer_cast<external_block>(this->shared_from_this());
 }
 
-inline size_t fairport::external_block::read(std::vector<byte>& buffer, ulong offset) const
+inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t buf_size, ulong offset) const
 {
-    size_t read_size = buffer.size();
-    
-    if(size() > 0)
-    {
-        if(offset > size())
-            throw std::out_of_range("offset > size()");
+    size_t read_size = buf_size;
 
-        if(offset + buffer.size() > size())
-            read_size = size() - offset;
+    assert(offset < get_total_size());
 
-        memcpy(&buffer[0], &m_buffer[0] + offset, read_size);
-    }
+    if(offset + buf_size > get_total_size())
+        read_size = get_total_size() - offset;
+
+    memcpy(pdest_buffer, &m_buffer[offset], read_size);
 
     return read_size;
 }
 
-inline size_t fairport::extended_block::read(std::vector<byte>& buffer, ulong offset) const
+inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_t buf_size, ulong offset, std::shared_ptr<fairport::data_block>& presult)
 {
-    std::vector<byte> sub_page_buffer(m_sub_size);
-    size_t total_bytes_read = 0, bytes_read = 0;
-    size_t size = buffer.size();
-
-    if(offset > total_size())
-        throw std::out_of_range("offset > total_size()");
-
-    if(offset + size > total_size())
-        size = total_size() - offset;
-
-    uint pos = offset / m_sub_size;
-    uint pos_starting_offset = pos * m_sub_size;
-
-    while(size > 0)
+    std::shared_ptr<fairport::external_block> pblock = shared_from_this();
+    if(pblock.use_count() > 2) // one for me, one for the caller
     {
-        bytes_read += get_child_block(pos)->read(sub_page_buffer, offset - pos_starting_offset);
-        memcpy(&buffer[0] + total_bytes_read, &sub_page_buffer[0], bytes_read);
+        std::shared_ptr<fairport::external_block> pnewblock(new external_block(*this));
+        return pnewblock->write_raw(psrc_buffer, buf_size, offset, presult);
+    }
+    touch(); // mutate ourselves inplace
 
+    assert(offset < get_total_size());
+
+    size_t write_size = buf_size;
+
+    if(offset + buf_size > get_total_size())
+        write_size = get_total_size() - offset;
+
+    memcpy(&m_buffer[0]+offset, psrc_buffer, write_size);
+
+    // assign out param
+    presult = std::move(pblock);
+
+    return write_size;
+}
+
+inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t buf_size, ulong offset) const
+{
+    assert(offset < get_total_size());
+
+    if(offset + buf_size > get_total_size())
+        buf_size = get_total_size() - offset;
+
+    byte* pend = pdest_buffer + buf_size;
+
+    size_t total_bytes_read = 0;
+
+    while(pdest_buffer != pend)
+    {
+        // the child this read starts on
+        uint child_pos = offset / m_child_max_total_size;
+        // offset into the child block this read starts on
+        ulong child_offset = offset % m_child_max_total_size;
+
+        // call into our child to read the data
+        size_t bytes_read = get_child_block(child_pos)->read_raw(pdest_buffer, buf_size, child_offset);
+        assert(bytes_read <= buf_size);
+    
+        // adjust pointers accordingly
+        pdest_buffer += bytes_read;
         offset += bytes_read;
-        size -= bytes_read;
+        buf_size -= bytes_read;
         total_bytes_read += bytes_read;
-        pos_starting_offset += m_sub_size;
-        ++pos;
+
+        assert(pdest_buffer <= pend);
     }
 
     return total_bytes_read;
+}
+
+inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_t buf_size, ulong offset, std::shared_ptr<fairport::data_block>& presult)
+{
+    std::shared_ptr<extended_block> pblock = shared_from_this();
+    if(pblock.use_count() > 2) // one for me, one for the caller
+    {
+        std::shared_ptr<extended_block> pnewblock(new extended_block(*this));
+        return pnewblock->write_raw(psrc_buffer, buf_size, offset, presult);
+    }
+    touch(); // mutate ourselves inplace
+
+    assert(offset < get_total_size());
+
+    if(offset + buf_size > get_total_size())
+        buf_size = get_total_size() - offset;
+
+    const byte* pend = psrc_buffer + buf_size;
+    size_t total_bytes_written = 0;
+
+    while(psrc_buffer != pend)
+    {
+        // the child this read starts on
+        uint child_pos = offset / m_child_max_total_size;
+        // offset into the child block this read starts on
+        ulong child_offset = offset % m_child_max_total_size;
+
+        // call into our child to write the data
+        size_t bytes_written = get_child_block(child_pos)->write_raw(psrc_buffer, buf_size, child_offset, m_child_blocks[child_pos]);
+        assert(bytes_written <= buf_size);
+    
+        // adjust pointers accordingly
+        psrc_buffer += bytes_written;
+        offset += bytes_written;
+        buf_size -= bytes_written;
+        total_bytes_written += bytes_written;
+
+        assert(psrc_buffer <= pend);
+    }
+
+    // assign out param
+    presult = std::move(pblock);
+
+    return total_bytes_written;
+}
+
+inline size_t fairport::external_block::resize(size_t size, std::shared_ptr<data_block>& presult)
+{
+    std::shared_ptr<external_block> pblock = shared_from_this();
+    if(pblock.use_count() > 2) // one for me, one for the caller
+    {
+        std::shared_ptr<external_block> pnewblock(new external_block(*this));
+        return pnewblock->resize(size, presult);
+    }
+    touch(); // mutate ourselves inplace
+
+    m_buffer.resize(size > m_max_size ? m_max_size : size);
+    m_total_size = m_buffer.size();
+
+    if(size > m_max_size)
+    {
+        // we need to create an extended_block with us as the first entry
+        std::shared_ptr<extended_block> pnewxblock = m_db->create_extended_block(pblock);
+        return pnewxblock->resize(size, presult);
+    }
+
+    // assign out param
+    presult = std::move(pblock);
+
+    return size;
+}
+
+inline size_t fairport::extended_block::resize(size_t size, std::shared_ptr<data_block>& presult)
+{
+    std::shared_ptr<extended_block> pblock = shared_from_this();
+    if(pblock.use_count() > 2) // one for me, one for the caller
+    {
+        std::shared_ptr<extended_block> pnewblock(new extended_block(*this));
+        return pnewblock->resize(size, presult);
+    }
+    touch(); // mutate ourselves inplace
+
+    size; presult;
+    throw not_implemented("extended_block::resize");
 }
 
 inline fairport::subnode_iterator fairport::node_impl::subnode_begin() 
