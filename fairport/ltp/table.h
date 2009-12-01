@@ -143,8 +143,10 @@ private:
 
     // helper functions
     ulong cb_per_row() const { return m_offsets[disk::tc_offsets_bitmap]; }
+    ulong exists_bitmap_start() const { return m_offsets[disk::tc_offsets_one]; }
     ulong rows_per_page() const { return (m_pnode_rowarray ? m_pnode_rowarray->get_page_size(1) / cb_per_row() : m_vec_rowarray.size() / cb_per_row()); }
-    const byte* get_raw_row(ulong row) const;
+    template<typename Val> Val read_raw_row(ulong row, ushort offset) const;
+    std::vector<byte> read_exists_bitmap(ulong row) const;
 };
 
 typedef basic_table<ushort> small_table;
@@ -314,35 +316,22 @@ inline fairport::ulonglong fairport::basic_table<T>::get_cell_value(ulong row, p
         throw key_not_found<prop_id>(id);
 
     const_column_iter column = m_columns.find(id);
-    const byte* prow = get_raw_row(row);
-
     ulonglong value;
 
     switch(column->second.size)
     {
         case 8:
-            {
-            value = prow[column->second.offset];
+            value = read_raw_row<ulonglong>(row, column->second.offset);
             break;
-            }
         case 4:
-            {
-            ulong cell_value = prow[column->second.offset];
-            value = (ulonglong)cell_value;
+            value = read_raw_row<ulong>(row, column->second.offset);
             break;
-            }
         case 2:
-            {
-            ushort cell_value = prow[column->second.offset];
-            value = (ulonglong)cell_value;
+            value = read_raw_row<ushort>(row, column->second.offset);
             break;
-            }
         case 1:
-            {
-            byte cell_value = prow[column->second.offset];
-            value = (ulonglong)cell_value;
+            value = read_raw_row<byte>(row, column->second.offset);
             break;
-            }
         default:
             throw database_corrupt("get_cell_value: invalid cell size");
     }
@@ -353,7 +342,7 @@ inline fairport::ulonglong fairport::basic_table<T>::get_cell_value(ulong row, p
 template<typename T>
 inline std::vector<fairport::byte> fairport::basic_table<T>::read_cell(ulong row, prop_id id) const
 {
-    heapnode_id hid = (heapnode_id)get_cell_value(row, id);
+    heapnode_id hid = static_cast<heapnode_id>(get_cell_value(row, id));
     std::vector<byte> buffer;
 
     if(is_subnode_id(hid))
@@ -383,12 +372,12 @@ inline fairport::prop_type fairport::basic_table<T>::get_prop_type(prop_id id) c
 template<typename T>
 inline fairport::row_id fairport::basic_table<T>::get_row_id(ulong row) const
 {
-    const byte* prow = get_raw_row(row);
-    return *(row_id*)prow;
+    return read_raw_row<row_id>(row, 0);
 }
 
 template<typename T>
-inline const fairport::byte* fairport::basic_table<T>::get_raw_row(ulong row) const
+template<typename Val>
+inline Val fairport::basic_table<T>::read_raw_row(ulong row, ushort offset) const
 {
     if(row >= size())
         throw std::out_of_range("row >= size()");
@@ -398,12 +387,37 @@ inline const fairport::byte* fairport::basic_table<T>::get_raw_row(ulong row) co
         ulong page_num = row / rows_per_page();
         ulong page_offset = (row % rows_per_page()) * cb_per_row();
 
-        return m_pnode_rowarray->get_ptr(page_num, page_offset);
+        return m_pnode_rowarray->read<Val>(page_num, page_offset+offset);
     }
     else
     {
-        return &m_vec_rowarray[ row * cb_per_row() ];
+        Val val;
+        memcpy(&val, &m_vec_rowarray[ row * cb_per_row() + offset ], sizeof(Val));
+        return val;
     }
+}
+
+template<typename T>
+inline std::vector<fairport::byte> fairport::basic_table<T>::read_exists_bitmap(ulong row) const
+{
+    std::vector<byte> exists_bitmap(cb_per_row() - exists_bitmap_start());
+
+    if(row >= size())
+        throw std::out_of_range("row >= size()");
+
+    if(m_pnode_rowarray)
+    {
+        ulong page_num = row / rows_per_page();
+        ulong page_offset = (row % rows_per_page()) * cb_per_row();
+
+        m_pnode_rowarray->read(exists_bitmap, page_num, page_offset + exists_bitmap_start());
+    }
+    else
+    {
+        memcpy(&exists_bitmap[0], &m_vec_rowarray[ row * cb_per_row() + exists_bitmap_start() ], exists_bitmap.size());
+    }    
+
+    return exists_bitmap;
 }
 
 template<typename T>
@@ -414,9 +428,9 @@ inline bool fairport::basic_table<T>::prop_exists(ulong row, prop_id id) const
     if(column == m_columns.end())
         return false;
 
-    const byte* pexists_map = get_raw_row(row) + m_offsets[disk::tc_offsets_one];
+    std::vector<byte> exists_map = read_exists_bitmap(row);
 
-    return test_bit(pexists_map, column->second.bit_offset);
+    return test_bit(&exists_map[0], column->second.bit_offset);
 }
 
 inline fairport::table::table(const node& n)

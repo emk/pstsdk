@@ -288,9 +288,9 @@ inline fairport::heap_impl::heap_impl(const node& n)
 : m_node(n)
 {
     // need to throw if the node is smaller than first_header
-    disk::heap_first_header* pfirst_header = (disk::heap_first_header*)m_node.get_ptr(0, 0);
+    disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
-    if(pfirst_header->signature != disk::heap_signature)
+    if(first_header.signature != disk::heap_signature)
         throw sig_mismatch("not a heap");
 }
 
@@ -298,35 +298,37 @@ inline fairport::heap_impl::heap_impl(const node& n, byte client_sig)
 : m_node(n)
 {
     // need to throw if the node is smaller than first_header
-    disk::heap_first_header* pfirst_header = (disk::heap_first_header*)m_node.get_ptr(0, 0);
+    disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
-    if(pfirst_header->signature != disk::heap_signature)
+    if(first_header.signature != disk::heap_signature)
         throw sig_mismatch("not a heap");
 
-    if(pfirst_header->signature != client_sig)
+    if(first_header.signature != client_sig)
         throw sig_mismatch("mismatch client_sig");
 }
 
 inline fairport::heap_id fairport::heap_impl::get_root_id() const
 {
-    disk::heap_first_header* pfirst_header = (disk::heap_first_header*)m_node.get_ptr(0, 0);
-    return pfirst_header->root_id;
+    disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
+    return first_header.root_id;
 }
 
 inline fairport::byte fairport::heap_impl::get_client_signature() const
 {
-    disk::heap_first_header* pfirst_header = (disk::heap_first_header*)m_node.get_ptr(0, 0);
-    return pfirst_header->client_signature;
+    disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
+    return first_header.client_signature;
 }
 
 inline size_t fairport::heap_impl::size(heap_id id) const
 {
-    disk::heap_page_header* pheader = (disk::heap_page_header*)m_node.get_ptr(get_heap_page(id), 0);
+    disk::heap_page_header header = m_node.read<disk::heap_page_header>(get_heap_page(id), 0);
 
-    if(pheader->page_map_offset > m_node.get_page_size(get_heap_page(id)))
+    if(header.page_map_offset > m_node.get_page_size(get_heap_page(id)))
         throw std::length_error("page_map_offset > node size");
 
-    disk::heap_page_map* pmap = (disk::heap_page_map*)((byte*)pheader + pheader->page_map_offset);
+    std::vector<byte> buffer(m_node.get_page_size(get_heap_page(id)) - header.page_map_offset);
+    m_node.read(buffer, get_heap_page(id), header.page_map_offset);
+    disk::heap_page_map* pmap = reinterpret_cast<disk::heap_page_map*>(&buffer[0]);
 
     if(get_heap_index(id) > pmap->num_allocs)
         throw std::length_error("index > num_allocs");
@@ -345,9 +347,10 @@ inline size_t fairport::heap_impl::read(std::vector<byte>& buffer, heap_id id, u
     if(offset + buffer.size() > size(id))
         throw std::length_error("size + offset > size()");
 
-    disk::heap_page_header* pheader = (disk::heap_page_header*)m_node.get_ptr(get_heap_page(id), 0);
-
-    disk::heap_page_map* pmap = (disk::heap_page_map*)((byte*)pheader + pheader->page_map_offset);
+    disk::heap_page_header header = m_node.read<disk::heap_page_header>(get_heap_page(id), 0);
+    std::vector<byte> map_buffer(m_node.get_page_size(get_heap_page(id)) - header.page_map_offset);
+    m_node.read(map_buffer, get_heap_page(id), header.page_map_offset);
+    disk::heap_page_map* pmap = reinterpret_cast<disk::heap_page_map*>(&map_buffer[0]);
 
     return m_node.read(buffer, get_heap_page(id), pmap->allocs[get_heap_index(id)]);
 }
