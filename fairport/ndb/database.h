@@ -73,8 +73,10 @@ public:
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi);
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi);
 
+    std::shared_ptr<external_block> create_external_block(size_t size);
     std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<external_block>& pblock);
     std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<extended_block>& pblock);
+    std::shared_ptr<extended_block> create_extended_block(size_t size);
 
     block_id alloc_bid(bool is_internal);
    
@@ -462,29 +464,44 @@ inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::rea
 #endif
     uint sub_page_count = peblock->level == 1 ? 1 : disk::extended_block<T>::max_count;
 
-    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), bi, peblock->level, peblock->total_size, sub_size, sub_page_count, std::move(child_blocks)));
+    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), bi, peblock->level, peblock->total_size, sub_size, disk::extended_block<T>::max_count, sub_page_count, std::move(child_blocks)));
 }
 
 template<typename T>
-std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::create_extended_block(std::shared_ptr<external_block>& pchild_block)
+inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::create_external_block(size_t size)
+{
+    return std::shared_ptr<external_block>(new external_block(this->shared_from_this(), disk::external_block<T>::max_size, size));
+}
+
+template<typename T>
+inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::create_extended_block(std::shared_ptr<external_block>& pchild_block)
 {
     std::vector<std::shared_ptr<data_block>> child_blocks;
     child_blocks.push_back(pchild_block);
 
-    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), 1, pchild_block->get_total_size(), disk::external_block<T>::max_size, 1, std::move(child_blocks)));
+    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), 1, pchild_block->get_total_size(), disk::external_block<T>::max_size, disk::extended_block<T>::max_count, 1, std::move(child_blocks)));
 }
 
 template<typename T>
-std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::create_extended_block(std::shared_ptr<extended_block>& pchild_block)
+inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::create_extended_block(std::shared_ptr<extended_block>& pchild_block)
 {
     std::vector<std::shared_ptr<data_block>> child_blocks;
     child_blocks.push_back(pchild_block);
 
     assert(pchild_block->get_level() == 1);
 
-    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), 2, pchild_block->get_total_size(), disk::extended_block<T>::max_size, disk::extended_block<T>::max_count, std::move(child_blocks)));
+    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), 2, pchild_block->get_total_size(), disk::extended_block<T>::max_size, disk::extended_block<T>::max_count, disk::extended_block<T>::max_count, std::move(child_blocks)));
 }
 
+template<typename T>
+inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::create_extended_block(size_t size)
+{
+    ushort level = size > disk::extended_block<T>::max_size ? 2 : 1;
+    size_t child_max_size = level == 1 ? disk::external_block<T>::max_size : disk::extended_block<T>::max_size;
+    ulong child_max_blocks = level == 1 ? 1 : disk::extended_block<T>::max_count;
+
+    return std::shared_ptr<extended_block>(new extended_block(this->shared_from_this(), level, size, child_max_size, disk::extended_block<T>::max_count, child_max_blocks));
+}
 
 template<typename T>
 inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::read_external_block(const block_info& bi)

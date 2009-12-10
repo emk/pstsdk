@@ -83,6 +83,65 @@ void process_node(const fairport::node& n)
     
 }
 
+size_t step_size_up(size_t i)
+{
+    if(i >= 1000000) return 1000000;
+    if(i >= 100000) return 100000;
+    if(i >= 10000) return 10000;
+    return 1000;
+}
+
+size_t step_size_down(size_t i)
+{
+    if(i > 1000000) return 1000000;
+    if(i > 100000) return 100000;
+    if(i > 10000) return 10000;
+    return 1000;
+}
+
+template<typename T>
+void test_node_impl(fairport::node& n, size_t expected)
+{
+    using namespace fairport;
+
+    assert(n.size() == expected);
+
+    if(expected > 0)
+    {
+        uint expected_page_count = expected / disk::external_block<T>::max_size;
+        if(expected % disk::external_block<T>::max_size != 0)
+            expected_page_count++;
+        uint actual_page_count = n.get_page_count();
+        assert(expected_page_count == actual_page_count);
+
+        uint test_value = 0xdeadbeef;
+        size_t offset = expected-sizeof(test_value);
+        n.write(test_value, offset);
+        
+        uint read_test_value = n.read<uint>(offset);
+
+        assert(test_value == read_test_value);
+    }
+}
+
+template<typename T>
+void test_node_resize(fairport::node n)
+{
+    // ramp up
+    for(size_t i = 1000; i < 10000000; i += step_size_up(i))
+    {
+        n.resize(i);
+        test_node_impl<T>(n, i);
+    }
+
+    // ramp down
+    for(size_t i = 10000000; i > 0; i -= step_size_down(i))
+    {
+        n.resize(i);
+        test_node_impl<T>(n, i);
+    }
+}
+
 void test_db()
 {
     using namespace std;
@@ -130,7 +189,8 @@ void test_db()
         fairport::node n(db_2, *iter);
         process_node(n);
     }
-    
+    test_node_resize<ulonglong>(db_2->lookup_node(nid_message_store));
+
     block = 0;
     shared_ptr<const bbt_page> bbt_root = db_2->read_bbt_root();
     for(const_block_iterator iter = bbt_root->begin();
@@ -153,6 +213,7 @@ void test_db()
         fairport::node n(db_3, *iter);
         process_node(n);
     }
+    test_node_resize<ulong>(db_3->lookup_node(nid_message_store));
 
     block = 0;
     shared_ptr<const bbt_page> bbt_root2 = db_3->read_bbt_root();

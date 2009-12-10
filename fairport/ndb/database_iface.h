@@ -106,8 +106,10 @@ public:
     virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi) = 0;
     virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi) = 0;
 
+    virtual std::shared_ptr<external_block> create_external_block(size_t size) = 0;
     virtual std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<external_block>& pblock) = 0;
     virtual std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<extended_block>& pblock) = 0;
+    virtual std::shared_ptr<extended_block> create_extended_block(size_t size) = 0;
 
     // header functions
     virtual block_id alloc_bid(bool is_internal) = 0;
