@@ -70,10 +70,14 @@ class subnode_block;
 class subnode_leaf_block;
 class subnode_nonleaf_block;
 
+class db_context;
+typedef std::shared_ptr<db_context> shared_db_ptr;
+
 // database external interface
-class database
+class db_context
 {
 public:
+    virtual ~db_context() { }
 
     virtual node lookup_node(node_id nid) = 0;
     virtual node_info lookup_node_info(node_id nid) = 0;
@@ -88,7 +92,15 @@ public:
     virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location) = 0;
     virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location) = 0;
     virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location) = 0;
- 
+    virtual std::shared_ptr<bbt_page> read_bbt_root(const shared_db_ptr& parent) = 0;
+    virtual std::shared_ptr<nbt_page> read_nbt_root(const shared_db_ptr& parent) = 0;
+    virtual std::shared_ptr<bbt_page> read_bbt_page(const shared_db_ptr& parent, ulonglong location) = 0;
+    virtual std::shared_ptr<nbt_page> read_nbt_page(const shared_db_ptr& parent, ulonglong location) = 0;
+    virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const shared_db_ptr& parent, ulonglong location) = 0;
+    virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const shared_db_ptr& parent, ulonglong location) = 0;
+    virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location) = 0;
+    virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location) = 0;
+
     // block factory functions
     virtual std::shared_ptr<block> read_block(block_id bid) = 0;
     virtual std::shared_ptr<data_block> read_data_block(block_id bid) = 0;
@@ -97,6 +109,13 @@ public:
     virtual std::shared_ptr<subnode_block> read_subnode_block(block_id bid) = 0;
     virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_id bid) = 0;
     virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_id bid) = 0;
+    virtual std::shared_ptr<block> read_block(const shared_db_ptr& parent, block_id bid) = 0;
+    virtual std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, block_id bid) = 0;
+    virtual std::shared_ptr<extended_block> read_extended_block(const shared_db_ptr& parent, block_id bid) = 0;
+    virtual std::shared_ptr<external_block> read_external_block(const shared_db_ptr& parent, block_id bid) = 0;
+    virtual std::shared_ptr<subnode_block> read_subnode_block(const shared_db_ptr& parent, block_id bid) = 0;
+    virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, block_id bid) = 0;
+    virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, block_id bid) = 0;
 
     virtual std::shared_ptr<block> read_block(const block_info& bi) = 0;
     virtual std::shared_ptr<data_block> read_data_block(const block_info& bi) = 0;
@@ -105,17 +124,30 @@ public:
     virtual std::shared_ptr<subnode_block> read_subnode_block(const block_info& bi) = 0;
     virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi) = 0;
     virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi) = 0;
+    virtual std::shared_ptr<block> read_block(const shared_db_ptr& parent, const block_info& bi) = 0;
+    virtual std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, const block_info& bi) = 0;
+    virtual std::shared_ptr<extended_block> read_extended_block(const shared_db_ptr& parent, const block_info& bi) = 0;
+    virtual std::shared_ptr<external_block> read_external_block(const shared_db_ptr& parent, const block_info& bi) = 0;
+    virtual std::shared_ptr<subnode_block> read_subnode_block(const shared_db_ptr& parent, const block_info& bi) = 0;
+    virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi) = 0;
+    virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi) = 0;
 
     virtual std::shared_ptr<external_block> create_external_block(size_t size) = 0;
     virtual std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<external_block>& pblock) = 0;
     virtual std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<extended_block>& pblock) = 0;
     virtual std::shared_ptr<extended_block> create_extended_block(size_t size) = 0;
+    virtual std::shared_ptr<external_block> create_external_block(const shared_db_ptr& parent, size_t size) = 0;
+    virtual std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, std::shared_ptr<external_block>& pblock) = 0;
+    virtual std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, std::shared_ptr<extended_block>& pblock) = 0;
+    virtual std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, size_t size) = 0;
 
     // header functions
     virtual block_id alloc_bid(bool is_internal) = 0;
-};
 
-typedef std::shared_ptr<database> shared_db_ptr;
+    // context support
+    //virtual shared_db_ptr create_context() = 0;
+    //virtual void save(const shared_db_ptr& ctx) = 0;
+};
 
 }
 

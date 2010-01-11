@@ -156,6 +156,7 @@ private:
 
 class block
 {
+    friend class db_context;
 public:
     block(const shared_db_ptr& db, const block_info& info)
         : m_db(db), m_size(info.size), m_id(info.id), m_address(info.address), m_modified(false) { }
@@ -167,16 +168,21 @@ public:
     virtual bool is_internal() const = 0;
 
     size_t get_disk_size() const { return m_size; }
-    void set_size(size_t new_size) { m_size = new_size; }
+    void set_disk_size(size_t new_size) { m_size = new_size; }    
+
     block_id get_id() const { return m_id; }
     ulonglong get_address() const { return m_address; }
+    void set_address(ulonglong new_address) { m_address = new_address; }
     
     void touch();
 
 protected:
+    void set_db_ptr(const shared_db_ptr& db) { m_db = db; }
+    virtual void trim() { }
+
     bool m_modified;
     shared_db_ptr m_db;
-    size_t m_size;          // the size of this specific block on disk
+    size_t m_size;          // the size of this specific block on disk at last save
     block_id m_id;
     ulonglong m_address;    // the address of this specific block on disk, 0 if unknown
 };
@@ -768,9 +774,7 @@ inline size_t fairport::extended_block::resize(size_t size, std::shared_ptr<data
     m_child_blocks.resize(num_subblocks);
 
     if(old_num_subblocks < num_subblocks)
-    {
         get_child_block(old_num_subblocks-1)->resize(m_child_max_total_size, m_child_blocks[old_num_subblocks-1]);
-    }
 
     // size the last subblock appropriately
     size_t last_child_size = size - (num_subblocks-1) * m_child_max_total_size;
