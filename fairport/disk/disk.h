@@ -764,6 +764,12 @@ struct prop_entry
 };
 #pragma pack()
 
+struct sub_object
+{
+    node_id nid;
+    ulong size;
+}; 
+
 //
 // tc structures
 //
