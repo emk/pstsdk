@@ -18,8 +18,8 @@ public:
     pst(pst&& other) : m_db(other.m_db), m_bag(std::move(other.m_bag)) { }
 
     // subobject discovery/enumeration
-    folder open_root_folder();
-    folder open_folder(const std::wstring& name);
+    folder open_root_folder() const;
+    folder open_folder(const std::wstring& name) const;
 
     // property access
     std::wstring get_display_name() const
