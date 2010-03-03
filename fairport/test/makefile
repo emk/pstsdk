@@ -8,7 +8,7 @@
 CC=cl
 
 ifeq ($(CC),cl) #MSVC
-OPTIONS=/DEBUG /Od /MDd /EHsc /Zi /nologo /W4 /I "..\.."
+OPTIONS=/DEBUG /Od /MDd /EHsc /Zi /nologo /W4 /WX /I "..\.."
 OUTPUTSWITCH=/Fe
 NOLINK=/c
 DELCMD=del
