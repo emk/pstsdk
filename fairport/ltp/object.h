@@ -8,10 +8,6 @@
 #include "fairport/util/primatives.h"
 #include "fairport/util/errors.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable:4127)
-#endif
-
 namespace fairport
 {
 
@@ -41,6 +37,9 @@ protected:
 template<typename T>
 inline T fairport::const_property_object::read_prop(prop_id id) const
 {
+#ifdef _MSC_VER
+#pragma warning(suppress:4127)
+#endif
     if(!std::is_pod<T>::value)
         throw std::invalid_argument("T must be a POD or one of the specialized classes");
 
@@ -70,6 +69,9 @@ inline T fairport::const_property_object::read_prop(prop_id id) const
 template<typename T>
 inline std::vector<T> fairport::const_property_object::read_prop_array(prop_id id) const
 {
+#ifdef _MSC_VER
+#pragma warning(suppress:4127)
+#endif
     if(!std::is_pod<T>::value)
         throw std::invalid_argument("T must be a POD or one of the specialized classes");
 
@@ -189,9 +191,5 @@ inline std::vector<std::vector<byte>> const_property_object::read_prop_array<std
 }
 
 } // end fairport namespace
-
-#ifdef _MSC_VER
-#pragma warning(default:4127)
-#endif
 
 #endif
