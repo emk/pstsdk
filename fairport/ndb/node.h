@@ -176,11 +176,11 @@ public:
     void touch();
 
 protected:
-    void set_db_ptr(const shared_db_ptr& db) { m_db = db; }
+    shared_db_ptr get_db_ptr() const { return shared_db_ptr(m_db); }
     virtual void trim() { }
 
     bool m_modified;
-    shared_db_ptr m_db;
+    weak_db_ptr m_db;
     size_t m_size;          // the size of this specific block on disk at last save
     block_id m_id;
     ulonglong m_address;    // the address of this specific block on disk, 0 if unknown
@@ -463,7 +463,7 @@ inline void fairport::block::touch()
         m_modified = true; 
         m_address = 0;
         m_size = 0;
-        m_id = m_db->alloc_bid(is_internal()); 
+        m_id = get_db_ptr()->alloc_bid(is_internal()); 
     }
 }
 
@@ -471,7 +471,7 @@ inline fairport::subnode_block* fairport::subnode_nonleaf_block::get_child(uint 
 {
     if(m_child_blocks[pos] == NULL)
     {
-        m_child_blocks[pos] = m_db->read_subnode_block(m_subnode_info[pos].second);
+        m_child_blocks[pos] = get_db_ptr()->read_subnode_block(m_subnode_info[pos].second);
     }
 
     return m_child_blocks[pos].get();
@@ -481,7 +481,7 @@ inline const fairport::subnode_block* fairport::subnode_nonleaf_block::get_child
 {
     if(m_child_blocks[pos] == NULL)
     {
-        m_child_blocks[pos] = m_db->read_subnode_block(m_subnode_info[pos].second);
+        m_child_blocks[pos] = get_db_ptr()->read_subnode_block(m_subnode_info[pos].second);
     }
 
     return m_child_blocks[pos].get();
@@ -575,12 +575,12 @@ inline fairport::data_block* fairport::extended_block::get_child_block(uint inde
         if(m_block_info[index] == 0)
         {
             if(get_level() == 1)
-                m_child_blocks[index] = m_db->create_external_block(m_child_max_total_size);
+                m_child_blocks[index] = get_db_ptr()->create_external_block(m_child_max_total_size);
             else
-                m_child_blocks[index] = m_db->create_extended_block(m_child_max_total_size);
+                m_child_blocks[index] = get_db_ptr()->create_extended_block(m_child_max_total_size);
         }
         else
-            m_child_blocks[index] = m_db->read_data_block(m_block_info[index]);
+            m_child_blocks[index] = get_db_ptr()->read_data_block(m_block_info[index]);
     }
 
     return m_child_blocks[index].get();
@@ -733,7 +733,7 @@ inline size_t fairport::external_block::resize(size_t size, std::shared_ptr<data
     if(size > get_max_size())
     {
         // we need to create an extended_block with us as the first entry
-        std::shared_ptr<extended_block> pnewxblock = m_db->create_extended_block(pblock);
+        std::shared_ptr<extended_block> pnewxblock = get_db_ptr()->create_extended_block(pblock);
         return pnewxblock->resize(size, presult);
     }
 
@@ -787,7 +787,7 @@ inline size_t fairport::extended_block::resize(size_t size, std::shared_ptr<data
             throw can_not_resize("size > max_size");
 
         // we need to create a level 2 extended_block with us as the first entry
-        std::shared_ptr<extended_block> pnewxblock = m_db->create_extended_block(pblock);
+        std::shared_ptr<extended_block> pnewxblock = get_db_ptr()->create_extended_block(pblock);
         return pnewxblock->resize(size, presult);
     }
     

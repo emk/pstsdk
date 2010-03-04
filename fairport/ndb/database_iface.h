@@ -72,6 +72,7 @@ class subnode_nonleaf_block;
 
 class db_context;
 typedef std::shared_ptr<db_context> shared_db_ptr;
+typedef std::weak_ptr<db_context> weak_db_ptr;
 
 // database external interface
 class db_context : public std::enable_shared_from_this<db_context>

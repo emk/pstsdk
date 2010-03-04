@@ -20,7 +20,8 @@ public:
     ulonglong get_address() const { return m_address; }
 
 protected:
-    shared_db_ptr m_db;
+    shared_db_ptr get_db_ptr() const { return shared_db_ptr(m_db); }
+    weak_db_ptr m_db;
     page_id m_pid;
     ulonglong m_address;
 };
@@ -94,7 +95,7 @@ inline bt_page<block_id, block_info>* bt_nonleaf_page<block_id, block_info>::get
 {
     if(m_child_pages[pos] == NULL)
     {
-        m_child_pages[pos] = this->m_db->read_bbt_page(m_page_info[pos].second);
+        m_child_pages[pos] = this->get_db_ptr()->read_bbt_page(m_page_info[pos].second);
     }
 
     return m_child_pages[pos].get();
@@ -105,7 +106,7 @@ inline const bt_page<block_id, block_info>* bt_nonleaf_page<block_id, block_info
 {
     if(m_child_pages[pos] == NULL)
     {
-        m_child_pages[pos] = this->m_db->read_bbt_page(m_page_info[pos].second);
+        m_child_pages[pos] = this->get_db_ptr()->read_bbt_page(m_page_info[pos].second);
     }
 
     return m_child_pages[pos].get();
@@ -116,7 +117,7 @@ inline bt_page<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::get_chi
 {
     if(m_child_pages[pos] == NULL)
     {
-        m_child_pages[pos] = this->m_db->read_nbt_page(m_page_info[pos].second); 
+        m_child_pages[pos] = this->get_db_ptr()->read_nbt_page(m_page_info[pos].second); 
     }
 
     return m_child_pages[pos].get();
@@ -127,7 +128,7 @@ inline const bt_page<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::g
 {
     if(m_child_pages[pos] == NULL)
     {
-        m_child_pages[pos] = this->m_db->read_nbt_page(m_page_info[pos].second); 
+        m_child_pages[pos] = this->get_db_ptr()->read_nbt_page(m_page_info[pos].second); 
     }
 
     return m_child_pages[pos].get();
