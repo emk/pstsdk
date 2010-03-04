@@ -156,7 +156,6 @@ private:
 
 class block
 {
-    friend class db_context;
 public:
     block(const shared_db_ptr& db, const block_info& info)
         : m_db(db), m_size(info.size), m_id(info.id), m_address(info.address), m_modified(false) { }

@@ -9,9 +9,7 @@
 namespace fairport
 {	
 
-class db_context_impl : 
-    public std::enable_shared_from_this<db_context>,
-    public db_context
+class db_context_impl : public db_context
 {
 public:
     db_context_impl(const shared_db_ptr& parent)

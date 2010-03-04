@@ -74,7 +74,7 @@ class db_context;
 typedef std::shared_ptr<db_context> shared_db_ptr;
 
 // database external interface
-class db_context
+class db_context : public std::enable_shared_from_this<db_context>
 {
 public:
     virtual ~db_context() { }
@@ -84,31 +84,23 @@ public:
     virtual block_info lookup_block_info(block_id bid) = 0;
    
     // page factory functions
-    virtual std::shared_ptr<bbt_page> read_bbt_root() = 0;
-    virtual std::shared_ptr<nbt_page> read_nbt_root() = 0;
-    virtual std::shared_ptr<bbt_page> read_bbt_page(ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_page> read_nbt_page(ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location) = 0;
-    virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location) = 0;
+	virtual std::shared_ptr<bbt_page> read_bbt_root() = 0;
+	virtual std::shared_ptr<nbt_page> read_nbt_root() = 0;
+	virtual std::shared_ptr<bbt_page> read_bbt_page(ulonglong location) = 0;
+	virtual std::shared_ptr<nbt_page> read_nbt_page(ulonglong location) = 0;
+	virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location) = 0;
+	virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location) = 0;
+	virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location) = 0;
     virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location) = 0;
-    virtual std::shared_ptr<bbt_page> read_bbt_root(const shared_db_ptr& parent) = 0;
-    virtual std::shared_ptr<nbt_page> read_nbt_root(const shared_db_ptr& parent) = 0;
-    virtual std::shared_ptr<bbt_page> read_bbt_page(const shared_db_ptr& parent, ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_page> read_nbt_page(const shared_db_ptr& parent, ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const shared_db_ptr& parent, ulonglong location) = 0;
-    virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const shared_db_ptr& parent, ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location) = 0;
-    virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location) = 0;
 
     // block factory functions
-    virtual std::shared_ptr<block> read_block(block_id bid) = 0;
-    virtual std::shared_ptr<data_block> read_data_block(block_id bid) = 0;
-    virtual std::shared_ptr<extended_block> read_extended_block(block_id bid) = 0;
-    virtual std::shared_ptr<external_block> read_external_block(block_id bid) = 0;
-    virtual std::shared_ptr<subnode_block> read_subnode_block(block_id bid) = 0;
-    virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_id bid) = 0;
-    virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_id bid) = 0;
+	std::shared_ptr<block> read_block(block_id bid) { return read_block(shared_from_this(), bid); }
+	std::shared_ptr<data_block> read_data_block(block_id bid) { return read_data_block(shared_from_this(), bid); }
+	std::shared_ptr<extended_block> read_extended_block(block_id bid) { return read_extended_block(shared_from_this(), bid); }
+	std::shared_ptr<external_block> read_external_block(block_id bid) { return read_external_block(shared_from_this(), bid); }
+	std::shared_ptr<subnode_block> read_subnode_block(block_id bid) { return read_subnode_block(shared_from_this(), bid); }
+	std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_id bid) { return read_subnode_leaf_block(shared_from_this(), bid); }
+	std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_id bid) { return read_subnode_nonleaf_block(shared_from_this(), bid); }
     virtual std::shared_ptr<block> read_block(const shared_db_ptr& parent, block_id bid) = 0;
     virtual std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, block_id bid) = 0;
     virtual std::shared_ptr<extended_block> read_extended_block(const shared_db_ptr& parent, block_id bid) = 0;
@@ -117,13 +109,13 @@ public:
     virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, block_id bid) = 0;
     virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, block_id bid) = 0;
 
-    virtual std::shared_ptr<block> read_block(const block_info& bi) = 0;
-    virtual std::shared_ptr<data_block> read_data_block(const block_info& bi) = 0;
-    virtual std::shared_ptr<extended_block> read_extended_block(const block_info& bi) = 0;
-    virtual std::shared_ptr<external_block> read_external_block(const block_info& bi) = 0;
-    virtual std::shared_ptr<subnode_block> read_subnode_block(const block_info& bi) = 0;
-    virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi) = 0;
-    virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi) = 0;
+	std::shared_ptr<block> read_block(const block_info& bi) { return read_block(shared_from_this(), bi); }
+	std::shared_ptr<data_block> read_data_block(const block_info& bi) { return read_data_block(shared_from_this(), bi); }
+	std::shared_ptr<extended_block> read_extended_block(const block_info& bi) { return read_extended_block(shared_from_this(), bi); }
+	std::shared_ptr<external_block> read_external_block(const block_info& bi) { return read_external_block(shared_from_this(), bi); }
+	std::shared_ptr<subnode_block> read_subnode_block(const block_info& bi) { return read_subnode_block(shared_from_this(), bi); }
+	std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi) { return read_subnode_leaf_block(shared_from_this(), bi); }
+	std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi) { return read_subnode_nonleaf_block(shared_from_this(), bi); }
     virtual std::shared_ptr<block> read_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     virtual std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     virtual std::shared_ptr<extended_block> read_extended_block(const shared_db_ptr& parent, const block_info& bi) = 0;
@@ -132,10 +124,10 @@ public:
     virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi) = 0;
 
-    virtual std::shared_ptr<external_block> create_external_block(size_t size) = 0;
-    virtual std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<external_block>& pblock) = 0;
-    virtual std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<extended_block>& pblock) = 0;
-    virtual std::shared_ptr<extended_block> create_extended_block(size_t size) = 0;
+	std::shared_ptr<external_block> create_external_block(size_t size) { return create_external_block(shared_from_this(), size); }
+	std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<external_block>& pblock) { return create_extended_block(shared_from_this(), pblock); }
+	std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<extended_block>& pblock) { return create_extended_block(shared_from_this(), pblock); }
+	std::shared_ptr<extended_block> create_extended_block(size_t size) { return create_extended_block(shared_from_this(), size); }
     virtual std::shared_ptr<external_block> create_external_block(const shared_db_ptr& parent, size_t size) = 0;
     virtual std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, std::shared_ptr<external_block>& pblock) = 0;
     virtual std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, std::shared_ptr<extended_block>& pblock) = 0;

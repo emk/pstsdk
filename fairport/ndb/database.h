@@ -30,9 +30,7 @@ std::shared_ptr<small_pst> open_small_pst(const std::wstring& filename);
 std::shared_ptr<large_pst> open_large_pst(const std::wstring& filename);
 
 template<typename T>
-class database_impl :
-    public std::enable_shared_from_this<database_impl<T>>,
-    public db_context
+class database_impl : public db_context
 {
 public:
 
@@ -41,45 +39,16 @@ public:
     node_info lookup_node_info(node_id nid);
     block_info lookup_block_info(block_id bid); 
     
-    std::shared_ptr<bbt_page> read_bbt_root()
-        { return read_bbt_root(this->shared_from_this()); }
-    std::shared_ptr<nbt_page> read_nbt_root()
-        { return read_nbt_root(this->shared_from_this()); }
-    std::shared_ptr<bbt_page> read_bbt_page(ulonglong location)
-        { return read_bbt_page(this->shared_from_this(), location); }
-    std::shared_ptr<nbt_page> read_nbt_page(ulonglong location)
-        { return read_nbt_page(this->shared_from_this(), location); }
-    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location) 
-        { return read_nbt_leaf_page(this->shared_from_this(), location); }
-    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location)
-        { return read_bbt_leaf_page(this->shared_from_this(), location); }
-    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location)
-        { return read_nbt_nonleaf_page(this->shared_from_this(), location); }
-    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location)
-        { return read_bbt_nonleaf_page(this->shared_from_this(), location); }
-    std::shared_ptr<bbt_page> read_bbt_root(const shared_db_ptr& parent);
-    std::shared_ptr<nbt_page> read_nbt_root(const shared_db_ptr& parent);
-    std::shared_ptr<bbt_page> read_bbt_page(const shared_db_ptr& parent, ulonglong location);
-    std::shared_ptr<nbt_page> read_nbt_page(const shared_db_ptr& parent, ulonglong location);
-    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const shared_db_ptr& parent, ulonglong location);
-    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const shared_db_ptr& parent, ulonglong location);
-    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location);
-    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location);
+	// page factory functions
+    std::shared_ptr<bbt_page> read_bbt_root();
+    std::shared_ptr<nbt_page> read_nbt_root();
+    std::shared_ptr<bbt_page> read_bbt_page(ulonglong location);
+    std::shared_ptr<nbt_page> read_nbt_page(ulonglong location);
+    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location);
+    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location);
+    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location);
+    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location);
 
-    std::shared_ptr<block> read_block(block_id bid)
-        { return read_block(this->shared_from_this(), bid); }
-    std::shared_ptr<data_block> read_data_block(block_id bid)
-        { return read_data_block(this->shared_from_this(), bid); }
-    std::shared_ptr<extended_block> read_extended_block(block_id bid)
-        { return read_extended_block(this->shared_from_this(), bid); }
-    std::shared_ptr<external_block> read_external_block(block_id bid)
-        { return read_external_block(this->shared_from_this(), bid); }
-    std::shared_ptr<subnode_block> read_subnode_block(block_id bid)
-        { return read_subnode_block(this->shared_from_this(), bid); }
-    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_id bid)
-        { return read_subnode_leaf_block(this->shared_from_this(), bid); }
-    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_id bid)
-        { return read_subnode_nonleaf_block(this->shared_from_this(), bid); }
     std::shared_ptr<block> read_block(const shared_db_ptr& parent, block_id bid)
         { return read_block(parent, lookup_block_info(bid)); }
     std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, block_id bid)
@@ -95,20 +64,6 @@ public:
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, block_id bid)
         { return read_subnode_nonleaf_block(parent, lookup_block_info(bid)); }
 
-    std::shared_ptr<block> read_block(const block_info& bi)
-        { return read_block(this->shared_from_this(), bi); }
-    std::shared_ptr<data_block> read_data_block(const block_info& bi)
-        { return read_data_block(this->shared_from_this(), bi); }
-    std::shared_ptr<extended_block> read_extended_block(const block_info& bi)
-        { return read_extended_block(this->shared_from_this(), bi); }
-    std::shared_ptr<external_block> read_external_block(const block_info& bi)
-        { return read_external_block(this->shared_from_this(), bi); }
-    std::shared_ptr<subnode_block> read_subnode_block(const block_info& bi)
-        { return read_subnode_block(this->shared_from_this(), bi); }
-    std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi)
-        { return read_subnode_leaf_block(this->shared_from_this(), bi); }
-    std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi)
-        { return read_subnode_nonleaf_block(this->shared_from_this(), bi); }
     std::shared_ptr<block> read_block(const shared_db_ptr& parent, const block_info& bi);
     std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, const block_info& bi);
     std::shared_ptr<extended_block> read_extended_block(const shared_db_ptr& parent, const block_info& bi);
@@ -117,14 +72,6 @@ public:
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi);
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi);
 
-    std::shared_ptr<external_block> create_external_block(size_t size)
-        { return create_external_block(this->shared_from_this(), size); }
-    std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<external_block>& pblock)
-        { return create_extended_block(this->shared_from_this(), pblock); }
-    std::shared_ptr<extended_block> create_extended_block(std::shared_ptr<extended_block>& pblock)
-        { return create_extended_block(this->shared_from_this(), pblock); }
-    std::shared_ptr<extended_block> create_extended_block(size_t size)
-        { return create_extended_block(this->shared_from_this(), size); }
     std::shared_ptr<external_block> create_external_block(const shared_db_ptr& parent, size_t size);
     std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, std::shared_ptr<external_block>& pblock);
     std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, std::shared_ptr<extended_block>& pblock);
@@ -136,10 +83,10 @@ protected:
     database_impl();
     database_impl(const std::wstring& filename);
     void validate_header();
-    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const shared_db_ptr& parent, ulonglong location, disk::nbt_leaf_page<T>& the_page);
-    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const shared_db_ptr& parent, ulonglong location, disk::bbt_leaf_page<T>& the_page);
-    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location, disk::nbt_nonleaf_page<T>& the_page);
-    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location, disk::bbt_nonleaf_page<T>& the_page);
+    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location, disk::nbt_leaf_page<T>& the_page);
+    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location, disk::bbt_leaf_page<T>& the_page);
+    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location, disk::nbt_nonleaf_page<T>& the_page);
+    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location, disk::bbt_nonleaf_page<T>& the_page);
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_leaf_block<T>& sub_block);
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_nonleaf_block<T>& sub_block);
 
@@ -214,15 +161,15 @@ inline std::shared_ptr<fairport::large_pst> fairport::open_large_pst(const std::
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_root(const shared_db_ptr& parent)
+inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_root()
 { 
-    return read_bbt_page(parent, m_header.root.brefBBT.ib); 
+    return read_bbt_page(m_header.root.brefBBT.ib); 
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_root(const shared_db_ptr& parent)
+inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_root()
 { 
-    return read_nbt_page(parent, m_header.root.brefNBT.ib);
+    return read_nbt_page(m_header.root.brefNBT.ib);
 }
 
 template<typename T>
@@ -237,7 +184,7 @@ inline fairport::database_impl<T>::database_impl(const std::wstring& filename)
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(const shared_db_ptr& parent, ulonglong location)
+inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(ulonglong location)
 {
     std::vector<byte> buffer(disk::page_size);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
@@ -249,14 +196,14 @@ inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read
         disk::nbt_leaf_page<T>* leaf_page = (disk::nbt_leaf_page<T>*)ppage;
 
         if(leaf_page->level == 0)
-            return read_nbt_leaf_page(parent, location, *leaf_page);
+            return read_nbt_leaf_page(location, *leaf_page);
     }
 
     throw unexpected_page("page_type != page_type_nbt");
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(const shared_db_ptr& parent, ulonglong location, disk::nbt_leaf_page<T>& the_page)
+inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(ulonglong location, disk::nbt_leaf_page<T>& the_page)
 {
     node_info ni;
     std::vector<std::pair<node_id, node_info>> nodes;
@@ -271,11 +218,11 @@ inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read
         nodes.push_back(std::make_pair(ni.id, ni));
     }
 
-    return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(parent, the_page.trailer.bid, location, std::move(nodes)));
+    return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(shared_from_this(), the_page.trailer.bid, location, std::move(nodes)));
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page(const shared_db_ptr& parent, ulonglong location)
+inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page(ulonglong location)
 {
     std::vector<byte> buffer(disk::page_size);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
@@ -287,14 +234,14 @@ inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read
         disk::bbt_leaf_page<T>* leaf_page = (disk::bbt_leaf_page<T>*)ppage;
 
         if(leaf_page->level == 0)
-            return read_bbt_leaf_page(parent, location, *leaf_page);
+            return read_bbt_leaf_page(location, *leaf_page);
     }
 
     throw unexpected_page("page_type != page_type_bbt");
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page(const shared_db_ptr& parent, ulonglong location, disk::bbt_leaf_page<T>& the_page)
+inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page(ulonglong location, disk::bbt_leaf_page<T>& the_page)
 {
     block_info bi;
     std::vector<std::pair<block_id, block_info>> blocks;
@@ -309,11 +256,11 @@ inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read
         blocks.push_back(std::make_pair(bi.id, bi));
     }
 
-    return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(parent, the_page.trailer.bid, location, std::move(blocks)));
+    return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(shared_from_this(), the_page.trailer.bid, location, std::move(blocks)));
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::read_nbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location)
+inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::read_nbt_nonleaf_page(ulonglong location)
 {
     std::vector<byte> buffer(disk::page_size);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
@@ -325,14 +272,14 @@ inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::r
         disk::nbt_nonleaf_page<T>* nonleaf_page = (disk::nbt_nonleaf_page<T>*)ppage;
 
         if(nonleaf_page->level > 0)
-            return read_nbt_nonleaf_page(parent, location, *nonleaf_page);
+            return read_nbt_nonleaf_page(location, *nonleaf_page);
     }
 
     throw unexpected_page("page_type != page_type_nbt");
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::read_nbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location, fairport::disk::nbt_nonleaf_page<T>& the_page)
+inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::read_nbt_nonleaf_page(ulonglong location, fairport::disk::nbt_nonleaf_page<T>& the_page)
 {
     std::vector<std::pair<node_id, ulonglong>> nodes;
     
@@ -341,11 +288,11 @@ inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::r
         nodes.push_back(std::make_pair((node_id)the_page.entries[i].key, the_page.entries[i].ref.ib));
     }
 
-    return std::shared_ptr<nbt_nonleaf_page>(new nbt_nonleaf_page(parent, the_page.trailer.bid, location, the_page.level, std::move(nodes)));
+    return std::shared_ptr<nbt_nonleaf_page>(new nbt_nonleaf_page(shared_from_this(), the_page.trailer.bid, location, the_page.level, std::move(nodes)));
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::read_bbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location)
+inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::read_bbt_nonleaf_page(ulonglong location)
 {
     std::vector<byte> buffer(disk::page_size);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
@@ -357,7 +304,7 @@ inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::r
         disk::bbt_nonleaf_page<T>* nonleaf_page = (disk::bbt_nonleaf_page<T>*)ppage;
 
         if(nonleaf_page->level > 0)
-            return read_bbt_nonleaf_page(parent, location, *nonleaf_page);
+            return read_bbt_nonleaf_page(location, *nonleaf_page);
     }
 
     throw unexpected_page("page_type != page_type_bbt");
@@ -365,7 +312,7 @@ inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::r
 
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::read_bbt_nonleaf_page(const shared_db_ptr& parent, ulonglong location, disk::bbt_nonleaf_page<T>& the_page)
+inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::read_bbt_nonleaf_page(ulonglong location, disk::bbt_nonleaf_page<T>& the_page)
 {
     std::vector<std::pair<block_id, ulonglong>> blocks;
     
@@ -374,12 +321,12 @@ inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::r
         blocks.push_back(std::make_pair(the_page.entries[i].key, the_page.entries[i].ref.ib));
     }
 
-    return std::shared_ptr<bbt_nonleaf_page>(new bbt_nonleaf_page(parent, the_page.trailer.bid, location, the_page.level, std::move(blocks)));
+    return std::shared_ptr<bbt_nonleaf_page>(new bbt_nonleaf_page(shared_from_this(), the_page.trailer.bid, location, the_page.level, std::move(blocks)));
 
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_page(const shared_db_ptr& parent, ulonglong location)
+inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_page(ulonglong location)
 {
     std::vector<byte> buffer(disk::page_size);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
@@ -392,12 +339,12 @@ inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_
         if(leaf->level == 0)
         {
             // it really is a leaf!
-            return read_bbt_leaf_page(parent, location, *leaf);
+            return read_bbt_leaf_page(location, *leaf);
         }
         else
         {
             disk::bbt_nonleaf_page<T>* nonleaf = (disk::bbt_nonleaf_page<T>*)ppage;
-            return read_bbt_nonleaf_page(parent, location, *nonleaf);
+            return read_bbt_nonleaf_page(location, *nonleaf);
         }
     }
     else
@@ -407,7 +354,7 @@ inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_
 }
         
 template<typename T>
-inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_page(const shared_db_ptr& parent, ulonglong location)
+inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_page(ulonglong location)
 {
     std::vector<byte> buffer(disk::page_size);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
@@ -420,12 +367,12 @@ inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_
         if(leaf->level == 0)
         {
             // it really is a leaf!
-            return read_nbt_leaf_page(parent, location, *leaf);
+            return read_nbt_leaf_page(location, *leaf);
         }
         else
         {
             disk::nbt_nonleaf_page<T>* nonleaf = (disk::nbt_nonleaf_page<T>*)ppage;
-            return read_nbt_nonleaf_page(parent, location, *nonleaf);
+            return read_nbt_nonleaf_page(location, *nonleaf);
         }
     }
     else
