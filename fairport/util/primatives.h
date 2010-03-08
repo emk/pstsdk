@@ -27,6 +27,8 @@ typedef ushort prop_id;
 
 typedef ulong row_id;
 
+struct alias_tag { };
+
 //
 // node id
 //

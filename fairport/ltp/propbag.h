@@ -23,14 +23,12 @@ class property_bag : public const_property_object
 {
 public:
     explicit property_bag(const node& n);
+	property_bag(const node& n, alias_tag);
     explicit property_bag(const heap& h);
-    explicit property_bag(const pc_bth_node* pbth);
+	property_bag(const heap& h, alias_tag);
     property_bag(const property_bag& other);
+	property_bag(const property_bag& other, alias_tag);
     property_bag(property_bag&& other) : m_pbth(std::move(other.m_pbth)) { }
-
-    property_bag& operator=(const property_bag& other);
-    property_bag& operator=(property_bag&& other)
-        { std::swap(other.m_pbth, m_pbth); }
 
     std::vector<prop_id> get_prop_list() const;
     prop_type get_prop_type(prop_id id) const
@@ -38,6 +36,8 @@ public:
     bool prop_exists(prop_id id) const;
 
 private:
+	property_bag& operator=(const property_bag& other); // = delete
+
     byte get_value_1(prop_id id) const
         { return (byte)m_pbth->lookup(id).id; }
     ushort get_value_2(prop_id id) const
@@ -63,9 +63,19 @@ inline fairport::property_bag::property_bag(const fairport::node& n)
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
+inline fairport::property_bag::property_bag(const fairport::node& n, alias_tag)
+{
+    heap h(n, alias_tag());
+
+    if(h.get_client_signature() != disk::heap_sig_pc)
+        throw sig_mismatch("expected heap_sig_pc");
+
+    m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
+}
+
 inline fairport::property_bag::property_bag(const fairport::heap& h)
 {
-    heap my_heap(h.get_node());
+    heap my_heap(h);
 
     if(my_heap.get_client_signature() != disk::heap_sig_pc)
         throw sig_mismatch("expected heap_sig_pc");
@@ -73,14 +83,14 @@ inline fairport::property_bag::property_bag(const fairport::heap& h)
     m_pbth = my_heap.open_bth<prop_id, disk::prop_entry>(my_heap.get_root_id());
 }
 
-inline fairport::property_bag::property_bag(const pc_bth_node* pbth)
+inline fairport::property_bag::property_bag(const fairport::heap& h, alias_tag)
 {
-    heap h(pbth->get_node());
+    heap my_heap(h, alias_tag());
 
-    if(h.get_client_signature() != disk::heap_sig_pc)
+    if(my_heap.get_client_signature() != disk::heap_sig_pc)
         throw sig_mismatch("expected heap_sig_pc");
 
-    m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
+    m_pbth = my_heap.open_bth<prop_id, disk::prop_entry>(my_heap.get_root_id());
 }
 
 inline fairport::property_bag::property_bag(const property_bag& other)
@@ -93,16 +103,11 @@ inline fairport::property_bag::property_bag(const property_bag& other)
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
-inline fairport::property_bag& fairport::property_bag::operator=(const property_bag& other)
+inline fairport::property_bag::property_bag(const property_bag& other, alias_tag)
 {
-    if(this == &other) 
-        return *this;
-    
-    heap h(other.m_pbth->get_node());
+    heap h(other.m_pbth->get_node(), alias_tag());
 
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
-
-    return *this;
 }
 
 inline std::vector<fairport::prop_id> fairport::property_bag::get_prop_list() const

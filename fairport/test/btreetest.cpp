@@ -13,8 +13,6 @@ public:
     leaf(int k1, string v1, int k2, string v2, int k3, string v3);
     ~leaf() { }
 
-    string& get_value(uint pos)
-        { return values[pos]; }
     const string& get_value(uint pos) const 
         { return values[pos]; }
     const int& get_key(uint pos) const 
@@ -117,7 +115,7 @@ void test_btree()
     assert(knf_caught);
 
     int i = 0;
-    for(non_leaf::iterator iter = nl.begin(); 
+    for(non_leaf::const_iterator iter = nl.begin(); 
             iter != nl.end(); 
             ++iter, ++i)
     {
@@ -131,7 +129,7 @@ void test_btree()
             {
             }
 
-    non_leaf::iterator i2 = nl.end();
+    non_leaf::const_iterator i2 = nl.end();
     int j = 9;
     while(i2 != nl.begin())
     {

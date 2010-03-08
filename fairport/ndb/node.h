@@ -57,10 +57,8 @@ public:
     uint get_page_count() const;
 
     // iterate over subnodes
-    subnode_iterator subnode_begin();
-    const_subnode_iterator subnode_begin() const;
-    subnode_iterator subnode_end();
-    const_subnode_iterator subnode_end() const;
+    const_subnodeinfo_iterator subnode_begin() const;
+    const_subnodeinfo_iterator subnode_end() const;
     node lookup(node_id id) const;
 
 private:
@@ -96,6 +94,8 @@ public:
 
     node(const node& other)
         : m_pimpl(new node_impl(*other.m_pimpl)) { }
+	node(const node& other, alias_tag)
+		: m_pimpl(other.m_pimpl) { }
     node(node&& other)
         : m_pimpl(std::move(other.m_pimpl)) { }
 
@@ -141,12 +141,10 @@ public:
     uint get_page_count() const { return m_pimpl->get_page_count(); }
 
     // iterate over subnodes
-    subnode_iterator subnode_begin() { return m_pimpl->subnode_begin(); }
-    const_subnode_iterator subnode_begin() const
-        { return std::const_pointer_cast<const node_impl>(m_pimpl)->subnode_begin(); }
-    subnode_iterator subnode_end() { return m_pimpl->subnode_end(); }
-    const_subnode_iterator subnode_end() const
-        { return std::const_pointer_cast<const node_impl>(m_pimpl)->subnode_end(); } 
+    const_subnodeinfo_iterator subnode_begin() const
+        { return m_pimpl->subnode_begin(); }
+    const_subnodeinfo_iterator subnode_end() const
+        { return m_pimpl->subnode_end(); } 
     node lookup(node_id id) const
         { return m_pimpl->lookup(id); }
 
@@ -345,8 +343,6 @@ public:
         : subnode_block(db, info, 0), m_subnodes(subnodes) { }
 
 	// btree_node_leaf implementation
-    subnode_info& get_value(uint pos)
-        { return m_subnodes[pos].second; }
     const subnode_info& get_value(uint pos) const 
         { return m_subnodes[pos].second; }
     const node_id& get_key(uint pos) const
@@ -798,23 +794,13 @@ inline size_t fairport::extended_block::resize(size_t size, std::shared_ptr<data
     return size;
 }
 
-inline fairport::subnode_iterator fairport::node_impl::subnode_begin() 
-{
-    return ensure_sub_block()->begin();
-}
-
-inline fairport::const_subnode_iterator fairport::node_impl::subnode_begin() const
+inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_begin() const
 {
     const subnode_block* pblock = ensure_sub_block();
     return pblock->begin();
 }
 
-inline fairport::subnode_iterator fairport::node_impl::subnode_end()
-{
-    return ensure_sub_block()->end();
-}
-
-inline fairport::const_subnode_iterator fairport::node_impl::subnode_end() const
+inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_end() const
 {
     const subnode_block* pblock = ensure_sub_block();
     return pblock->end();

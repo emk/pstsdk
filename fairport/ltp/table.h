@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <boost/iterator/iterator_facade.hpp>
 
 #include "fairport/util/primatives.h"
 
@@ -19,7 +20,7 @@ typedef std::shared_ptr<table_impl> table_ptr;
 typedef std::shared_ptr<const table_impl> const_table_ptr;
 
 table_ptr open_table(const node& n);
-
+table_ptr open_table(const node&, alias_tag);
 
 class const_table_row : public const_property_object
 {
@@ -48,37 +49,25 @@ private:
     const_table_ptr m_table;
 };
 
-class const_table_row_iter : public std::iterator<std::random_access_iterator_tag, const_table_row>
+class const_table_row_iter : public boost::iterator_facade<const_table_row_iter, const_table_row, boost::random_access_traversal_tag, const_table_row>
 {
 public:
+	const_table_row_iter()
+		: m_position(0), m_table(nullptr) { }
     const_table_row_iter(ulong pos, const const_table_ptr& table) 
         : m_position(pos), m_table(table)  { }
-    const_table_row_iter& operator++()
-        { ++m_position; return (*this); }
-    const_table_row_iter& operator+=(ulong off)
-        { m_position += off; return (*this); }
-    const_table_row_iter operator++(int)
-        { const_table_row_iter iter = *this; ++*this; return iter; }
-    const_table_row_iter operator+(ulong off)
-        { const_table_row_iter iter = *this; iter += off; return iter; }
-    const_table_row_iter& operator--()
-        { --m_position; return (*this); }
-    const_table_row_iter& operator-=(ulong off)
-        { m_position -= off; return (*this); }
-    const_table_row_iter operator--(int)
-        { const_table_row_iter iter = *this; --*this; return iter; }
-    const_table_row_iter operator-(ulong off)
-        { const_table_row_iter iter = *this; iter -= off; return iter; }
-    bool operator!=(const const_table_row_iter& other)
-        { return !(*this == other); }
-    bool operator==(const const_table_row_iter& other)
+
+	void increment() { ++m_position; }
+	bool equal(const const_table_row_iter& other) const
         { return ((m_position == other.m_position) && (m_table == other.m_table)); }
-    const_table_row operator[](ulong off)
-        { return (*(*this + off)); }
-    const_table_row operator*()
-        { return const_table_row(m_position, m_table); }
+	const_table_row dereference() const
+		{ return const_table_row(m_position, m_table); }
+	void decrement() { --m_position; }
+	void advance(int off) { m_position += off; }
+	size_t distance_to(const const_table_row_iter& other) const
+		{ return (other.m_position - m_position); }
 private:
-    ulong m_position;
+	ulong m_position;
     const_table_ptr m_table;
 };
 
@@ -127,7 +116,9 @@ public:
 
 private:
     friend table_ptr open_table(const node& n);
+	friend table_ptr open_table(const node& n, alias_tag);
     basic_table(const node& n);
+	basic_table(const node& n, alias_tag);
 
 	std::unique_ptr<bth_node<row_id, T>> m_prows;
 
@@ -157,7 +148,10 @@ class table
 {
 public:
     explicit table(const node& n);
+	table(const node& n, alias_tag);
     table(const table& other);
+	table(const table& other, alias_tag)
+		: m_ptable(other.m_ptable) { }
 
     const_table_row operator[](ulong row) const
         { return (*m_ptable)[row]; }
@@ -211,6 +205,27 @@ inline fairport::table_ptr fairport::open_table(const node& n)
        return table_ptr(new small_table(n));
 }
 
+inline fairport::table_ptr fairport::open_table(const node& n, alias_tag)
+{
+    if(n.get_id() == nid_all_message_search_contents)
+    {
+        //return table_ptr(new gust(n));
+        throw not_implemented("gust table");
+    }
+
+    heap h(n);
+    std::vector<byte> table_info = h.read(h.get_root_id());
+    disk::tc_header* pheader = (disk::tc_header*)&table_info[0];
+
+    std::vector<byte> bth_info = h.read(pheader->row_btree_id);
+    disk::bth_header* pbthheader = (disk::bth_header*)&bth_info[0];
+
+    if(pbthheader->entry_size == 4)
+       return table_ptr(new large_table(n, alias_tag()));
+    else
+       return table_ptr(new small_table(n, alias_tag()));
+}
+
 inline std::vector<fairport::prop_id> fairport::const_table_row::get_prop_list() const
 { 
     return m_table->get_prop_list(); 
@@ -260,6 +275,35 @@ template<typename T>
 inline fairport::basic_table<T>::basic_table(const node& n)
 {
     heap h(n);
+
+    std::vector<byte> table_info = h.read(h.get_root_id());
+    disk::tc_header* pheader = (disk::tc_header*)&table_info[0];
+
+    if(pheader->signature != disk::heap_sig_tc)
+        throw sig_mismatch("heap_sig_tc expected");
+
+    m_prows = h.open_bth<row_id, T>(pheader->row_btree_id);
+
+    for(int i = 0; i < pheader->num_columns; ++i)
+        m_columns[pheader->columns[i].id] = pheader->columns[i];
+
+    for(int i = 0; i < disk::tc_offsets_max; ++i)
+        m_offsets[i] = pheader->size_offsets[i];
+
+    if(is_subnode_id(pheader->row_matrix_id))
+    {
+        m_pnode_rowarray.reset(new node(n.lookup(pheader->row_matrix_id)));
+    }
+    else if(pheader->row_matrix_id)
+    {
+        m_vec_rowarray = h.read(pheader->row_matrix_id);
+    }
+}
+
+template<typename T>
+inline fairport::basic_table<T>::basic_table(const node& n, alias_tag)
+{
+    heap h(n, alias_tag());
 
     std::vector<byte> table_info = h.read(h.get_root_id());
     disk::tc_header* pheader = (disk::tc_header*)&table_info[0];

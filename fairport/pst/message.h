@@ -49,5 +49,30 @@ public:
 private:
 };
 
+class attachment
+{
+public:
+    // property access
+    std::wstring get_filename() const
+		{ return m_bag.read_prop<std::wstring>(0x3707); }
+	std::vector<byte> get_bytes() const
+		{ return m_bag.read_prop<std::vector<byte>>(0x3701); }
+	size_t size() const
+		{ return m_bag.read_prop<uint>(0xe20); }
+
+	// lower layer access
+	const property_bag& get_property_bag() const
+		{ return *m_bag; }
+	property_bag& get_property_bag()
+		{ return *m_bag; }
+
+private:
+	friend class message;
+	attachment(const property_bag& attachment)
+		: m_bag(attachment, alias_tag) { }
+
+	property_bag m_bag;
+};
+
 }
 #endif

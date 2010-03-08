@@ -45,12 +45,46 @@ void test_table(const fairport::table& tc)
     }
 }
 
+void test_attachment_table(const fairport::node& message, const fairport::table& tc)
+{
+    using namespace std;
+    using namespace fairport;
+    for(uint i = 0; i < tc.size(); ++i)
+    {
+        node attach = message.lookup(tc[i].row_id());
+        
+        wcout << "Attachment " << i << endl;
+        property_bag pc(attach);
+            std::vector<ushort> proplist(pc.get_prop_list());
+            for(uint i = 0; i < proplist.size(); ++i)
+            {
+                if(pc.get_prop_type(proplist[i]) == prop_type_wstring)
+                {
+                    wcout << "\t" << hex << proplist[i] << ": " << pc.read_prop<std::wstring>(proplist[i]) << endl;
+                }
+				else if(pc.get_prop_type(proplist[i]) == prop_type_long)
+				{
+					wcout << "\t" << hex << proplist[i] << ": " << dec << pc.read_prop<long>(proplist[i]) << endl;
+				}
+				else if(pc.get_prop_type(proplist[i]) == prop_type_boolean)
+				{
+					wcout << "\t" << hex << proplist[i] << ": " << dec << (pc.read_prop<bool>(proplist[i]) ? L"true" : L"false") << endl;
+				}
+                else
+                {
+                    wcout << "\t" << hex << proplist[i] << "(" << dec << pc.get_prop_type(proplist[i]) << ")" << endl;
+                }
+            }
+
+    }
+}
+
 void iterate(fairport::shared_db_ptr pdb)
 {
     using namespace std;
     using namespace fairport;
 	shared_ptr<const nbt_page> nbt_root = pdb->read_nbt_root();
-    for(const_node_iterator iter = nbt_root->begin();
+    for(const_nodeinfo_iterator iter = nbt_root->begin();
             iter != nbt_root->end();
             ++iter)
     {
@@ -70,6 +104,7 @@ void iterate(fairport::shared_db_ptr pdb)
 
         if(get_nid_type(n.get_id()) == nid_type_message)
         {
+            
             property_bag pc(n);
             std::vector<ushort> proplist(pc.get_prop_list());
             for(uint i = 0; i < proplist.size(); ++i)
@@ -79,8 +114,23 @@ void iterate(fairport::shared_db_ptr pdb)
                     wcout << pc.read_prop<std::wstring>(proplist[i]) << endl;
                 }
             }
+
+            // attachment table
+            for(const_subnodeinfo_iterator si = n.subnode_begin();
+                    si != n.subnode_end();
+                    ++si)
+            {
+                if(get_nid_type(si->id) == nid_type_attachment_table)
+                {
+                    table atc(node(n, *si));
+                    wcout << "Found Attachment Table: " << atc.size() << endl;
+                    test_table(atc);
+                    test_attachment_table(n, atc);
+                }
+            }
+
         }
-    
+        
         try{
             heap h(n);
 			std::unique_ptr<bth_node<ushort, disk::prop_entry>> bth = h.open_bth<ushort, disk::prop_entry>(h.get_root_id());
@@ -116,7 +166,9 @@ void test_highlevel()
 
     shared_db_ptr uni = open_database(L"test_unicode.pst");
     shared_db_ptr ansi = open_database(L"test_ansi.pst");
+    shared_db_ptr uni2 = open_database(L"test2.pst");
 
     iterate(uni);
     iterate(ansi);
+    iterate(uni2);
 }

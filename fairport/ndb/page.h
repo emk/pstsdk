@@ -77,8 +77,6 @@ public:
         : bt_page<K,V>(db, pid, address, 0), m_page_data(data) { }
 
     // btree_node_leaf implementation
-    V& get_value(uint pos)
-        { return m_page_data[pos].second; }
     const V& get_value(uint pos) const
         { return m_page_data[pos].second; }
     const K& get_key(uint pos) const

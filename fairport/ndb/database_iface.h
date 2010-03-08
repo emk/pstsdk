@@ -50,17 +50,11 @@ typedef bt_leaf_page<node_id, node_info> nbt_leaf_page;
 typedef bt_leaf_page<block_id, block_info> bbt_leaf_page;
 
 template<typename K, typename V>
-class btree_node_iter;
-
-template<typename K, typename V>
 class const_btree_node_iter;
 
-typedef btree_node_iter<node_id, node_info> node_iterator;
-typedef const_btree_node_iter<node_id, node_info> const_node_iterator;
-typedef btree_node_iter<node_id, subnode_info> subnode_iterator;
-typedef const_btree_node_iter<node_id, subnode_info> const_subnode_iterator;
-typedef btree_node_iter<block_id, block_info> block_iterator;
-typedef const_btree_node_iter<block_id, block_info> const_block_iterator;
+typedef const_btree_node_iter<node_id, node_info> const_nodeinfo_iterator;
+typedef const_btree_node_iter<node_id, subnode_info> const_subnodeinfo_iterator;
+typedef const_btree_node_iter<block_id, block_info> const_blockinfo_iterator;
 
 class block;
 class data_block;

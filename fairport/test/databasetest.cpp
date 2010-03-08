@@ -74,7 +74,7 @@ void process_node(const fairport::node& n)
     using namespace std;
     using namespace fairport;
 
-    for(const_subnode_iterator iter = n.subnode_begin();
+    for(const_subnodeinfo_iterator iter = n.subnode_begin();
                     iter != n.subnode_end();
                     ++iter)
     {
@@ -180,7 +180,7 @@ void test_db()
 
     node = 0;
     shared_ptr<const nbt_page> nbt_root = db_2->read_nbt_root();
-    for(const_node_iterator iter = nbt_root->begin();
+    for(const_nodeinfo_iterator iter = nbt_root->begin();
                     iter != nbt_root->end();
                     ++iter, ++node)
     {
@@ -193,7 +193,7 @@ void test_db()
 
     block = 0;
     shared_ptr<const bbt_page> bbt_root = db_2->read_bbt_root();
-    for(const_block_iterator iter = bbt_root->begin();
+    for(const_blockinfo_iterator iter = bbt_root->begin();
                     iter != bbt_root->end();
                     ++iter, ++block)
     {
@@ -204,7 +204,7 @@ void test_db()
   
     node = 0;
     shared_ptr<const nbt_page> nbt_root2 = db_3->read_nbt_root();
-    for(const_node_iterator iter = nbt_root2->begin();
+    for(const_nodeinfo_iterator iter = nbt_root2->begin();
                     iter != nbt_root2->end();
                     ++iter, ++node)
     {
@@ -217,7 +217,7 @@ void test_db()
 
     block = 0;
     shared_ptr<const bbt_page> bbt_root2 = db_3->read_bbt_root();
-    for(const_block_iterator iter = bbt_root2->begin();
+    for(const_blockinfo_iterator iter = bbt_root2->begin();
                     iter != bbt_root2->end();
                     ++iter, ++block)
     {

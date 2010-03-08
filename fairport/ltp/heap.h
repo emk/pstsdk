@@ -34,6 +34,7 @@ public:
     std::vector<byte> read(heap_id id) const;
     const node& get_node() const { return m_node; }
     node& get_node() { return m_node; }
+
     template<typename K, typename V>
 	std::unique_ptr<bth_node<K,V>> open_bth(heap_id root);
     
@@ -42,7 +43,9 @@ public:
 private:
     heap_impl();
     explicit heap_impl(const node& n);
+	heap_impl(const node& n, alias_tag);
     heap_impl(const node& n, byte client_sig);
+	heap_impl(const node& n, byte client_sig, alias_tag);
     heap_impl(const heap_impl& other) 
         : m_node(other.m_node) { }
 
@@ -56,16 +59,18 @@ class heap
 public:
     explicit heap(const node& n)
         : m_pheap(new heap_impl(n)) { }
+	heap(const node& n, alias_tag)
+		: m_pheap(new heap_impl(n, alias_tag())) { }
     heap(const node& n, byte client_sig)
         : m_pheap(new heap_impl(n, client_sig)) { }
+	heap(const node& n, byte client_sig, alias_tag)
+		: m_pheap(new heap_impl(n, client_sig, alias_tag())) { }
     heap(const heap& other)
         : m_pheap(new heap_impl(*(other.m_pheap))) { }
+	heap(const heap& other, alias_tag)
+		: m_pheap(other.m_pheap) { }
     heap(heap&& other)
         : m_pheap(std::move(other.m_pheap)) { }
-
-    heap& operator=(const heap& other);
-    heap& operator=(heap&& other)
-        { std::swap(m_pheap, other.m_pheap); return *this; }
 
     size_t size(heap_id id) const
         { return m_pheap->size(id); }
@@ -88,6 +93,7 @@ public:
         { return m_pheap->open_bth<K,V>(root); }
 
 private:
+	heap& operator=(const heap& other); // = delete
     heap_ptr m_pheap;
 };
 
@@ -159,8 +165,6 @@ public:
     virtual ~bth_leaf_node() { }
 
     // btree_node_leaf implementation
-    V& get_value(uint pos)
-        { return m_bth_data[pos].second; }
     const V& get_value(uint pos) const
         { return m_bth_data[pos].second; }
     const K& get_key(uint pos) const
@@ -173,15 +177,6 @@ private:
 };
 
 } // end fairport namespace
-
-inline fairport::heap& fairport::heap::operator=(const heap& other)
-{
-    if(this == &other)
-        return *this;
-
-    m_pheap = heap_ptr(new heap_impl(*other.m_pheap));
-    return *this;
-}
 
 template<typename K, typename V>
 inline std::unique_ptr<fairport::bth_node<K,V>> fairport::bth_node<K,V>::open_root(const heap_ptr& h, heap_id bth_root)
@@ -294,8 +289,31 @@ inline fairport::heap_impl::heap_impl(const node& n)
         throw sig_mismatch("not a heap");
 }
 
+inline fairport::heap_impl::heap_impl(const node& n, alias_tag)
+: m_node(n, alias_tag())
+{
+    // need to throw if the node is smaller than first_header
+    disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
+
+    if(first_header.signature != disk::heap_signature)
+        throw sig_mismatch("not a heap");
+}
+
 inline fairport::heap_impl::heap_impl(const node& n, byte client_sig)
 : m_node(n)
+{
+    // need to throw if the node is smaller than first_header
+    disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
+
+    if(first_header.signature != disk::heap_signature)
+        throw sig_mismatch("not a heap");
+
+    if(first_header.signature != client_sig)
+        throw sig_mismatch("mismatch client_sig");
+}
+
+inline fairport::heap_impl::heap_impl(const node& n, byte client_sig, alias_tag)
+: m_node(n, alias_tag())
 {
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);

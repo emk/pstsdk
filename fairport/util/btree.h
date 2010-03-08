@@ -3,6 +3,7 @@
 
 #include <iterator>
 #include <vector>
+#include <boost/iterator/iterator_facade.hpp>
 
 #include "fairport/util/primatives.h"
 #include "fairport/util/errors.h"
@@ -18,9 +19,6 @@ template<typename K, typename V>
 struct btree_iter_impl;
 
 template<typename K, typename V>
-class btree_node_iter;
-
-template<typename K, typename V>
 class const_btree_node_iter;
 
 template<typename K, typename V>
@@ -31,22 +29,14 @@ template<typename K, typename V>
 class btree_node
 {
 public:
-    typedef btree_node_iter<K,V> iterator;
     typedef const_btree_node_iter<K,V> const_iterator;
 
     virtual ~btree_node() { }
 
-    virtual V& lookup(const K&) = 0;
     virtual const V& lookup(const K&) const = 0;
     
     virtual const K& get_key(uint pos) const = 0;
     virtual uint num_values() const = 0;
-
-    iterator begin() 
-        { return iterator(this, false); }
-    
-    iterator end()
-        { return iterator(this, true); }
 
     const_iterator begin() const
         { return const_iterator(this, false); }
@@ -59,7 +49,6 @@ public:
 protected:
 
     // iter support
-    friend class btree_node_iter<K,V>;
     friend class const_btree_node_iter<K,V>;
     friend class btree_node_nonleaf<K,V>;
     virtual void first(btree_iter_impl<K,V>& iter) const = 0;
@@ -74,15 +63,12 @@ class btree_node_leaf : public virtual btree_node<K,V>
 public:
     virtual ~btree_node_leaf() { }
 
-    V& lookup(const K&);
     const V& lookup(const K&) const;
 
-    virtual V& get_value(uint pos) = 0;
     virtual const V& get_value(uint pos) const = 0;
 
 protected:
     // iter support
-    friend class btree_node_iter<K,V>;
     friend class const_btree_node_iter<K,V>;
     void first(btree_iter_impl<K,V>& iter) const
         { iter.m_leaf = const_cast<btree_node_leaf<K,V>* >(this); iter.m_leaf_pos = 0; }
@@ -99,7 +85,6 @@ class btree_node_nonleaf : public virtual btree_node<K,V>
 public:
     virtual ~btree_node_nonleaf() { }
 
-    V& lookup(const K&);
     const V& lookup(const K&) const;
 
 protected:
@@ -108,7 +93,6 @@ protected:
     virtual const btree_node<K,V>* get_child(uint i) const = 0;
 
     // iter support
-    friend class btree_node_iter<K,V>;
     friend class const_btree_node_iter<K,V>;
     friend class btree_node_leaf<K,V>;
     void first(btree_iter_impl<K,V>& iter) const;
@@ -127,56 +111,22 @@ struct btree_iter_impl
 };
 
 template<typename K, typename V>
-class btree_node_iter : public std::iterator<std::bidirectional_iterator_tag, V>
+class const_btree_node_iter : public boost::iterator_facade<const_btree_node_iter<K,V>, const V, boost::bidirectional_traversal_tag>
 {
-
 public:
-    btree_node_iter(const btree_node<K,V>* root, bool last);
-    btree_node_iter& operator++() 
-        { m_impl.m_leaf->next(m_impl); return (*this); }
-    btree_node_iter operator++(int)
-        { btree_node_iter<K,V> iter = *this; ++*this; return iter; }
-    btree_node_iter& operator--() 
-        { m_impl.m_leaf->prev(m_impl); return (*this); }
-    btree_node_iter operator--(int) 
-        { btree_node_iter<K,V> iter = *this; --*this; return iter; }
-    bool operator!=(const btree_node_iter<K,V>& other) const
-        { return !(*this == other); }
-    bool operator==(const btree_node_iter<K,V>& other) const
-        { return ((m_impl.m_leaf == other.m_impl.m_leaf) && (m_impl.m_leaf_pos == other.m_impl.m_leaf_pos)); }
-    V& operator*()
-        { return m_impl.m_leaf->get_value(m_impl.m_leaf_pos); }
-    V* operator->()
-        { return (&**this); }
-
-private:
-    mutable btree_iter_impl<K,V> m_impl;
-};
-
-template<typename K, typename V>
-class const_btree_node_iter : public std::iterator<std::bidirectional_iterator_tag, const V>
-{
-
-public:
+	const_btree_node_iter();
     const_btree_node_iter(const btree_node<K,V>* root, bool last);
-    const_btree_node_iter& operator++() 
-        { m_impl.m_leaf->next(m_impl); return (*this); }
-    const_btree_node_iter operator++(int)
-        { btree_node_iter<K,V> iter = *this; ++*this; return iter; }
-    const_btree_node_iter& operator--() 
-        { m_impl.m_leaf->prev(m_impl); return (*this); }
-    const_btree_node_iter operator--(int) 
-        { const_btree_node_iter<K,V> iter = *this; --*this; return iter; }
-    bool operator!=(const const_btree_node_iter<K,V>& other) const
-        { return !(*this == other); }
-    bool operator==(const const_btree_node_iter<K,V>& other) const
-        { return ((m_impl.m_leaf == other.m_impl.m_leaf) && (m_impl.m_leaf_pos == other.m_impl.m_leaf_pos)); }
-    V& operator*()
-        { return m_impl.m_leaf->get_value(m_impl.m_leaf_pos); }
-    V* operator->()
-        { return (&**this); }
 
 private:
+	friend class boost::iterator_core_access;
+
+	void increment() { m_impl.m_leaf->next(m_impl); }
+	bool equal(const const_btree_node_iter& other) const 
+		{ return ((m_impl.m_leaf == other.m_impl.m_leaf) && (m_impl.m_leaf_pos == other.m_impl.m_leaf_pos)); }
+	const V& dereference() const
+		{ return m_impl.m_leaf->get_value(m_impl.m_leaf_pos); }
+	void decrement() { m_impl.m_leaf->prev(m_impl); }
+
     mutable btree_iter_impl<K,V> m_impl;
 };
 
@@ -208,20 +158,6 @@ int fairport::btree_node<K,V>::binary_search(const K& k) const
     }
 
     return mid - 1;
-}
-
-template<typename K, typename V>
-V& fairport::btree_node_leaf<K,V>::lookup(const K& k)
-{
-    int location = this->binary_search(k);
-
-    if(location == -1)
-        throw key_not_found<K>(k);
-    
-    if(this->get_key(location) != k)
-        throw key_not_found<K>(k);
-
-    return get_value(location);
 }
 
 template<typename K, typename V>
@@ -288,17 +224,6 @@ void fairport::btree_node_leaf<K,V>::prev(fairport::btree_iter_impl<K,V>& iter) 
     {
         --iter.m_leaf_pos;
     }
-}
-
-template<typename K, typename V>
-V& fairport::btree_node_nonleaf<K,V>::lookup(const K& k) 
-{
-    int location = this->binary_search(k);
-
-    if(location == -1)
-        throw key_not_found<K>(k);
-
-    return get_child(location)->lookup(k);
 }
 
 template<typename K, typename V>
@@ -369,17 +294,10 @@ void fairport::btree_node_nonleaf<K,V>::prev(fairport::btree_iter_impl<K,V>& ite
 }
 
 template<typename K, typename V>
-fairport::btree_node_iter<K,V>::btree_node_iter(const fairport::btree_node<K,V>* root, bool last)
+fairport::const_btree_node_iter<K,V>::const_btree_node_iter()
 {
-    if(last)
-    {
-        root->last(m_impl);
-        ++m_impl.m_leaf_pos;
-    }
-    else
-    {
-        root->first(m_impl);
-    }
+	m_impl.m_leaf_pos = 0;
+	m_impl.m_leaf = nullptr;
 }
 
 template<typename K, typename V>
