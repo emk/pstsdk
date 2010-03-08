@@ -62,14 +62,14 @@ void test_attachment_table(const fairport::node& message, const fairport::table&
                 {
                     wcout << "\t" << hex << proplist[i] << ": " << pc.read_prop<std::wstring>(proplist[i]) << endl;
                 }
-				else if(pc.get_prop_type(proplist[i]) == prop_type_long)
-				{
-					wcout << "\t" << hex << proplist[i] << ": " << dec << pc.read_prop<long>(proplist[i]) << endl;
-				}
-				else if(pc.get_prop_type(proplist[i]) == prop_type_boolean)
-				{
-					wcout << "\t" << hex << proplist[i] << ": " << dec << (pc.read_prop<bool>(proplist[i]) ? L"true" : L"false") << endl;
-				}
+                else if(pc.get_prop_type(proplist[i]) == prop_type_long)
+                {
+                    wcout << "\t" << hex << proplist[i] << ": " << dec << pc.read_prop<long>(proplist[i]) << endl;
+                }
+                else if(pc.get_prop_type(proplist[i]) == prop_type_boolean)
+                {
+                    wcout << "\t" << hex << proplist[i] << ": " << dec << (pc.read_prop<bool>(proplist[i]) ? L"true" : L"false") << endl;
+                }
                 else
                 {
                     wcout << "\t" << hex << proplist[i] << "(" << dec << pc.get_prop_type(proplist[i]) << ")" << endl;
@@ -83,7 +83,7 @@ void iterate(fairport::shared_db_ptr pdb)
 {
     using namespace std;
     using namespace fairport;
-	shared_ptr<const nbt_page> nbt_root = pdb->read_nbt_root();
+    shared_ptr<const nbt_page> nbt_root = pdb->read_nbt_root();
     for(const_nodeinfo_iterator iter = nbt_root->begin();
             iter != nbt_root->end();
             ++iter)
@@ -133,7 +133,7 @@ void iterate(fairport::shared_db_ptr pdb)
         
         try{
             heap h(n);
-			std::unique_ptr<bth_node<ushort, disk::prop_entry>> bth = h.open_bth<ushort, disk::prop_entry>(h.get_root_id());
+            std::unique_ptr<bth_node<ushort, disk::prop_entry>> bth = h.open_bth<ushort, disk::prop_entry>(h.get_root_id());
          }
         catch(exception&)
         {

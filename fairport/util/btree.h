@@ -114,18 +114,18 @@ template<typename K, typename V>
 class const_btree_node_iter : public boost::iterator_facade<const_btree_node_iter<K,V>, const V, boost::bidirectional_traversal_tag>
 {
 public:
-	const_btree_node_iter();
+    const_btree_node_iter();
     const_btree_node_iter(const btree_node<K,V>* root, bool last);
 
 private:
-	friend class boost::iterator_core_access;
+    friend class boost::iterator_core_access;
 
-	void increment() { m_impl.m_leaf->next(m_impl); }
-	bool equal(const const_btree_node_iter& other) const 
-		{ return ((m_impl.m_leaf == other.m_impl.m_leaf) && (m_impl.m_leaf_pos == other.m_impl.m_leaf_pos)); }
-	const V& dereference() const
-		{ return m_impl.m_leaf->get_value(m_impl.m_leaf_pos); }
-	void decrement() { m_impl.m_leaf->prev(m_impl); }
+    void increment() { m_impl.m_leaf->next(m_impl); }
+    bool equal(const const_btree_node_iter& other) const 
+        { return ((m_impl.m_leaf == other.m_impl.m_leaf) && (m_impl.m_leaf_pos == other.m_impl.m_leaf_pos)); }
+    const V& dereference() const
+        { return m_impl.m_leaf->get_value(m_impl.m_leaf_pos); }
+    void decrement() { m_impl.m_leaf->prev(m_impl); }
 
     mutable btree_iter_impl<K,V> m_impl;
 };
@@ -296,8 +296,8 @@ void fairport::btree_node_nonleaf<K,V>::prev(fairport::btree_iter_impl<K,V>& ite
 template<typename K, typename V>
 fairport::const_btree_node_iter<K,V>::const_btree_node_iter()
 {
-	m_impl.m_leaf_pos = 0;
-	m_impl.m_leaf = nullptr;
+    m_impl.m_leaf_pos = 0;
+    m_impl.m_leaf = nullptr;
 }
 
 template<typename K, typename V>

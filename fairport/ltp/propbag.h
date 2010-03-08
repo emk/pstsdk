@@ -23,11 +23,11 @@ class property_bag : public const_property_object
 {
 public:
     explicit property_bag(const node& n);
-	property_bag(const node& n, alias_tag);
+    property_bag(const node& n, alias_tag);
     explicit property_bag(const heap& h);
-	property_bag(const heap& h, alias_tag);
+    property_bag(const heap& h, alias_tag);
     property_bag(const property_bag& other);
-	property_bag(const property_bag& other, alias_tag);
+    property_bag(const property_bag& other, alias_tag);
     property_bag(property_bag&& other) : m_pbth(std::move(other.m_pbth)) { }
 
     std::vector<prop_id> get_prop_list() const;
@@ -36,7 +36,7 @@ public:
     bool prop_exists(prop_id id) const;
 
 private:
-	property_bag& operator=(const property_bag& other); // = delete
+    property_bag& operator=(const property_bag& other); // = delete
 
     byte get_value_1(prop_id id) const
         { return (byte)m_pbth->lookup(id).id; }

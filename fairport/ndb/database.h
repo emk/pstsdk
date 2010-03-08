@@ -39,7 +39,7 @@ public:
     node_info lookup_node_info(node_id nid);
     block_info lookup_block_info(block_id bid); 
     
-	// page factory functions
+    // page factory functions
     std::shared_ptr<bbt_page> read_bbt_root();
     std::shared_ptr<nbt_page> read_nbt_root();
     std::shared_ptr<bbt_page> read_bbt_page(ulonglong location);

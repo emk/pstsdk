@@ -94,8 +94,8 @@ public:
 
     node(const node& other)
         : m_pimpl(new node_impl(*other.m_pimpl)) { }
-	node(const node& other, alias_tag)
-		: m_pimpl(other.m_pimpl) { }
+    node(const node& other, alias_tag)
+        : m_pimpl(other.m_pimpl) { }
     node(node&& other)
         : m_pimpl(std::move(other.m_pimpl)) { }
 
@@ -319,7 +319,7 @@ public:
     subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>>&& subnodes)
         : subnode_block(db, info, 1), m_subnode_info(subnodes) { }
 
-	// btree_node_nonleaf implementation
+    // btree_node_nonleaf implementation
     const node_id& get_key(uint pos) const
         { return m_subnode_info[pos].first; }
     subnode_block* get_child(uint pos);
@@ -342,7 +342,7 @@ public:
     subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info>>&& subnodes)
         : subnode_block(db, info, 0), m_subnodes(subnodes) { }
 
-	// btree_node_leaf implementation
+    // btree_node_leaf implementation
     const subnode_info& get_value(uint pos) const 
         { return m_subnodes[pos].second; }
     const node_id& get_key(uint pos) const

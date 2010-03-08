@@ -7,7 +7,7 @@
 #include "fairport/ndb/database_iface.h"
 
 namespace fairport
-{	
+{
 
 class db_context_impl : public db_context
 {

@@ -52,22 +52,22 @@ private:
 class const_table_row_iter : public boost::iterator_facade<const_table_row_iter, const_table_row, boost::random_access_traversal_tag, const_table_row>
 {
 public:
-	const_table_row_iter()
-		: m_position(0), m_table(nullptr) { }
+    const_table_row_iter()
+        : m_position(0), m_table(nullptr) { }
     const_table_row_iter(ulong pos, const const_table_ptr& table) 
         : m_position(pos), m_table(table)  { }
 
-	void increment() { ++m_position; }
-	bool equal(const const_table_row_iter& other) const
+    void increment() { ++m_position; }
+    bool equal(const const_table_row_iter& other) const
         { return ((m_position == other.m_position) && (m_table == other.m_table)); }
-	const_table_row dereference() const
-		{ return const_table_row(m_position, m_table); }
-	void decrement() { --m_position; }
-	void advance(int off) { m_position += off; }
-	size_t distance_to(const const_table_row_iter& other) const
-		{ return (other.m_position - m_position); }
+    const_table_row dereference() const
+        { return const_table_row(m_position, m_table); }
+    void decrement() { --m_position; }
+    void advance(int off) { m_position += off; }
+    size_t distance_to(const const_table_row_iter& other) const
+        { return (other.m_position - m_position); }
 private:
-	ulong m_position;
+    ulong m_position;
     const_table_ptr m_table;
 };
 
@@ -116,11 +116,11 @@ public:
 
 private:
     friend table_ptr open_table(const node& n);
-	friend table_ptr open_table(const node& n, alias_tag);
+    friend table_ptr open_table(const node& n, alias_tag);
     basic_table(const node& n);
-	basic_table(const node& n, alias_tag);
+    basic_table(const node& n, alias_tag);
 
-	std::unique_ptr<bth_node<row_id, T>> m_prows;
+    std::unique_ptr<bth_node<row_id, T>> m_prows;
 
     // only one of the following two items is valid
     std::vector<byte> m_vec_rowarray;
@@ -148,10 +148,10 @@ class table
 {
 public:
     explicit table(const node& n);
-	table(const node& n, alias_tag);
+    table(const node& n, alias_tag);
     table(const table& other);
-	table(const table& other, alias_tag)
-		: m_ptable(other.m_ptable) { }
+    table(const table& other, alias_tag)
+        : m_ptable(other.m_ptable) { }
 
     const_table_row operator[](ulong row) const
         { return (*m_ptable)[row]; }

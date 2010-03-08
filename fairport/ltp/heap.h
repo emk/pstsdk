@@ -36,16 +36,16 @@ public:
     node& get_node() { return m_node; }
 
     template<typename K, typename V>
-	std::unique_ptr<bth_node<K,V>> open_bth(heap_id root);
+    std::unique_ptr<bth_node<K,V>> open_bth(heap_id root);
     
     friend class heap;
 
 private:
     heap_impl();
     explicit heap_impl(const node& n);
-	heap_impl(const node& n, alias_tag);
+    heap_impl(const node& n, alias_tag);
     heap_impl(const node& n, byte client_sig);
-	heap_impl(const node& n, byte client_sig, alias_tag);
+    heap_impl(const node& n, byte client_sig, alias_tag);
     heap_impl(const heap_impl& other) 
         : m_node(other.m_node) { }
 
@@ -59,16 +59,16 @@ class heap
 public:
     explicit heap(const node& n)
         : m_pheap(new heap_impl(n)) { }
-	heap(const node& n, alias_tag)
-		: m_pheap(new heap_impl(n, alias_tag())) { }
+    heap(const node& n, alias_tag)
+        : m_pheap(new heap_impl(n, alias_tag())) { }
     heap(const node& n, byte client_sig)
         : m_pheap(new heap_impl(n, client_sig)) { }
-	heap(const node& n, byte client_sig, alias_tag)
-		: m_pheap(new heap_impl(n, client_sig, alias_tag())) { }
+    heap(const node& n, byte client_sig, alias_tag)
+        : m_pheap(new heap_impl(n, client_sig, alias_tag())) { }
     heap(const heap& other)
         : m_pheap(new heap_impl(*(other.m_pheap))) { }
-	heap(const heap& other, alias_tag)
-		: m_pheap(other.m_pheap) { }
+    heap(const heap& other, alias_tag)
+        : m_pheap(other.m_pheap) { }
     heap(heap&& other)
         : m_pheap(std::move(other.m_pheap)) { }
 
@@ -89,11 +89,11 @@ public:
         { return m_pheap->get_node(); }
     
     template<typename K, typename V>
-	std::unique_ptr<bth_node<K,V>> open_bth(heap_id root)
+    std::unique_ptr<bth_node<K,V>> open_bth(heap_id root)
         { return m_pheap->open_bth<K,V>(root); }
 
 private:
-	heap& operator=(const heap& other); // = delete
+    heap& operator=(const heap& other); // = delete
     heap_ptr m_pheap;
 };
 
@@ -103,9 +103,9 @@ class bth_node :
     private boost::noncopyable
 {
 public:
-	static std::unique_ptr<bth_node<K,V>> open_root(const heap_ptr& h, heap_id bth_root);
-	static std::unique_ptr<bth_nonleaf_node<K,V>> open_nonleaf(const heap_ptr& h, heap_id id, ushort level);
-	static std::unique_ptr<bth_leaf_node<K,V>> open_leaf(const heap_ptr& h, heap_id id);
+    static std::unique_ptr<bth_node<K,V>> open_root(const heap_ptr& h, heap_id bth_root);
+    static std::unique_ptr<bth_nonleaf_node<K,V>> open_nonleaf(const heap_ptr& h, heap_id id, ushort level);
+    static std::unique_ptr<bth_leaf_node<K,V>> open_leaf(const heap_ptr& h, heap_id id);
 
     bth_node(const heap_ptr& h, heap_id id, ushort level)
         : m_heap(h), m_id(id), m_level(level) { }
@@ -149,7 +149,7 @@ public:
 
 private:
     std::vector<std::pair<K, heap_id>> m_bth_info;
-	mutable std::vector<std::shared_ptr<bth_node<K,V>>> m_child_nodes;
+    mutable std::vector<std::shared_ptr<bth_node<K,V>>> m_child_nodes;
 };
 
 template<typename K, typename V>
@@ -219,7 +219,7 @@ inline std::unique_ptr<fairport::bth_nonleaf_node<K,V>> fairport::bth_node<K,V>:
         child_nodes.push_back(std::make_pair(pbth_nonleaf_node->entries[i].key, pbth_nonleaf_node->entries[i].page));
     }
 
-	return std::unique_ptr<bth_nonleaf_node<K,V>>(new bth_nonleaf_node<K,V>(h, id, level, std::move(child_nodes)));
+    return std::unique_ptr<bth_nonleaf_node<K,V>>(new bth_nonleaf_node<K,V>(h, id, level, std::move(child_nodes)));
 }
     
 template<typename K, typename V>
