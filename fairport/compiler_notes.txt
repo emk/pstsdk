@@ -13,5 +13,5 @@
 
 * MSVC really gets upset at the way the btree code works, and fires warning 
     C4250 pretty much everywhere. This warning is pretty much pointing out
-    the obvious, so it's just disabled in btree.h (and thus everywhere that
-    uses btree.h)
+    the obvious, so it's just disabled in btree.h and the files which include
+    it.

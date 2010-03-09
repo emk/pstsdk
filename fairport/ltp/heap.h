@@ -11,6 +11,11 @@
 
 #include "fairport/ndb/node.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4250)
+#endif
+
 namespace fairport
 {
 
@@ -385,5 +390,9 @@ inline std::unique_ptr<fairport::bth_node<K,V>> fairport::heap_impl::open_bth(he
 { 
     return bth_node<K,V>::open_root(shared_from_this(), root); 
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif

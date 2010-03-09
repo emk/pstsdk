@@ -8,6 +8,11 @@
 
 #include "fairport/ndb/database_iface.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4250)
+#endif
+
 namespace fairport
 {
 
@@ -133,5 +138,9 @@ inline const bt_page<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::g
 }
 
 } // end namespace
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif

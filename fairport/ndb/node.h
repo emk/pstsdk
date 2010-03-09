@@ -11,6 +11,11 @@
 
 #include "fairport/ndb/database_iface.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4250)
+#endif
+
 namespace fairport
 {
 
@@ -810,4 +815,9 @@ inline fairport::node fairport::node_impl::lookup(node_id id) const
 {
     return node(std::const_pointer_cast<node_impl>(shared_from_this()), ensure_sub_block()->lookup(id));
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #endif

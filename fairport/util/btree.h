@@ -9,6 +9,7 @@
 #include "fairport/util/errors.h"
 
 #ifdef _MSC_VER
+#pragma warning(push)
 #pragma warning(disable:4250)
 #endif
 
@@ -313,5 +314,9 @@ fairport::const_btree_node_iter<K,V>::const_btree_node_iter(const fairport::btre
         root->first(m_impl);
     }
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif
