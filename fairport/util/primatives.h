@@ -1,6 +1,26 @@
 #ifndef FAIRPORT_UTIL_PRIMATIVES_H
 #define FAIRPORT_UTIL_PRIMATIVES_H
 
+// Global Validation Settings
+//
+// #define FAIRPORT_VALIDATION_LEVEL_NONE before including any fairport headers for no validation
+//      well, slightly more than no validation - type checks are still performed
+// #define FAIRPORT_VALIDATION_LEVEL_WEAK before including any fairport headers for weak validation
+//      weak validation generally involves fast checks, such as signature matching, param validation, etc
+// #define FAIRPORT_VALIDATION_LEVEL_FULL before including any fairport headers for full validation
+//      full validation includes all weak checks plus crc validation and any other "expensive" check
+//
+// Weak validation is the default.
+//
+#ifndef FAIRPORT_VALIDATION_LEVEL_NONE
+#define FAIRPORT_VALIDATION_LEVEL_WEAK
+#endif
+
+#ifdef FAIRPORT_VALIDATION_LEVEL_FULL
+// full validation also implies weak validation
+#define FAIRPORT_VALIDATION_LEVEL_WEAK
+#endif
+
 namespace fairport
 {
 

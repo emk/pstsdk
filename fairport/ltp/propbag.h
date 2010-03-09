@@ -55,40 +55,38 @@ private:
 
 inline fairport::property_bag::property_bag(const fairport::node& n)
 {
-    heap h(n);
-
-    if(h.get_client_signature() != disk::heap_sig_pc)
-        throw sig_mismatch("expected heap_sig_pc");
+    heap h(n, disk::heap_sig_pc);
 
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
 inline fairport::property_bag::property_bag(const fairport::node& n, alias_tag)
 {
-    heap h(n, alias_tag());
-
-    if(h.get_client_signature() != disk::heap_sig_pc)
-        throw sig_mismatch("expected heap_sig_pc");
+    heap h(n, disk::heap_sig_pc, alias_tag());
 
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
 inline fairport::property_bag::property_bag(const fairport::heap& h)
 {
-    heap my_heap(h);
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+    if(h.get_client_signature() != disk::heap_sig_pc)
+        throw sig_mismatch("expected heap_sig_pc", 0, h.get_node().get_id(), h.get_client_signature(), disk::heap_sig_pc);
+#endif
 
-    if(my_heap.get_client_signature() != disk::heap_sig_pc)
-        throw sig_mismatch("expected heap_sig_pc");
+    heap my_heap(h);
 
     m_pbth = my_heap.open_bth<prop_id, disk::prop_entry>(my_heap.get_root_id());
 }
 
 inline fairport::property_bag::property_bag(const fairport::heap& h, alias_tag)
 {
-    heap my_heap(h, alias_tag());
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+    if(h.get_client_signature() != disk::heap_sig_pc)
+        throw sig_mismatch("expected heap_sig_pc", 0, h.get_node().get_id(), h.get_client_signature(), disk::heap_sig_pc);
+#endif
 
-    if(my_heap.get_client_signature() != disk::heap_sig_pc)
-        throw sig_mismatch("expected heap_sig_pc");
+    heap my_heap(h, alias_tag());
 
     m_pbth = my_heap.open_bth<prop_id, disk::prop_entry>(my_heap.get_root_id());
 }
@@ -96,9 +94,6 @@ inline fairport::property_bag::property_bag(const fairport::heap& h, alias_tag)
 inline fairport::property_bag::property_bag(const property_bag& other)
 {
     heap h(other.m_pbth->get_node());
-
-    if(h.get_client_signature() != disk::heap_sig_pc)
-        throw sig_mismatch("expected heap_sig_pc");
 
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }

@@ -19,8 +19,8 @@ namespace fairport
 class page
 {
 public:
-    page(const shared_db_ptr& db, page_id pid, ulonglong address)
-        : m_db(db), m_pid(pid), m_address(address) { }
+    page(const shared_db_ptr& db, const page_info& pi)
+        : m_db(db), m_pid(pi.id), m_address(pi.address) { }
     page_id get_page_id() const { return m_pid; }
     ulonglong get_address() const { return m_address; }
 
@@ -37,8 +37,8 @@ class bt_page :
     public virtual btree_node<K,V>
 {
 public:
-    bt_page(const shared_db_ptr& db, page_id pid, ulonglong address, ushort level)
-        : page(db, pid, address), m_level(level) { }
+    bt_page(const shared_db_ptr& db, const page_info& pi, ushort level)
+        : page(db, pi), m_level(level) { }
 
     ushort get_level() const { return m_level; }
 
@@ -53,10 +53,10 @@ class bt_nonleaf_page :
     public std::enable_shared_from_this<bt_nonleaf_page<K,V>>
 {
 public:
-    bt_nonleaf_page(const shared_db_ptr& db, page_id pid, ulonglong address, ushort level, const std::vector<std::pair<K, ulonglong>>& page_info)
-        : bt_page<K,V>(db, pid, address, level), m_page_info(page_info), m_child_pages(page_info.size()) { }
-    bt_nonleaf_page(const shared_db_ptr& db, page_id pid, ulonglong address, ushort level, std::vector<std::pair<K, ulonglong>>&& page_info)
-        : bt_page<K,V>(db, pid, address, level), m_page_info(page_info), m_child_pages(page_info.size()) { }
+    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, const std::vector<std::pair<K, page_info>>& subpi)
+        : bt_page<K,V>(db, pi, level), m_page_info(subpi), m_child_pages(subpi.size()) { }
+    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, std::vector<std::pair<K, page_info>>&& subpi)
+        : bt_page<K,V>(db, pi, level), m_page_info(subpi), m_child_pages() { m_child_pages.resize(m_page_info.size()); }
 
     // btree_node_nonleaf implementation
     const K& get_key(uint pos) const { return m_page_info[pos].first; }
@@ -65,7 +65,7 @@ public:
     uint num_values() const { return m_child_pages.size(); }
 
 private:
-    std::vector<std::pair<K, ulonglong>> m_page_info;
+    std::vector<std::pair<K, page_info>> m_page_info;
     mutable std::vector<std::shared_ptr<bt_page<K,V>>> m_child_pages;
 };
 
@@ -76,10 +76,10 @@ class bt_leaf_page :
     public std::enable_shared_from_this<bt_leaf_page<K,V>>
 {
 public:
-    bt_leaf_page(const shared_db_ptr& db, page_id pid, ulonglong address, const std::vector<std::pair<K,V>>& data)
-        : bt_page<K,V>(db, pid, address, 0), m_page_data(data) { }
-    bt_leaf_page(const shared_db_ptr& db, page_id pid, ulonglong address, std::vector<std::pair<K,V>>&& data)
-        : bt_page<K,V>(db, pid, address, 0), m_page_data(data) { }
+    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, const std::vector<std::pair<K,V>>& data)
+        : bt_page<K,V>(db, pi, 0), m_page_data(data) { }
+    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, std::vector<std::pair<K,V>>&& data)
+        : bt_page<K,V>(db, pi, 0), m_page_data(data) { }
 
     // btree_node_leaf implementation
     const V& get_value(uint pos) const

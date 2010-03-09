@@ -58,15 +58,25 @@ public:
 class crc_fail : public database_corrupt
 {
 public:
-    explicit crc_fail(const std::string& error)
-        : database_corrupt(error) { }
+    crc_fail(const std::string& error, ulonglong location, block_id id, ulong actual, ulong expected)
+        : database_corrupt(error), m_location(location), m_id(id), m_actual(actual), m_expected(expected) { }
+private:
+    ulonglong m_location;
+    block_id m_id;
+    ulong m_actual;
+    ulong m_expected;
 };
 
 class sig_mismatch : public database_corrupt
 {
 public:
-    explicit sig_mismatch(const std::string& error)
-        : database_corrupt(error) { }
+    sig_mismatch(const std::string& error, ulonglong location, block_id id, ulong actual, ulong expected)
+        : database_corrupt(error), m_location(location), m_id(id), m_actual(actual), m_expected(expected) { }
+private:
+    ulonglong m_location;
+    block_id m_id;
+    ulong m_actual;
+    ulong m_expected;
 };
 
 template<typename K>

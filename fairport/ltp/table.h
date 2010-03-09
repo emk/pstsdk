@@ -274,13 +274,15 @@ inline std::vector<fairport::byte> fairport::const_table_row::get_value_variable
 template<typename T>
 inline fairport::basic_table<T>::basic_table(const node& n)
 {
-    heap h(n);
+    heap h(n, disk::heap_sig_tc);
 
     std::vector<byte> table_info = h.read(h.get_root_id());
     disk::tc_header* pheader = (disk::tc_header*)&table_info[0];
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(pheader->signature != disk::heap_sig_tc)
-        throw sig_mismatch("heap_sig_tc expected");
+        throw sig_mismatch("heap_sig_tc expected", 0, n.get_id(), pheader->signature, disk::heap_sig_tc);
+#endif
 
     m_prows = h.open_bth<row_id, T>(pheader->row_btree_id);
 
@@ -303,13 +305,15 @@ inline fairport::basic_table<T>::basic_table(const node& n)
 template<typename T>
 inline fairport::basic_table<T>::basic_table(const node& n, alias_tag)
 {
-    heap h(n, alias_tag());
+    heap h(n, disk::heap_sig_tc, alias_tag());
 
     std::vector<byte> table_info = h.read(h.get_root_id());
     disk::tc_header* pheader = (disk::tc_header*)&table_info[0];
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(pheader->signature != disk::heap_sig_tc)
-        throw sig_mismatch("heap_sig_tc expected");
+        throw sig_mismatch("heap_sig_tc expected", 0, n.get_id(), pheader->signature, disk::heap_sig_tc);
+#endif
 
     m_prows = h.open_bth<row_id, T>(pheader->row_btree_id);
 

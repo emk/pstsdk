@@ -42,12 +42,12 @@ public:
     // page factory functions
     std::shared_ptr<bbt_page> read_bbt_root();
     std::shared_ptr<nbt_page> read_nbt_root();
-    std::shared_ptr<bbt_page> read_bbt_page(ulonglong location);
-    std::shared_ptr<nbt_page> read_nbt_page(ulonglong location);
-    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location);
-    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location);
-    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location);
-    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location);
+    std::shared_ptr<bbt_page> read_bbt_page(const page_info& pi);
+    std::shared_ptr<nbt_page> read_nbt_page(const page_info& pi);
+    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const page_info& pi);
+    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const page_info& pi);
+    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(const page_info& pi);
+    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(const page_info& pi);
 
     std::shared_ptr<block> read_block(const shared_db_ptr& parent, block_id bid)
         { return read_block(parent, lookup_block_info(bid)); }
@@ -83,10 +83,16 @@ protected:
     database_impl();
     database_impl(const std::wstring& filename);
     void validate_header();
-    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location, disk::nbt_leaf_page<T>& the_page);
-    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location, disk::bbt_leaf_page<T>& the_page);
-    std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location, disk::nbt_nonleaf_page<T>& the_page);
-    std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location, disk::bbt_nonleaf_page<T>& the_page);
+
+    std::vector<byte> read_block_data(const block_info& bi);
+    std::vector<byte> read_page_data(const page_info& pi);
+
+    std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const page_info& pi, disk::nbt_leaf_page<T>& the_page);
+    std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const page_info& pi, disk::bbt_leaf_page<T>& the_page);
+    
+    template<typename K, typename V>
+    std::shared_ptr<bt_nonleaf_page<K,V>> read_bt_nonleaf_page(const page_info& pi, disk::bt_page<T, disk::bt_entry<T>>& the_page);
+    
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_leaf_block<T>& sub_block);
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_nonleaf_block<T>& sub_block);
 
@@ -101,33 +107,35 @@ protected:
 template<>
 inline void database_impl<ulong>::validate_header()
 {
+    // the behavior of open_database depends on this throw; this can not go under FAIRPORT_VALIDATION_WEAK
     if(m_header.wVer >= disk::database_format_unicode)
-    {
         throw invalid_format();
-    }
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     ulong crc = disk::compute_crc(((byte*)&m_header) + disk::header_crc_locations<ulong>::start, disk::header_crc_locations<ulong>::length);
 
     if(crc != m_header.dwCRCPartial)
-        throw crc_fail("header dwCRCPartial");
+        throw crc_fail("header dwCRCPartial failure", 0, 0, crc, m_header.dwCRCPartial);
+#endif
 }
 
 template<>
 inline void database_impl<ulonglong>::validate_header()
 {
+    // the behavior of open_database depends on this throw; this can not go under FAIRPORT_VALIDATION_WEAK
     if(m_header.wVer < disk::database_format_unicode)
-    {
         throw invalid_format();
-    }
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     ulong crc_partial = disk::compute_crc(((byte*)&m_header) + disk::header_crc_locations<ulonglong>::partial_start, disk::header_crc_locations<ulonglong>::partial_length);
     ulong crc_full = disk::compute_crc(((byte*)&m_header) + disk::header_crc_locations<ulonglong>::full_start, disk::header_crc_locations<ulonglong>::full_length);
 
     if(crc_partial != m_header.dwCRCPartial)
-        throw crc_fail("header dwCRCPartial");
+        throw crc_fail("header dwCRCPartial failure", 0, 0, crc_partial, m_header.dwCRCPartial);
 
     if(crc_full != m_header.dwCRCFull)
-        throw crc_fail("header dwCRCFull");
+        throw crc_fail("header dwCRCFull failure", 0, 0, crc_full, m_header.dwCRCFull);
+#endif
 }
 
 } // end namespace
@@ -161,15 +169,92 @@ inline std::shared_ptr<fairport::large_pst> fairport::open_large_pst(const std::
 }
 
 template<typename T>
+inline std::vector<fairport::byte> fairport::database_impl<T>::read_block_data(const block_info& bi)
+{
+    size_t aligned_size = disk::align_disk<T>(bi.size);
+
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+    if(aligned_size > disk::max_block_disk_size)
+        throw unexpected_block("nonsensical block size");
+
+    if(bi.address + aligned_size > m_header.root.ibFileEof)
+        throw unexpected_block("nonsensical block location; past eof");
+#endif
+
+    std::vector<byte> buffer(aligned_size);
+    disk::block_trailer<T>* bt = (disk::block_trailer<T>*)(&buffer[0] + aligned_size - sizeof(disk::block_trailer<T>));
+
+    m_file.read(buffer, bi.address);    
+
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+    if(bt->bid != bi.id)
+        throw unexpected_block("wrong block id");
+
+    if(bt->cb != bi.size)
+        throw unexpected_block("wrong block size");
+
+    if(bt->signature != disk::compute_signature(bi.id, bi.address))
+        throw sig_mismatch("block sig mismatch", bi.address, bi.id, disk::compute_signature(bi.id, bi.address), bt->signature);
+#endif
+
+#ifdef FAIRPORT_VALIDATION_LEVEL_FULL
+    ulong crc = disk::compute_crc(&buffer[0], bi.size);
+    if(crc != bt->crc)
+        throw crc_fail("block crc failure", bi.address, bi.id, crc, bt->crc);
+#endif
+
+    return buffer;
+}
+
+template<typename T>
+std::vector<fairport::byte> fairport::database_impl<T>::read_page_data(const page_info& pi)
+{
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+    if(pi.address + disk::page_size > m_header.root.ibFileEof)
+        throw unexpected_page("nonsensical page location; past eof");
+
+    if(((pi.address - disk::first_amap_page_location) % disk::page_size) != 0)
+        throw unexpected_page("nonsensical page location; not sector aligned");
+#endif
+
+    std::vector<byte> buffer(disk::page_size);
+    disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
+    
+    m_file.read(buffer, pi.address);
+
+#ifdef FAIRPORT_VALIDATION_LEVEL_FULL
+    ulong crc = disk::compute_crc(&buffer[0], disk::page<T>::page_data_size);
+    if(crc != ppage->trailer.crc)
+        throw crc_fail("page crc failure", pi.address, pi.id, crc, ppage->trailer.crc);
+#endif
+
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+    if(ppage->trailer.bid != pi.id)
+        throw unexpected_page("wrong page id");
+
+    if(ppage->trailer.page_type != ppage->trailer.page_type_repeat)
+        throw database_corrupt("ptype != ptype repeat?");
+
+    if(ppage->trailer.signature != disk::compute_signature(pi.id, pi.address))
+        throw sig_mismatch("page sig mismatch", pi.address, pi.id, disk::compute_signature(pi.id, pi.address), ppage->trailer.signature);
+#endif
+
+    return buffer;
+}
+
+
+template<typename T>
 inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_root()
 { 
-    return read_bbt_page(m_header.root.brefBBT.ib); 
+    page_info pi = { m_header.root.brefBBT.bid, m_header.root.brefBBT.ib };
+    return read_bbt_page(pi); 
 }
 
 template<typename T>
 inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_root()
 { 
-    return read_nbt_page(m_header.root.brefNBT.ib);
+    page_info pi = { m_header.root.brefNBT.bid, m_header.root.brefNBT.ib };
+    return read_nbt_page(pi);
 }
 
 template<typename T>
@@ -184,26 +269,24 @@ inline fairport::database_impl<T>::database_impl(const std::wstring& filename)
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(ulonglong location)
+inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(const page_info& pi)
 {
-    std::vector<byte> buffer(disk::page_size);
+    std::vector<byte> buffer = read_page_data(pi);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
-
-    m_file.read(buffer, location);
     
     if(ppage->trailer.page_type == disk::page_type_nbt)
     {
         disk::nbt_leaf_page<T>* leaf_page = (disk::nbt_leaf_page<T>*)ppage;
 
         if(leaf_page->level == 0)
-            return read_nbt_leaf_page(location, *leaf_page);
+            return read_nbt_leaf_page(pi, *leaf_page);
     }
 
     throw unexpected_page("page_type != page_type_nbt");
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(ulonglong location, disk::nbt_leaf_page<T>& the_page)
+inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read_nbt_leaf_page(const page_info& pi, disk::nbt_leaf_page<T>& the_page)
 {
     node_info ni;
     std::vector<std::pair<node_id, node_info>> nodes;
@@ -218,30 +301,28 @@ inline std::shared_ptr<fairport::nbt_leaf_page> fairport::database_impl<T>::read
         nodes.push_back(std::make_pair(ni.id, ni));
     }
 
-    return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(shared_from_this(), the_page.trailer.bid, location, std::move(nodes)));
+    return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(shared_from_this(), pi, std::move(nodes)));
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page(ulonglong location)
+inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page(const page_info& pi)
 {
-    std::vector<byte> buffer(disk::page_size);
+    std::vector<byte> buffer = read_page_data(pi);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
-
-    m_file.read(buffer, location);
     
     if(ppage->trailer.page_type == disk::page_type_bbt)
     {
         disk::bbt_leaf_page<T>* leaf_page = (disk::bbt_leaf_page<T>*)ppage;
 
         if(leaf_page->level == 0)
-            return read_bbt_leaf_page(location, *leaf_page);
+            return read_bbt_leaf_page(pi, *leaf_page);
     }
 
     throw unexpected_page("page_type != page_type_bbt");
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page(ulonglong location, disk::bbt_leaf_page<T>& the_page)
+inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read_bbt_leaf_page(const page_info& pi, disk::bbt_leaf_page<T>& the_page)
 {
     block_info bi;
     std::vector<std::pair<block_id, block_info>> blocks;
@@ -256,82 +337,63 @@ inline std::shared_ptr<fairport::bbt_leaf_page> fairport::database_impl<T>::read
         blocks.push_back(std::make_pair(bi.id, bi));
     }
 
-    return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(shared_from_this(), the_page.trailer.bid, location, std::move(blocks)));
+    return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(shared_from_this(), pi, std::move(blocks)));
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::read_nbt_nonleaf_page(ulonglong location)
+inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::read_nbt_nonleaf_page(const page_info& pi)
 {
-    std::vector<byte> buffer(disk::page_size);
+    std::vector<byte> buffer = read_page_data(pi);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
-
-    m_file.read(buffer, location);
     
     if(ppage->trailer.page_type == disk::page_type_nbt)
     {
         disk::nbt_nonleaf_page<T>* nonleaf_page = (disk::nbt_nonleaf_page<T>*)ppage;
 
         if(nonleaf_page->level > 0)
-            return read_nbt_nonleaf_page(location, *nonleaf_page);
+            return read_bt_nonleaf_page<node_id, node_info>(pi, *nonleaf_page);
     }
 
     throw unexpected_page("page_type != page_type_nbt");
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::nbt_nonleaf_page> fairport::database_impl<T>::read_nbt_nonleaf_page(ulonglong location, fairport::disk::nbt_nonleaf_page<T>& the_page)
+template<typename K, typename V>
+inline std::shared_ptr<fairport::bt_nonleaf_page<K,V>> fairport::database_impl<T>::read_bt_nonleaf_page(const page_info& pi, fairport::disk::bt_page<T, disk::bt_entry<T>>& the_page)
 {
-    std::vector<std::pair<node_id, ulonglong>> nodes;
+    std::vector<std::pair<K, page_info>> nodes;
     
     for(int i = 0; i < the_page.num_entries; ++i)
     {
-        nodes.push_back(std::make_pair((node_id)the_page.entries[i].key, the_page.entries[i].ref.ib));
+        page_info subpi = { the_page.entries[i].ref.bid, the_page.entries[i].ref.ib };
+        nodes.push_back(std::make_pair(static_cast<K>(the_page.entries[i].key), subpi));
     }
 
-    return std::shared_ptr<nbt_nonleaf_page>(new nbt_nonleaf_page(shared_from_this(), the_page.trailer.bid, location, the_page.level, std::move(nodes)));
+    return std::shared_ptr<bt_nonleaf_page<K,V>>(new bt_nonleaf_page<K,V>(shared_from_this(), pi, the_page.level, std::move(nodes)));
 }
 
 template<typename T>
-inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::read_bbt_nonleaf_page(ulonglong location)
+inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::read_bbt_nonleaf_page(const page_info& pi)
 {
-    std::vector<byte> buffer(disk::page_size);
+    std::vector<byte> buffer = read_page_data(pi);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
-
-    m_file.read(buffer, location);
     
     if(ppage->trailer.page_type == disk::page_type_bbt)
     {
         disk::bbt_nonleaf_page<T>* nonleaf_page = (disk::bbt_nonleaf_page<T>*)ppage;
 
         if(nonleaf_page->level > 0)
-            return read_bbt_nonleaf_page(location, *nonleaf_page);
+            return read_bt_nonleaf_page<block_id, block_info>(pi, *nonleaf_page);
     }
 
     throw unexpected_page("page_type != page_type_bbt");
 }
 
-
 template<typename T>
-inline std::shared_ptr<fairport::bbt_nonleaf_page> fairport::database_impl<T>::read_bbt_nonleaf_page(ulonglong location, disk::bbt_nonleaf_page<T>& the_page)
+inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_page(const page_info& pi)
 {
-    std::vector<std::pair<block_id, ulonglong>> blocks;
-    
-    for(int i = 0; i < the_page.num_entries; ++i)
-    {
-        blocks.push_back(std::make_pair(the_page.entries[i].key, the_page.entries[i].ref.ib));
-    }
-
-    return std::shared_ptr<bbt_nonleaf_page>(new bbt_nonleaf_page(shared_from_this(), the_page.trailer.bid, location, the_page.level, std::move(blocks)));
-
-}
-
-template<typename T>
-inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_page(ulonglong location)
-{
-    std::vector<byte> buffer(disk::page_size);
+    std::vector<byte> buffer = read_page_data(pi);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
-
-    m_file.read(buffer, location);
 
     if(ppage->trailer.page_type == disk::page_type_bbt)
     {
@@ -339,12 +401,12 @@ inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_
         if(leaf->level == 0)
         {
             // it really is a leaf!
-            return read_bbt_leaf_page(location, *leaf);
+            return read_bbt_leaf_page(pi, *leaf);
         }
         else
         {
             disk::bbt_nonleaf_page<T>* nonleaf = (disk::bbt_nonleaf_page<T>*)ppage;
-            return read_bbt_nonleaf_page(location, *nonleaf);
+            return read_bt_nonleaf_page<block_id, block_info>(pi, *nonleaf);
         }
     }
     else
@@ -354,12 +416,10 @@ inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_
 }
         
 template<typename T>
-inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_page(ulonglong location)
+inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_page(const page_info& pi)
 {
-    std::vector<byte> buffer(disk::page_size);
+    std::vector<byte> buffer = read_page_data(pi);
     disk::page<T>* ppage = (disk::page<T>*)&buffer[0];
-
-    m_file.read(buffer, location);
 
     if(ppage->trailer.page_type == disk::page_type_nbt)
     {
@@ -367,12 +427,12 @@ inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_
         if(leaf->level == 0)
         {
             // it really is a leaf!
-            return read_nbt_leaf_page(location, *leaf);
+            return read_nbt_leaf_page(pi, *leaf);
         }
         else
         {
             disk::nbt_nonleaf_page<T>* nonleaf = (disk::nbt_nonleaf_page<T>*)ppage;
-            return read_nbt_nonleaf_page(location, *nonleaf);
+            return read_bt_nonleaf_page<node_id, node_info>(pi, *nonleaf);
         }
     }
     else
@@ -429,6 +489,7 @@ inline std::shared_ptr<fairport::data_block> fairport::database_impl<T>::read_da
     disk::extended_block<T>* peblock = (disk::extended_block<T>*)&buffer[0];
     m_file.read(buffer, bi.address);
 
+    // the behavior of read_block depends on this throw; this can not go under FAIRPORT_VALIDATION_WEAK
     if(peblock->block_type != disk::block_type_extended)
         throw unexpected_block("extended block expected");
 
@@ -441,11 +502,9 @@ inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::rea
     if(!disk::bid_is_internal(bi.id))
         throw unexpected_block("internal bid expected");
 
-    std::vector<byte> buffer(disk::align_disk<T>(bi.size));
+    std::vector<byte> buffer = read_block_data(bi);
     disk::extended_block<T>* peblock = (disk::extended_block<T>*)&buffer[0];
     std::vector<block_id> child_blocks;
-
-    m_file.read(buffer, bi.address);
 
     for(int i = 0; i < peblock->count; ++i)
         child_blocks.push_back(peblock->bid[i]);
@@ -513,8 +572,7 @@ inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::rea
     if(!disk::bid_is_external(bi.id))
         throw unexpected_block("External BID expected");
 
-    std::vector<byte> buffer(disk::align_disk<T>(bi.size));
-    m_file.read(buffer, bi.address);
+    std::vector<byte> buffer = read_block_data(bi);
 
     if(m_header.bCryptMethod == disk::crypt_method_permute)
     {
@@ -536,11 +594,9 @@ inline std::shared_ptr<fairport::subnode_block> fairport::database_impl<T>::read
         return std::shared_ptr<subnode_block>(new subnode_leaf_block(parent, bi, std::vector<std::pair<node_id, subnode_info>>()));
     }
     
-    std::vector<byte> buffer(disk::align_disk<T>(bi.size));
+    std::vector<byte> buffer = read_block_data(bi);
     disk::sub_leaf_block<T>* psub = (disk::sub_leaf_block<T>*)&buffer[0];
     std::shared_ptr<subnode_block> sub_block;
-
-    m_file.read(buffer, bi.address);
 
     if(psub->level == 0)
     {
@@ -557,11 +613,9 @@ inline std::shared_ptr<fairport::subnode_block> fairport::database_impl<T>::read
 template<typename T>
 inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>::read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi)
 {
-    std::vector<byte> buffer(disk::align_disk<T>(bi.size));
+    std::vector<byte> buffer = read_block_data(bi);
     disk::sub_leaf_block<T>* psub = (disk::sub_leaf_block<T>*)&buffer[0];
     std::shared_ptr<subnode_leaf_block> sub_block;
-
-    m_file.read(buffer, bi.address);
 
     if(psub->level == 0)
     {
@@ -578,11 +632,9 @@ inline std::shared_ptr<fairport::subnode_leaf_block> fairport::database_impl<T>:
 template<typename T>
 inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<T>::read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi)
 {
-    std::vector<byte> buffer(disk::align_disk<T>(bi.size));
+    std::vector<byte> buffer = read_block_data(bi);
     disk::sub_nonleaf_block<T>* psub = (disk::sub_nonleaf_block<T>*)&buffer[0];
     std::shared_ptr<subnode_nonleaf_block> sub_block;
-
-    m_file.read(buffer, bi.address);
 
     if(psub->level != 0)
     {

@@ -19,6 +19,12 @@ struct block_info
     ushort ref_count;
 };
 
+struct page_info
+{
+    page_id id;
+    ulonglong address;
+};
+
 struct node_info
 {
     node_id id;
@@ -81,12 +87,13 @@ public:
     // page factory functions
     virtual std::shared_ptr<bbt_page> read_bbt_root() = 0;
     virtual std::shared_ptr<nbt_page> read_nbt_root() = 0;
-    virtual std::shared_ptr<bbt_page> read_bbt_page(ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_page> read_nbt_page(ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(ulonglong location) = 0;
-    virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(ulonglong location) = 0;
-    virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(ulonglong location) = 0;
-    virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(ulonglong location) = 0;
+    virtual std::shared_ptr<bbt_page> read_bbt_page(const page_info& pi) = 0;
+    virtual std::shared_ptr<nbt_page> read_nbt_page(const page_info& pi) = 0;
+    virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const page_info& pi) = 0;
+    virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const page_info& pi) = 0;
+    virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(const page_info& pi) = 0;
+    virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(const page_info& pi) = 0;
+
 
     // block factory functions
     std::shared_ptr<block> read_block(block_id bid) { return read_block(shared_from_this(), bid); }

@@ -24,9 +24,9 @@ struct block_reference
 // header
 //
 
-const uint header_fmap_entries = 128;
-const uint header_fpmap_size = 128;
-const uint header_lock_entries = 32;
+const size_t header_fmap_entries = 128;
+const size_t header_fpmap_size = 128;
+const size_t header_lock_entries = 32;
 
 enum database_format
 {
@@ -154,20 +154,20 @@ struct header_crc_locations
 template<>
 struct header_crc_locations<ulong>
 {
-    static const uint start = offsetof(header<ulong>, wMagicClient);
-    static const uint end = offsetof(header<ulong>, bLockSemaphore);
-    static const uint length = end - start;
+    static const size_t start = offsetof(header<ulong>, wMagicClient);
+    static const size_t end = offsetof(header<ulong>, bLockSemaphore);
+    static const size_t length = end - start;
 };
 
 template<>
 struct header_crc_locations<ulonglong>
 {
-    static const uint partial_start = header_crc_locations<ulong>::start;
-    static const uint partial_end = header_crc_locations<ulong>::end;
-    static const uint partial_length = header_crc_locations<ulong>::length;
-    static const uint full_start = offsetof(header<ulonglong>, wMagicClient);
-    static const uint full_end = offsetof(header<ulonglong>, dwCRCFull);
-    static const uint full_length = full_end - full_start;
+    static const size_t partial_start = header_crc_locations<ulong>::start;
+    static const size_t partial_end = header_crc_locations<ulong>::end;
+    static const size_t partial_length = header_crc_locations<ulong>::length;
+    static const size_t full_start = offsetof(header<ulonglong>, wMagicClient);
+    static const size_t full_end = offsetof(header<ulonglong>, dwCRCFull);
+    static const size_t full_length = full_end - full_start;
 };
 
 //
@@ -346,7 +346,7 @@ void cyclic(void * pdata, ulong cb, ulong key);
 // page structures
 // 
 
-const uint page_size = 512;
+const size_t page_size = 512;
 
 enum page_type
 {
@@ -390,7 +390,7 @@ struct page_trailer<ulong>
 template<typename T>
 struct page
 {
-    static const uint page_data_size = page_size - sizeof(page_trailer<T>);
+    static const size_t page_data_size = page_size - sizeof(page_trailer<T>);
 
     byte data[page_data_size];
     page_trailer<T> trailer;
@@ -398,7 +398,8 @@ struct page
 static_assert(sizeof(page<ulong>) == page_size, "page<ulong> incorrect size");
 static_assert(sizeof(page<ulonglong>) == page_size, "page<ulonglong> incorrect size");
 
-const uint bytes_per_slot = 64;
+const size_t bytes_per_slot = 64;
+const size_t first_amap_page_location = 0x4400;
 
 template<typename T> 
 struct amap_page : public page<T> 
@@ -431,8 +432,8 @@ static_assert(sizeof(fpmap_page<ulonglong>) == page_size, "fpmap_page<ulonglong>
 template<typename T>
 struct dlist_page
 {
-    static const uint extra_space = page<T>::page_data_size - 8;
-    static const uint max_entries = extra_space / sizeof(ulong);
+    static const size_t extra_space = page<T>::page_data_size - 8;
+    static const size_t max_entries = extra_space / sizeof(ulong);
 
     byte flags;
     byte num_entries;
@@ -483,8 +484,8 @@ struct bbt_leaf_entry
 template<typename T, typename EntryType>
 struct bt_page
 {
-    static const uint extra_space = page<T>::page_data_size - (sizeof(T) * sizeof(byte));
-    static const uint max_entries = extra_space / sizeof(EntryType);
+    static const size_t extra_space = page<T>::page_data_size - (sizeof(T) * sizeof(byte));
+    static const size_t max_entries = extra_space / sizeof(EntryType);
     union
     {
         EntryType entries[max_entries];
@@ -530,6 +531,8 @@ static_assert(sizeof(bbt_leaf_page<ulonglong>) == page_size, "bbt_leaf_page<ulon
 //
 // block structures
 //
+
+const size_t max_block_disk_size = 8 * 1024;
 
 enum block_types
 {
@@ -582,7 +585,7 @@ struct block_trailer<ulong>
 template<typename T>
 struct external_block
 {
-    static const uint max_size = (8 * 1024) - sizeof(block_trailer<T>);
+    static const size_t max_size = max_block_disk_size - sizeof(block_trailer<T>);
     byte data[1];
 };
 
@@ -596,8 +599,8 @@ struct extended_block<ulonglong>
 {
     typedef ulonglong block_id_disk;
 
-    static const uint max_count = (external_block<ulonglong>::max_size - 8) / sizeof(extended_block<ulonglong>::block_id_disk);
-    static const uint max_size = external_block<ulonglong>::max_size * extended_block<ulonglong>::max_count; 
+    static const size_t max_count = (external_block<ulonglong>::max_size - 8) / sizeof(extended_block<ulonglong>::block_id_disk);
+    static const size_t max_size = external_block<ulonglong>::max_size * extended_block<ulonglong>::max_count; 
 
     byte block_type;
     byte level;
@@ -611,8 +614,8 @@ struct extended_block<ulong>
 {
     typedef ulong block_id_disk;
 
-    static const uint max_count = ((4096L) - sizeof(block_trailer<ulong>) - 8) / sizeof(extended_block<ulong>::block_id_disk);
-    static const uint max_size = external_block<ulong>::max_size * extended_block<ulong>::max_count;
+    static const size_t max_count = ((4096L) - sizeof(block_trailer<ulong>) - 8) / sizeof(extended_block<ulong>::block_id_disk);
+    static const size_t max_size = external_block<ulong>::max_size * extended_block<ulong>::max_count;
 
     byte block_type;
     byte level;

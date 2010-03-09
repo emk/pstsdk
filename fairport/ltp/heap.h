@@ -192,14 +192,16 @@ inline std::unique_ptr<fairport::bth_node<K,V>> fairport::bth_node<K,V>::open_ro
 
     h->read(buffer, bth_root, 0);
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(pheader->bth_signature != disk::heap_sig_bth)
-        throw sig_mismatch("bth_signature expected");
+        throw sig_mismatch("bth_signature expected", 0, bth_root, pheader->bth_signature, disk::heap_sig_bth);
 
     if(pheader->key_size != sizeof(K))
         throw std::logic_error("invalid key size");
 
     if(pheader->entry_size != sizeof(V))
         throw std::logic_error("invalid entry size");
+#endif
 
     if(pheader->num_levels > 1)
         return open_nonleaf(h, pheader->root, pheader->num_levels-1);
@@ -290,8 +292,10 @@ inline fairport::heap_impl::heap_impl(const node& n)
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(first_header.signature != disk::heap_signature)
-        throw sig_mismatch("not a heap");
+        throw sig_mismatch("invalid heap_sig", 0, n.get_id(), first_header.signature, disk::heap_signature);
+#endif
 }
 
 inline fairport::heap_impl::heap_impl(const node& n, alias_tag)
@@ -300,8 +304,10 @@ inline fairport::heap_impl::heap_impl(const node& n, alias_tag)
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(first_header.signature != disk::heap_signature)
-        throw sig_mismatch("not a heap");
+        throw sig_mismatch("invalid heap_sig", 0, n.get_id(), first_header.signature, disk::heap_signature);
+#endif
 }
 
 inline fairport::heap_impl::heap_impl(const node& n, byte client_sig)
@@ -310,11 +316,13 @@ inline fairport::heap_impl::heap_impl(const node& n, byte client_sig)
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(first_header.signature != disk::heap_signature)
-        throw sig_mismatch("not a heap");
+        throw sig_mismatch("invalid heap_sig", 0, n.get_id(), first_header.signature, disk::heap_signature);
 
-    if(first_header.signature != client_sig)
-        throw sig_mismatch("mismatch client_sig");
+    if(first_header.client_signature != client_sig)
+        throw sig_mismatch("invalid client_sig", 0, n.get_id(), first_header.client_signature, client_sig);
+#endif
 }
 
 inline fairport::heap_impl::heap_impl(const node& n, byte client_sig, alias_tag)
@@ -323,11 +331,13 @@ inline fairport::heap_impl::heap_impl(const node& n, byte client_sig, alias_tag)
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(first_header.signature != disk::heap_signature)
-        throw sig_mismatch("not a heap");
+        throw sig_mismatch("invalid heap_sig", 0, n.get_id(), first_header.signature, disk::heap_signature);
 
-    if(first_header.signature != client_sig)
-        throw sig_mismatch("mismatch client_sig");
+    if(first_header.client_signature != client_sig)
+        throw sig_mismatch("invalid client_sig", 0, n.get_id(), first_header.client_signature, client_sig);
+#endif
 }
 
 inline fairport::heap_id fairport::heap_impl::get_root_id() const
@@ -346,15 +356,19 @@ inline size_t fairport::heap_impl::size(heap_id id) const
 {
     disk::heap_page_header header = m_node.read<disk::heap_page_header>(get_heap_page(id), 0);
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(header.page_map_offset > m_node.get_page_size(get_heap_page(id)))
         throw std::length_error("page_map_offset > node size");
+#endif
 
     std::vector<byte> buffer(m_node.get_page_size(get_heap_page(id)) - header.page_map_offset);
     m_node.read(buffer, get_heap_page(id), header.page_map_offset);
     disk::heap_page_map* pmap = reinterpret_cast<disk::heap_page_map*>(&buffer[0]);
 
+#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
     if(get_heap_index(id) > pmap->num_allocs)
         throw std::length_error("index > num_allocs");
+#endif
 
     return pmap->allocs[get_heap_index(id) + 1] - pmap->allocs[get_heap_index(id)];
 }

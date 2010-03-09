@@ -10,15 +10,15 @@ void test_table(const fairport::table& tc)
     using namespace std;
     using namespace fairport;
 
-    wcout << "Properties on this table: ";
+    //wcout << "Properties on this table: ";
     std::vector<prop_id> prop_list = tc.get_prop_list();
-    for(uint i = 0; i < prop_list.size(); ++i)
-        wcout << hex << prop_list[i] << " ";
-    wcout << endl;
+    //for(uint i = 0; i < prop_list.size(); ++i)
+    //    wcout << hex << prop_list[i] << " ";
+    //wcout << endl;
 
     for(uint i = 0; i < tc.size(); ++i)
     {
-        wcout << "RowID: " << tc[i].row_id() << endl;
+        // wcout << "RowID: " << tc[i].row_id() << endl;
         wstring display_name;
         wstring subject;
 
@@ -28,7 +28,7 @@ void test_table(const fairport::table& tc)
         }
         catch(...)
         {
-            wcout << "display name not found..." << endl;
+            //wcout << "display name not found..." << endl;
         }
 
         try
@@ -37,11 +37,11 @@ void test_table(const fairport::table& tc)
         }
         catch(...)
         {
-            wcout << "subject not found..." << endl;
+            //wcout << "subject not found..." << endl;
         }
 
-        wcout << "\tSubject: " << subject << endl;
-        wcout << "\tDisplay Name: " << display_name << endl;
+        //wcout << "\tSubject: " << subject << endl;
+        //wcout << "\tDisplay Name: " << display_name << endl;
     }
 }
 
@@ -111,7 +111,7 @@ void iterate(fairport::shared_db_ptr pdb)
             {
                 if(pc.get_prop_type(proplist[i]) == prop_type_wstring)
                 {
-                    wcout << pc.read_prop<std::wstring>(proplist[i]) << endl;
+                    /*wcout <<*/ pc.read_prop<std::wstring>(proplist[i])/* << endl*/;
                 }
             }
 
@@ -142,19 +142,19 @@ void iterate(fairport::shared_db_ptr pdb)
         if(get_nid_type(n.get_id()) == nid_type_contents_table)
         {
             table tc(n);
-            wcout << "Found TC: " << tc.size() << endl;
+            //wcout << "Found TC: " << tc.size() << endl;
             test_table(tc);
         }
         else if(get_nid_type(n.get_id()) == nid_type_associated_contents_table)
         {
             table tc(n);
-            wcout << "Found Associated TC: " << tc.size() << endl;
+            //wcout << "Found Associated TC: " << tc.size() << endl;
             test_table(tc);
         }
         else if(get_nid_type(n.get_id()) == nid_type_hierarchy_table)
         {
             table tc(n);
-            wcout << "Found Hierarchy TC: " << tc.size() << endl;
+            //wcout << "Found Hierarchy TC: " << tc.size() << endl;
             test_table(tc);
         }
     }
