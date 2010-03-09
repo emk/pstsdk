@@ -30,7 +30,6 @@ public:
         { ensure_property_bag(); return *m_bag; }
     shared_db_ptr get_db() const 
         { return m_db; }
-    
 
 private:
     void ensure_property_bag() const;
@@ -48,6 +47,5 @@ inline void fairport::pst::ensure_property_bag() const
     if(!m_bag)
         m_bag.reset(new property_bag(m_db->lookup_node(nid_message_store)));
 }
-
 
 #endif
