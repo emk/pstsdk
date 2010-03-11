@@ -53,7 +53,7 @@ class attachment_transform : public std::unary_function<const_table_row, attachm
 public:
     attachment_transform(const node& n) 
         : m_node(n) { }
-    attachment operator()(const_table_row row) const
+    attachment operator()(const const_table_row& row) const
         { return attachment(property_bag(m_node.lookup(row.row_id()))); }
 
 private:
@@ -149,7 +149,7 @@ class message_transform_row : public std::unary_function<const_table_row, messag
 public:
     message_transform_row(const shared_db_ptr& db) 
         : m_db(db) { }
-    message operator()(const_table_row row) const
+    message operator()(const const_table_row& row) const
         { return message(m_db->lookup_node(row.row_id())); }
 
 private:

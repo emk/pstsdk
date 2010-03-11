@@ -22,7 +22,7 @@ struct is_nid_type
 {
     bool operator()(const node_info& info)
         { return get_nid_type(info.id) == Type; }
-    bool operator()(const_table_row row)
+    bool operator()(const const_table_row& row)
         { return get_nid_type(row.row_id()) == Type; }
 };
 
@@ -68,7 +68,7 @@ class search_folder_transform : public std::unary_function<const_table_row, sear
 public:
     search_folder_transform(const shared_db_ptr& db) 
         : m_db(db) { }
-    search_folder operator()(const_table_row row) const
+    search_folder operator()(const const_table_row& row) const
         { return search_folder(m_db, m_db->lookup_node(row.row_id())); }
 
 private:
@@ -81,7 +81,7 @@ class folder_transform_row : public std::unary_function<const_table_row, folder>
 public:
     folder_transform_row(const shared_db_ptr& db) 
         : m_db(db) { }
-    folder operator()(const_table_row row) const;
+    folder operator()(const const_table_row& row) const;
 
 private:
     shared_db_ptr m_db;
@@ -186,7 +186,7 @@ inline fairport::folder::folder(const fairport::folder& other)
         m_contents_table.reset(new table(*other.m_hierarchy_table));
 }
 
-inline fairport::folder fairport::folder_transform_row::operator()(fairport::const_table_row row) const
+inline fairport::folder fairport::folder_transform_row::operator()(const fairport::const_table_row& row) const
 { 
     return folder(m_db, m_db->lookup_node(row.row_id())); 
 }
