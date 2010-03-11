@@ -43,7 +43,7 @@ void process_message(const fairport::message& m)
 
     if(m.get_attachment_count() > 0)
     {
-        for_each(m.attachment_begin(), m.attachment_end(), [](attachment a) { 
+        for_each(m.attachment_begin(), m.attachment_end(), [](const attachment& a) { 
             process_attachment(a);
         });
     }
@@ -52,7 +52,7 @@ void process_message(const fairport::message& m)
 
     if(m.get_recipient_count() > 0)
     {
-        for_each(m.recipient_begin(), m.recipient_end(), [](recipient r) { 
+        for_each(m.recipient_begin(), m.recipient_end(), [](const recipient& r) { 
             process_recipient(r);
         });
     }
@@ -66,11 +66,11 @@ void process_folder(const fairport::folder& f)
 
     wcout << "Folder (M" << f.get_message_count() << ", F" << f.get_subfolder_count() << ") : " << f.get_name() << endl;
 
-    for_each(f.message_begin(), f.message_end(), [](message m) {
+    for_each(f.message_begin(), f.message_end(), [](const message& m) {
         process_message(m);
     });
 
-    for_each(f.sub_folder_begin(), f.sub_folder_end(), [](folder f) {
+    for_each(f.sub_folder_begin(), f.sub_folder_end(), [](const folder& f) {
         process_folder(f);
     });
 
