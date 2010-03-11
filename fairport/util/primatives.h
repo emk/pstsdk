@@ -209,7 +209,26 @@ enum prop_type
     prop_type_mv_binary = 4354,
 };
 
+//
+// mapi recipient type
+//
+
+enum recipient_type
+{
+    mapi_to = 1,
+    mapi_cc = 2,
+    mapi_bcc = 3
+};
+
+// 
+// message specific values
+//
+
+const byte message_subject_prefix_lead_byte = 0x01;
+
+//
 // Win32 GUID
+//
 struct win_guid
 {
     ulong data1;

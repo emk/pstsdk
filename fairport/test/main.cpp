@@ -10,15 +10,24 @@
 int main()
 {
     using namespace std;
-
-    cout << "test_btree();" << endl;
-    test_btree();
-    cout << "test_disk();" << endl;
-    test_disk();
-    cout << "test_db();" << endl;
-    test_db();
-    cout << "test_highlevel();" << endl;
-    test_highlevel();
+    try {
+        cout << "test_btree();" << endl;
+        test_btree();
+        cout << "test_disk();" << endl;
+        test_disk();
+        cout << "test_db();" << endl;
+        test_db();
+        cout << "test_highlevel();" << endl;
+        test_highlevel();
+        cout << "test_pstlevel();" << endl;
+        test_pstlevel();
+    } 
+    catch(exception& e)
+    {
+        cout << "*****" << typeid(e).name() << "*****" << endl;
+        cout << e.what();
+        throw;
+    }
 
 #ifdef _MSC_VER
     _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );

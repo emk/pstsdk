@@ -74,8 +74,8 @@ void process_node(const fairport::node& n)
     using namespace std;
     using namespace fairport;
 
-    for(const_subnodeinfo_iterator iter = n.subnode_begin();
-                    iter != n.subnode_end();
+    for(const_subnodeinfo_iterator iter = n.subnode_info_begin();
+                    iter != n.subnode_info_end();
                     ++iter)
     {
         process_node(node(n, *iter));

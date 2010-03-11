@@ -2,6 +2,7 @@
 #define FAIRPORT_UTIL_ERRORS_H
 
 #include <stdexcept>
+#include "fairport/util/primatives.h"
 
 namespace fairport
 {

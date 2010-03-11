@@ -10,38 +10,42 @@ void test_table(const fairport::table& tc)
     using namespace std;
     using namespace fairport;
 
-    //wcout << "Properties on this table: ";
+    wcout << "Properties on this table (" << tc.size() << "): " << endl;
     std::vector<prop_id> prop_list = tc.get_prop_list();
-    //for(uint i = 0; i < prop_list.size(); ++i)
-    //    wcout << hex << prop_list[i] << " ";
-    //wcout << endl;
+    for(uint i = 0; i < prop_list.size(); ++i)
+        wcout << hex << prop_list[i] << " ";
+    wcout << endl;
 
     for(uint i = 0; i < tc.size(); ++i)
     {
-        // wcout << "RowID: " << tc[i].row_id() << endl;
+        wcout << "RowID: " << tc[i].row_id() << endl;
         wstring display_name;
         wstring subject;
 
-        try
+         std::vector<ushort> proplist(tc[i].get_prop_list());
+        for(uint j = 0; j < proplist.size(); ++j)
         {
-            display_name = tc[i].read_prop<wstring>(0x3001);
+            try {
+                if(tc[i].get_prop_type(proplist[j]) == prop_type_wstring)
+                {
+                    wcout << "\t" << hex << proplist[j] << ": " << tc[i].read_prop<std::wstring>(proplist[j]) << endl;
+                }
+                else if(tc[i].get_prop_type(proplist[j]) == prop_type_long)
+                {
+                    wcout << "\t" << hex << proplist[j] << ": " << dec << tc[i].read_prop<long>(proplist[j]) << endl;
+                }
+                else if(tc[i].get_prop_type(proplist[j]) == prop_type_boolean)
+                {
+                    wcout << "\t" << hex << proplist[j] << ": " << dec << (tc[i].read_prop<bool>(proplist[j]) ? L"true" : L"false") << endl;
+                }
+                else
+                {
+                    wcout << "\t" << hex << proplist[j] << "(" << dec << tc[i].get_prop_type(proplist[j]) << ")" << endl;
+                }
+            } catch(key_not_found<prop_id>&)
+            {
+            }
         }
-        catch(...)
-        {
-            //wcout << "display name not found..." << endl;
-        }
-
-        try
-        {
-            subject = tc[i].read_prop<wstring>(0x37);
-        }
-        catch(...)
-        {
-            //wcout << "subject not found..." << endl;
-        }
-
-        //wcout << "\tSubject: " << subject << endl;
-        //wcout << "\tDisplay Name: " << display_name << endl;
     }
 }
 
@@ -116,8 +120,8 @@ void iterate(fairport::shared_db_ptr pdb)
             }
 
             // attachment table
-            for(const_subnodeinfo_iterator si = n.subnode_begin();
-                    si != n.subnode_end();
+            for(const_subnodeinfo_iterator si = n.subnode_info_begin();
+                    si != n.subnode_info_end();
                     ++si)
             {
                 if(get_nid_type(si->id) == nid_type_attachment_table)
@@ -126,6 +130,14 @@ void iterate(fairport::shared_db_ptr pdb)
                     wcout << "Found Attachment Table: " << atc.size() << endl;
                     test_table(atc);
                     test_attachment_table(n, atc);
+                }
+
+                if(get_nid_type(si->id) == nid_type_recipient_table)
+                {
+                    table atc(node(n, *si));
+                    wcout << "Found Recipient Table: " << atc.size() << endl;
+                    test_table(atc);
+                    //test_attachment_table(n, atc);
                 }
             }
 

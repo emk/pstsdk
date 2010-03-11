@@ -26,6 +26,7 @@ SRCS=\
 	 main.cpp			\
 	 disktest.cpp		\
 	 highlevel.cpp		\
+	 pstlevel.cpp		\
 
 ifeq ($(CC),cl) #MSVC
 OBJS=$(SRCS:.cpp=.obj)

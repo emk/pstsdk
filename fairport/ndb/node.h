@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <memory>
 #include <cassert>
+#include <boost/iterator/transform_iterator.hpp>
 
 #include "fairport/util/util.h"
 #include "fairport/util/btree.h"
@@ -62,8 +63,8 @@ public:
     uint get_page_count() const;
 
     // iterate over subnodes
-    const_subnodeinfo_iterator subnode_begin() const;
-    const_subnodeinfo_iterator subnode_end() const;
+    const_subnodeinfo_iterator subnode_info_begin() const;
+    const_subnodeinfo_iterator subnode_info_end() const;
     node lookup(node_id id) const;
 
 private:
@@ -83,9 +84,22 @@ private:
     shared_db_ptr m_db;
 };
 
+class subnode_transform_info : public std::unary_function<subnode_info, node>
+{
+public:
+    subnode_transform_info(const std::shared_ptr<node_impl>& parent)
+        : m_parent(parent) { }
+    node operator()(const subnode_info& info) const;
+
+private:
+    std::shared_ptr<node_impl> m_parent;
+};
+
 class node
 {
 public:
+    typedef boost::transform_iterator<subnode_transform_info, const_subnodeinfo_iterator> subnode_iterator;
+
     // constructor for top level nodes
     node(const shared_db_ptr& db, const node_info& info)
         : m_pimpl(new node_impl(db, info)) { }
@@ -146,10 +160,14 @@ public:
     uint get_page_count() const { return m_pimpl->get_page_count(); }
 
     // iterate over subnodes
-    const_subnodeinfo_iterator subnode_begin() const
-        { return m_pimpl->subnode_begin(); }
-    const_subnodeinfo_iterator subnode_end() const
-        { return m_pimpl->subnode_end(); } 
+    const_subnodeinfo_iterator subnode_info_begin() const
+        { return m_pimpl->subnode_info_begin(); }
+    const_subnodeinfo_iterator subnode_info_end() const
+        { return m_pimpl->subnode_info_end(); } 
+    subnode_iterator subnode_begin() const
+        { return boost::make_transform_iterator(subnode_info_begin(), subnode_transform_info(m_pimpl)); }
+    subnode_iterator subnode_end() const
+        { return boost::make_transform_iterator(subnode_info_end(), subnode_transform_info(m_pimpl)); }
     node lookup(node_id id) const
         { return m_pimpl->lookup(id); }
 
@@ -360,6 +378,11 @@ private:
 };
 
 } // end fairport namespace
+
+inline fairport::node fairport::subnode_transform_info::operator()(const fairport::subnode_info& info) const
+{ 
+    return node(m_parent, info); 
+}
 
 inline fairport::block_id fairport::node_impl::get_data_id() const
 { 
@@ -799,13 +822,13 @@ inline size_t fairport::extended_block::resize(size_t size, std::shared_ptr<data
     return size;
 }
 
-inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_begin() const
+inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_info_begin() const
 {
     const subnode_block* pblock = ensure_sub_block();
     return pblock->begin();
 }
 
-inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_end() const
+inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_info_end() const
 {
     const subnode_block* pblock = ensure_sub_block();
     return pblock->end();

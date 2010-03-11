@@ -34,6 +34,9 @@ public:
     prop_type get_prop_type(prop_id id) const
         { return (prop_type)m_pbth->lookup(id).type; }
     bool prop_exists(prop_id id) const;
+    
+    const node& get_node() const { return m_pbth->get_node(); }
+    node& get_node() { return m_pbth->get_node(); }
 
 private:
     property_bag& operator=(const property_bag& other); // = delete
@@ -159,6 +162,9 @@ inline std::vector<fairport::byte> fairport::property_bag::get_value_variable(pr
 {
     heapnode_id h_id = (heapnode_id)get_value_4(id);
     std::vector<byte> buffer;
+
+    if(h_id == 0)
+        return buffer;
 
     if(is_subnode_id(h_id))
     {

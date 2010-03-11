@@ -146,7 +146,10 @@ inline std::wstring const_property_object::read_prop<std::wstring>(prop_id id) c
     }
     else
     {
-        return std::wstring((wchar_t*)&buffer[0], buffer.size()/sizeof(wchar_t));
+        if(buffer.size())
+            return std::wstring(reinterpret_cast<wchar_t*>(&buffer[0]), buffer.size()/sizeof(wchar_t));
+        else
+            return std::wstring();
     }
 }
 
@@ -167,8 +170,12 @@ inline std::string const_property_object::read_prop<std::string>(prop_id id) con
     }
     else
     {
-        std::wstring s((wchar_t*)&buffer[0], buffer.size()/sizeof(wchar_t));
-        return std::string(s.begin(), s.end());
+        if(buffer.size())
+        {
+            std::wstring s((wchar_t*)&buffer[0], buffer.size()/sizeof(wchar_t));
+            return std::string(s.begin(), s.end());
+        }
+        return std::string();
     }
 }
 

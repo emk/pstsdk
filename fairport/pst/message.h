@@ -1,53 +1,18 @@
 #ifndef FAIRPORT_PST_MESSAGE_H
 #define FAIRPORT_PST_MESSAGE_H
 
+#include <functional>
+#include <ostream>
+#include <boost/iterator/transform_iterator.hpp>
+
 #include "fairport/ndb/database_iface.h"
+#include "fairport/ndb/node.h"
 
 #include "fairport/ltp/propbag.h"
 #include "fairport/ltp/table.h"
 
 namespace fairport
 {
-
-class message
-{
-public:
-    message();
-    message(const node& n);
-    message(const attachment& attach);
-     
-    // subobject discovery/enumeration
-    some_iter_type attachment_begin();
-    some_iter_type attachment_end();
-    some_const_iter_type attachment_begin() const;
-    some_const_iter_type attachment_end() const;
-
-    folder open_sub_folder(const std::wstring& name);
-
-    some_iter_type recipient_begin();
-    some_iter_type recipient_end();
-    some_const_iter_type recipient_begin() const;
-    some_const_iter_type recipient_end() const;
-
-
-    // property access
-    std::wstring get_subject() const;
-    uint size() const;
-    uint get_attachment_count() const;
-    uint get_recipient_count() const;
-    uint get_associated_message_count() const;
-
-    // lower layer access
-    const property_bag& get_property_bag() const
-        { ensure_property_bag(); return *m_bag; }
-    const table& get_attachment_table() const;
-    const table& get_recpient_table() const;
-    const table& get_associated_contents_table() const;
-    shared_db_ptr get_db() const 
-        { return m_db; }
-
-private:
-};
 
 class attachment
 {
@@ -62,17 +27,221 @@ public:
 
     // lower layer access
     const property_bag& get_property_bag() const
-        { return *m_bag; }
+        { return m_bag; }
     property_bag& get_property_bag()
-        { return *m_bag; }
+        { return m_bag; }
 
 private:
+    attachment& operator=(const attachment&); // = delete
     friend class message;
+    friend class attachment_transform;
     attachment(const property_bag& attachment)
-        : m_bag(attachment, alias_tag) { }
+        : m_bag(attachment) { }
 
     property_bag m_bag;
 };
 
+std::ostream& operator<<(std::ostream& out, const attachment& attach)
+{
+    std::vector<byte> data = attach.get_bytes();
+    out.write(reinterpret_cast<char*>(&data[0]), data.size());
+    return out;
 }
+
+class attachment_transform : public std::unary_function<const_table_row, attachment>
+{
+public:
+    attachment_transform(const node& n) 
+        : m_node(n) { }
+    attachment operator()(const_table_row row) const
+        { return attachment(property_bag(m_node.lookup(row.row_id()))); }
+
+private:
+    node m_node;
+};
+
+class recipient
+{
+public:
+    // property access
+    std::wstring get_name() const
+        { return m_row.read_prop<std::wstring>(0x3001); }
+    recipient_type get_type() const
+        { return static_cast<recipient_type>(m_row.read_prop<ulong>(0xc15)); }
+    std::wstring get_address_type() const
+        { return m_row.read_prop<std::wstring>(0x3002); }
+    std::wstring get_email_address() const
+        { return m_row.read_prop<std::wstring>(0x39fe); }
+    std::wstring get_account_name() const
+        { return m_row.read_prop<std::wstring>(0x3a00); }
+
+    // lower layer access
+    const const_table_row& get_property_row() const
+        { return m_row; }
+
+private:
+    recipient& operator=(const recipient&); // = delete
+    friend struct recipient_transform;
+
+    recipient(const const_table_row& row)
+        : m_row(row) { }
+    const_table_row m_row;
+};
+
+struct recipient_transform : public std::unary_function<const_table_row, recipient>
+{
+    recipient operator()(const_table_row row) const
+        { return recipient(row); }
+};
+
+class message
+{
+public:
+    typedef boost::transform_iterator<attachment_transform, const_table_row_iter> attachment_iter;
+    typedef boost::transform_iterator<recipient_transform, const_table_row_iter> recipient_iter;
+
+    message(const node& n)
+        : m_bag(n) { }
+    message(const message& other);
+     
+    // subobject discovery/enumeration
+    attachment_iter attachment_begin() const
+        { return boost::make_transform_iterator(get_attachment_table().begin(), attachment_transform(m_bag.get_node())); }
+    attachment_iter attachment_end() const
+        { return boost::make_transform_iterator(get_attachment_table().end(), attachment_transform(m_bag.get_node())); }
+    recipient_iter recipient_begin() const
+        { return boost::make_transform_iterator(get_recipient_table().begin(), recipient_transform()); }
+    recipient_iter recipient_end() const
+        { return boost::make_transform_iterator(get_recipient_table().end(), recipient_transform()); }
+
+
+    // property access
+    std::wstring get_subject() const;
+    std::wstring get_body() const
+        { return m_bag.read_prop<std::wstring>(0x1000); }
+    std::wstring get_html_body() const
+        { return m_bag.read_prop<std::wstring>(0x1013); }
+    size_t size() const
+        { return m_bag.read_prop<long>(0xe08); }
+    size_t get_attachment_count() const;
+    size_t get_recipient_count() const;
+
+    // lower layer access
+    property_bag& get_property_bag()
+        { return m_bag; }
+    const property_bag& get_property_bag() const
+        { return m_bag; }
+    const table& get_attachment_table() const;
+    const table& get_recipient_table() const;
+    table& get_attachment_table();
+    table& get_recipient_table();
+
+private:
+    message& operator=(const message&); // = delete
+
+    property_bag m_bag;
+    mutable std::unique_ptr<table> m_attachment_table;
+    mutable std::unique_ptr<table> m_recipient_table;
+};
+
+class message_transform_row : public std::unary_function<const_table_row, message>
+{
+public:
+    message_transform_row(const shared_db_ptr& db) 
+        : m_db(db) { }
+    message operator()(const_table_row row) const
+        { return message(m_db->lookup_node(row.row_id())); }
+
+private:
+    shared_db_ptr m_db;
+};
+
+class message_transform_info : public std::unary_function<node_info, message>
+{
+public:
+    message_transform_info(const shared_db_ptr& db) 
+        : m_db(db) { }
+    message operator()(const node_info& info) const
+        { return message(node(m_db, info)); }
+
+private:
+    shared_db_ptr m_db;
+};
+
+} // end namespace fairport
+
+inline fairport::message::message(const fairport::message& other)
+: m_bag(other.m_bag)
+{
+    if(other.m_attachment_table)
+        m_attachment_table.reset(new table(*other.m_attachment_table));
+    if(other.m_recipient_table)
+        m_recipient_table.reset(new table(*other.m_recipient_table));
+}
+
+inline const fairport::table& fairport::message::get_attachment_table() const
+{
+    if(!m_attachment_table)
+        m_attachment_table.reset(new table(m_bag.get_node().lookup(nid_attachment_table)));
+
+    return *m_attachment_table;
+}
+
+inline const fairport::table& fairport::message::get_recipient_table() const
+{
+    if(!m_recipient_table)
+        m_recipient_table.reset(new table(m_bag.get_node().lookup(nid_recipient_table)));
+
+    return *m_recipient_table;
+}
+
+inline fairport::table& fairport::message::get_attachment_table()
+{
+    return const_cast<table&>(const_cast<const message*>(this)->get_attachment_table());
+}
+
+inline fairport::table& fairport::message::get_recipient_table()
+{
+    return const_cast<table&>(const_cast<const message*>(this)->get_recipient_table());
+}
+
+inline size_t fairport::message::get_attachment_count() const
+{
+    size_t count = 0;
+    try 
+    {
+        count = get_attachment_table().size();
+    } 
+    catch (const key_not_found<node_id>&) { }
+
+    return count;
+}
+
+inline size_t fairport::message::get_recipient_count() const
+{
+    size_t count = 0;
+    try 
+    {
+        count = get_recipient_table().size();
+    } 
+    catch (const key_not_found<node_id>&) { }
+    
+    return count;
+}
+
+inline std::wstring fairport::message::get_subject() const
+{
+    std::wstring buffer = m_bag.read_prop<std::wstring>(0x37);
+
+    if(buffer[0] == message_subject_prefix_lead_byte)   
+    {
+        // Skip the second chracter as well
+        return buffer.substr(2);
+    } 
+    else 
+    {
+        return buffer;
+    }
+}
+
 #endif
