@@ -53,6 +53,8 @@ class attachment_transform : public std::unary_function<const_table_row, attachm
 public:
     attachment_transform(const node& n) 
         : m_node(n) { }
+    attachment_transform(attachment_transform&& other)
+        : m_node(std::move(other.m_node)) { }
     attachment operator()(const const_table_row& row) const
         { return attachment(property_bag(m_node.lookup(row.row_id()))); }
 
@@ -97,21 +99,23 @@ struct recipient_transform : public std::unary_function<const_table_row, recipie
 class message
 {
 public:
-    typedef boost::transform_iterator<attachment_transform, const_table_row_iter> attachment_iter;
-    typedef boost::transform_iterator<recipient_transform, const_table_row_iter> recipient_iter;
+    typedef boost::transform_iterator<attachment_transform, const_table_row_iter> attachment_iterator;
+    typedef boost::transform_iterator<recipient_transform, const_table_row_iter> recipient_iterator;
 
     message(const node& n)
         : m_bag(n) { }
     message(const message& other);
+    message(message&& other)
+        : m_bag(std::move(other.m_bag)), m_attachment_table(std::move(other.m_attachment_table)), m_recipient_table(std::move(other.m_recipient_table)) { }
      
     // subobject discovery/enumeration
-    attachment_iter attachment_begin() const
+    attachment_iterator attachment_begin() const
         { return boost::make_transform_iterator(get_attachment_table().begin(), attachment_transform(m_bag.get_node())); }
-    attachment_iter attachment_end() const
+    attachment_iterator attachment_end() const
         { return boost::make_transform_iterator(get_attachment_table().end(), attachment_transform(m_bag.get_node())); }
-    recipient_iter recipient_begin() const
+    recipient_iterator recipient_begin() const
         { return boost::make_transform_iterator(get_recipient_table().begin(), recipient_transform()); }
-    recipient_iter recipient_end() const
+    recipient_iterator recipient_end() const
         { return boost::make_transform_iterator(get_recipient_table().end(), recipient_transform()); }
 
 

@@ -19,12 +19,12 @@ namespace fairport
 
 class pst : boost::noncopyable
 {
-    typedef boost::filter_iterator<is_nid_type<nid_type_folder>, const_nodeinfo_iterator> folder_filter_iter;
-    typedef boost::filter_iterator<is_nid_type<nid_type_message>, const_nodeinfo_iterator> message_filter_iter;
+    typedef boost::filter_iterator<is_nid_type<nid_type_folder>, const_nodeinfo_iterator> folder_filter_iterator;
+    typedef boost::filter_iterator<is_nid_type<nid_type_message>, const_nodeinfo_iterator> message_filter_iterator;
 
 public:
-    typedef boost::transform_iterator<message_transform_info, message_filter_iter> message_iter;
-    typedef boost::transform_iterator<folder_transform_info, folder_filter_iter> folder_iter;
+    typedef boost::transform_iterator<message_transform_info, message_filter_iterator> message_iterator;
+    typedef boost::transform_iterator<folder_transform_info, folder_filter_iterator> folder_iterator;
 
     pst(const std::wstring& filename) 
         : m_db(open_database(filename)) { }
@@ -32,14 +32,14 @@ public:
         : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)) { }
 
     // subobject discovery/enumeration
-    folder_iter folder_begin() const
+    folder_iterator folder_begin() const
         { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder>>(m_db->read_nbt_root()->begin(), m_db->read_nbt_root()->end()), folder_transform_info(m_db) ); }
-    folder_iter folder_end() const
+    folder_iterator folder_end() const
         { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder>>(m_db->read_nbt_root()->end(), m_db->read_nbt_root()->end()), folder_transform_info(m_db) ); }
 
-    message_iter message_begin() const
+    message_iterator message_begin() const
         { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_message>>(m_db->read_nbt_root()->begin(), m_db->read_nbt_root()->end()), message_transform_info(m_db) ); }
-    message_iter message_end() const
+    message_iterator message_end() const
         { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_message>>(m_db->read_nbt_root()->end(), m_db->read_nbt_root()->end()), message_transform_info(m_db) ); }
 
     folder open_root_folder() const
@@ -78,7 +78,7 @@ inline fairport::property_bag& fairport::pst::get_property_bag()
 
 inline fairport::folder fairport::pst::open_folder(const std::wstring& name) const
 {
-    folder_iter iter = std::find_if(folder_begin(), folder_end(), [&name](const folder& f) {
+    folder_iterator iter = std::find_if(folder_begin(), folder_end(), [&name](const folder& f) {
         return f.get_name() == name;
     });
     

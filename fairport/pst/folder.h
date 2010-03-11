@@ -29,16 +29,18 @@ struct is_nid_type
 class search_folder
 {
 public:
-    typedef boost::transform_iterator<message_transform_row, const_table_row_iter> message_iter;
+    typedef boost::transform_iterator<message_transform_row, const_table_row_iter> message_iterator;
     
     search_folder(const shared_db_ptr& db, const node& n)
         : m_db(db), m_bag(n) { }
     search_folder(const search_folder& other);
+    search_folder(search_folder&& other)
+        : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)), m_contents_table(std::move(other.m_contents_table)) { }
 
     // subobject discovery/enumeration
-    message_iter message_begin() const
+    message_iterator message_begin() const
         { return boost::make_transform_iterator(get_contents_table().begin(), message_transform_row(m_db)); }
-    message_iter message_end() const
+    message_iterator message_end() const
         { return boost::make_transform_iterator(get_contents_table().begin(), message_transform_row(m_db)); }
 
     // property access
@@ -89,39 +91,41 @@ private:
 
 class folder
 {
-    typedef boost::filter_iterator<is_nid_type<nid_type_search_folder>, const_table_row_iter> search_folder_filter_iter;
-    typedef boost::filter_iterator<is_nid_type<nid_type_folder>, const_table_row_iter> folder_filter_iter;
+    typedef boost::filter_iterator<is_nid_type<nid_type_search_folder>, const_table_row_iter> search_folder_filter_iterator;
+    typedef boost::filter_iterator<is_nid_type<nid_type_folder>, const_table_row_iter> folder_filter_iterator;
 
 public:
-    typedef boost::transform_iterator<message_transform_row, const_table_row_iter> message_iter;
-    typedef boost::transform_iterator<folder_transform_row, folder_filter_iter> folder_iter;
-    typedef boost::transform_iterator<search_folder_transform, search_folder_filter_iter> search_folder_iter;
+    typedef boost::transform_iterator<message_transform_row, const_table_row_iter> message_iterator;
+    typedef boost::transform_iterator<folder_transform_row, folder_filter_iterator> folder_iterator;
+    typedef boost::transform_iterator<search_folder_transform, search_folder_filter_iterator> search_folder_iterator;
 
     folder(const shared_db_ptr& db, const node& n)
         : m_db(db), m_bag(n) { }
     folder(const folder& other);
+    folder(folder&& other)
+        : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)), m_contents_table(std::move(other.m_contents_table)), m_associated_contents_table(std::move(other.m_associated_contents_table)), m_hierarchy_table(std::move(other.m_hierarchy_table)) { }
 
     // subobject discovery/enumeration
-    folder_iter sub_folder_begin() const
+    folder_iterator sub_folder_begin() const
         { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder>>(get_hierarchy_table().begin(), get_hierarchy_table().end()), folder_transform_row(m_db)); }
-    folder_iter sub_folder_end() const
+    folder_iterator sub_folder_end() const
         { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder>>(get_hierarchy_table().end(), get_hierarchy_table().end()), folder_transform_row(m_db)); }
 
-    search_folder_iter sub_search_folder_begin() const
+    search_folder_iterator sub_search_folder_begin() const
         { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_search_folder>>(get_hierarchy_table().begin(), get_hierarchy_table().end()), search_folder_transform(m_db)); }
-    search_folder_iter sub_search_folder_end() const
+    search_folder_iterator sub_search_folder_end() const
         { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_search_folder>>(get_hierarchy_table().begin(), get_hierarchy_table().end()), search_folder_transform(m_db)); }
 
     folder open_sub_folder(const std::wstring& name);
 
-    message_iter message_begin() const
+    message_iterator message_begin() const
         { return boost::make_transform_iterator(get_contents_table().begin(), message_transform_row(m_db)); }
-    message_iter message_end() const
+    message_iterator message_end() const
         { return boost::make_transform_iterator(get_contents_table().end(), message_transform_row(m_db)); }
 
-    message_iter associated_message_begin() const
+    message_iterator associated_message_begin() const
         { return boost::make_transform_iterator(get_associated_contents_table().begin(), message_transform_row(m_db)); }
-    message_iter associated_message_end() const
+    message_iterator associated_message_end() const
         { return boost::make_transform_iterator(get_associated_contents_table().end(), message_transform_row(m_db)); }
 
     // property access
@@ -206,7 +210,7 @@ inline fairport::table& fairport::search_folder::get_contents_table()
 
 inline fairport::folder fairport::folder::open_sub_folder(const std::wstring& name)
 {
-    folder_iter iter = std::find_if(sub_folder_begin(), sub_folder_end(), [&name](const folder& f) {
+    folder_iterator iter = std::find_if(sub_folder_begin(), sub_folder_end(), [&name](const folder& f) {
         return f.get_name() == name;
     });
     
