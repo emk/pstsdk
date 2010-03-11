@@ -78,7 +78,7 @@ inline fairport::property_bag& fairport::pst::get_property_bag()
 
 inline fairport::folder fairport::pst::open_folder(const std::wstring& name) const
 {
-    folder_iter iter = std::find_if(folder_begin(), folder_end(), [&name](folder f) {
+    folder_iter iter = std::find_if(folder_begin(), folder_end(), [&name](const folder& f) {
         return f.get_name() == name;
     });
     

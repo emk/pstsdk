@@ -33,7 +33,7 @@ void process_attachment(const fairport::attachment& a)
     newfile << a;
 }
 
-void process_message(fairport::message& m)
+void process_message(const fairport::message& m)
 {
     using namespace std;
     using namespace fairport;
@@ -59,7 +59,7 @@ void process_message(fairport::message& m)
 }
 
 
-void process_folder(fairport::folder& f)
+void process_folder(const fairport::folder& f)
 {
     using namespace std;
     using namespace fairport;
@@ -76,7 +76,7 @@ void process_folder(fairport::folder& f)
 
 }
 
-void process_pst(fairport::pst& p)
+void process_pst(const fairport::pst& p)
 {
     using namespace std;
     using namespace fairport;
@@ -97,4 +97,7 @@ void test_pstlevel()
     process_pst(uni);
     process_pst(ansi);
     process_pst(uni2);
+
+    // make sure searching by name works
+    process_folder(uni.open_folder(L"Folder"));
 }

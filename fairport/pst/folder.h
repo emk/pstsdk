@@ -206,7 +206,7 @@ inline fairport::table& fairport::search_folder::get_contents_table()
 
 inline fairport::folder fairport::folder::open_sub_folder(const std::wstring& name)
 {
-    folder_iter iter = std::find_if(sub_folder_begin(), sub_folder_end(), [&name](folder f) {
+    folder_iter iter = std::find_if(sub_folder_begin(), sub_folder_end(), [&name](const folder& f) {
         return f.get_name() == name;
     });
     

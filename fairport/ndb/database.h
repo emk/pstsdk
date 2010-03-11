@@ -102,6 +102,8 @@ protected:
 
     file m_file;
     disk::header<T> m_header;
+    std::shared_ptr<bbt_page> m_bbt_root;
+    std::shared_ptr<nbt_page> m_nbt_root;
 };
 
 template<>
@@ -246,15 +248,25 @@ std::vector<fairport::byte> fairport::database_impl<T>::read_page_data(const pag
 template<typename T>
 inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_root()
 { 
-    page_info pi = { m_header.root.brefBBT.bid, m_header.root.brefBBT.ib };
-    return read_bbt_page(pi); 
+    if(!m_bbt_root)
+    {
+        page_info pi = { m_header.root.brefBBT.bid, m_header.root.brefBBT.ib };
+        m_bbt_root = read_bbt_page(pi); 
+    }
+
+    return m_bbt_root;
 }
 
 template<typename T>
 inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_root()
 { 
-    page_info pi = { m_header.root.brefNBT.bid, m_header.root.brefNBT.ib };
-    return read_nbt_page(pi);
+    if(!m_nbt_root)
+    {
+        page_info pi = { m_header.root.brefNBT.bid, m_header.root.brefNBT.ib };
+        m_nbt_root = read_nbt_page(pi);
+    }
+
+    return m_nbt_root;
 }
 
 template<typename T>
