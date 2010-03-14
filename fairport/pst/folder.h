@@ -224,7 +224,6 @@ struct folder_name_equal : public std::unary_function<bool, const fairport::fold
 } // end namespace compiler_workarounds
 #endif
 
-
 inline fairport::folder fairport::folder::open_sub_folder(const std::wstring& name)
 {
 #ifdef NO_LAMBDA

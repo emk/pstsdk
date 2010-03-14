@@ -224,12 +224,12 @@ inline size_t fairport::message::get_attachment_count() const
 inline size_t fairport::message::get_recipient_count() const
 {
     size_t count = 0;
-    try 
+    try
     {
         count = get_recipient_table().size();
-    } 
+    }
     catch (const key_not_found<node_id>&) { }
-    
+
     return count;
 }
 
@@ -237,12 +237,12 @@ inline std::wstring fairport::message::get_subject() const
 {
     std::wstring buffer = m_bag.read_prop<std::wstring>(0x37);
 
-    if(buffer[0] == message_subject_prefix_lead_byte)   
+    if(buffer[0] == message_subject_prefix_lead_byte)
     {
         // Skip the second chracter as well
         return buffer.substr(2);
-    } 
-    else 
+    }
+    else
     {
         return buffer;
     }

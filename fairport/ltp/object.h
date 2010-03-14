@@ -24,6 +24,15 @@ public:
     template<typename T>
     std::vector<T> read_prop_array(prop_id id) const;
 
+// GCC has time_t defined as a typedef of a long, so calling
+// read_prop<long> activates the time_t specialization. I'm
+// turning them into first class member functions in GCC for now until
+// I figure out a portable way to deal with time.
+#ifdef __GNUC__
+    time_t read_time_t_prop(prop_id id) const;
+    std::vector<time_t> read_time_t_array(prop_id id) const;
+#endif
+
 protected:
     virtual byte get_value_1(prop_id id) const = 0;
     virtual ushort get_value_2(prop_id id) const = 0;
@@ -99,8 +108,14 @@ inline std::vector<bool> fairport::const_property_object::read_prop_array<bool>(
     return results;
 }
 
+// See the note in the class definition - convert the time_t read_prop
+// specialization into a member function in GCC
+#ifdef __GNUC__
+inline time_t const_property_object::read_time_t_prop(prop_id id) const
+#else
 template<>
 inline time_t const_property_object::read_prop<time_t>(prop_id id) const
+#endif
 {
     if(get_prop_type(id) == prop_type_apptime)
     {
@@ -114,8 +129,12 @@ inline time_t const_property_object::read_prop<time_t>(prop_id id) const
     }
 }
 
+#ifdef __GNUC__
+inline std::vector<time_t> const_property_object::read_time_t_array(prop_id id) const
+#else
 template<>
 inline std::vector<time_t> const_property_object::read_prop_array<time_t>(prop_id id) const
+#endif
 {
     if(get_prop_type(id) == prop_type_mv_apptime)
     {
@@ -125,7 +144,7 @@ inline std::vector<time_t> const_property_object::read_prop_array<time_t>(prop_i
         return result;
     }
     else
-    {   
+    {
         std::vector<ulonglong> time_values = read_prop_array<ulonglong>(id);
         std::vector<time_t> result(time_values.size());
         std::transform(time_values.begin(), time_values.end(), result.begin(), filetime_to_time_t);
