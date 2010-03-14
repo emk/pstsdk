@@ -28,12 +28,10 @@ void process_attachment(const fairport::attachment& a)
 
     wcout << "\t\t" << a.get_filename() << endl;
 
-#ifndef __GNUC__
     std::wstring wfilename = a.get_filename();
     std::string filename(wfilename.begin(), wfilename.end());
-    ofstream newfile(filename, ios::out | ios::binary);
+    ofstream newfile(filename.c_str(), ios::out | ios::binary);
     newfile << a;
-#endif
 }
 
 void process_message(const fairport::message& m)
