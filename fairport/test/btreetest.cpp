@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <cassert>
 #include "fairport/util/btree.h"
 #include "test.h"

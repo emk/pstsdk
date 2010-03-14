@@ -82,8 +82,8 @@ void test_disk_structures(fairport::file& file)
 
     file.read(buffer, 0); 
 
-    test_page<T>(file, pheader->root.brefNBT, pheader->bCryptMethod);
-    test_page<T>(file, pheader->root.brefBBT, pheader->bCryptMethod);
+    test_page<T>(file, pheader->root_info.brefNBT, pheader->bCryptMethod);
+    test_page<T>(file, pheader->root_info.brefBBT, pheader->bCryptMethod);
 }
 
 void test_disk() 

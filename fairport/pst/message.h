@@ -56,7 +56,7 @@ public:
     attachment_transform(attachment_transform&& other)
         : m_node(std::move(other.m_node)) { }
     attachment operator()(const const_table_row& row) const
-        { return attachment(property_bag(m_node.lookup(row.row_id()))); }
+        { return attachment(property_bag(m_node.lookup(row.get_row_id()))); }
 
 private:
     node m_node;
@@ -154,7 +154,7 @@ public:
     message_transform_row(const shared_db_ptr& db) 
         : m_db(db) { }
     message operator()(const const_table_row& row) const
-        { return message(m_db->lookup_node(row.row_id())); }
+        { return message(m_db->lookup_node(row.get_row_id())); }
 
 private:
     shared_db_ptr m_db;

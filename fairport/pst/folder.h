@@ -1,6 +1,7 @@
 #ifndef FAIRPORT_PST_FOLDER_H
 #define FAIRPORT_PST_FOLDER_H
 
+#include <algorithm>
 #include <boost/iterator/filter_iterator.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 
@@ -23,7 +24,7 @@ struct is_nid_type
     bool operator()(const node_info& info)
         { return get_nid_type(info.id) == Type; }
     bool operator()(const const_table_row& row)
-        { return get_nid_type(row.row_id()) == Type; }
+        { return get_nid_type(row.get_row_id()) == Type; }
 };
 
 class search_folder
@@ -71,7 +72,7 @@ public:
     search_folder_transform(const shared_db_ptr& db) 
         : m_db(db) { }
     search_folder operator()(const const_table_row& row) const
-        { return search_folder(m_db, m_db->lookup_node(row.row_id())); }
+        { return search_folder(m_db, m_db->lookup_node(row.get_row_id())); }
 
 private:
     shared_db_ptr m_db;
@@ -192,7 +193,7 @@ inline fairport::folder::folder(const fairport::folder& other)
 
 inline fairport::folder fairport::folder_transform_row::operator()(const fairport::const_table_row& row) const
 { 
-    return folder(m_db, m_db->lookup_node(row.row_id())); 
+    return folder(m_db, m_db->lookup_node(row.get_row_id()));
 }
 
 inline const fairport::table& fairport::search_folder::get_contents_table() const
@@ -208,12 +209,32 @@ inline fairport::table& fairport::search_folder::get_contents_table()
     return const_cast<table&>(const_cast<const search_folder*>(this)->get_contents_table());
 }
 
+
+#ifdef NO_LAMBDA
+namespace compiler_workarounds
+{
+
+struct folder_name_equal : public std::unary_function<bool, const fairport::folder&>
+{
+    folder_name_equal(const std::wstring& name) : m_name(name) { }
+    bool operator()(const fairport::folder& f) const { return f.get_name() == m_name; }
+    std::wstring m_name;
+};
+
+} // end namespace compiler_workarounds
+#endif
+
+
 inline fairport::folder fairport::folder::open_sub_folder(const std::wstring& name)
 {
+#ifdef NO_LAMBDA
+    folder_iterator iter = std::find_if(sub_folder_begin(), sub_folder_end(), compiler_workarounds::folder_name_equal(name));
+#else
     folder_iterator iter = std::find_if(sub_folder_begin(), sub_folder_end(), [&name](const folder& f) {
         return f.get_name() == name;
     });
-    
+#endif
+
     if(iter != sub_folder_end())
         return *iter;
 

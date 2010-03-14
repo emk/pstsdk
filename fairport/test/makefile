@@ -5,7 +5,7 @@
 #
 # compiler options
 #
-CC=cl
+CC=g++
 
 ifeq ($(CC),cl) #MSVC
 OPTIONS=/DEBUG /DFAIRPORT_VALIDATION_LEVEL_FULL /Od /MDd /EHsc /Zi /nologo /W4 /WX /I "..\.."
@@ -13,7 +13,7 @@ OUTPUTSWITCH=/Fe
 NOLINK=/c
 DELCMD=del
 else #GCC
-OPTIONS=-Wall -std=c++0x -I "../.."
+OPTIONS=-Wall -Werror -g -DFAIRPORT_VALIDATION_LEVEL_FULL -std=c++0x -I "../.."
 OUTPUTSWITCH=-o 
 NOLINK=-c
 DELCMD=rm

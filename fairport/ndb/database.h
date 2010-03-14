@@ -78,7 +78,7 @@ public:
     std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, size_t size);
 
     block_id alloc_bid(bool is_internal);
-   
+
 protected:
     database_impl();
     database_impl(const std::wstring& filename);
@@ -89,10 +89,10 @@ protected:
 
     std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const page_info& pi, disk::nbt_leaf_page<T>& the_page);
     std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const page_info& pi, disk::bbt_leaf_page<T>& the_page);
-    
+
     template<typename K, typename V>
     std::shared_ptr<bt_nonleaf_page<K,V>> read_bt_nonleaf_page(const page_info& pi, disk::bt_page<T, disk::bt_entry<T>>& the_page);
-    
+
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_leaf_block<T>& sub_block);
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_nonleaf_block<T>& sub_block);
 
@@ -179,7 +179,7 @@ inline std::vector<fairport::byte> fairport::database_impl<T>::read_block_data(c
     if(aligned_size > disk::max_block_disk_size)
         throw unexpected_block("nonsensical block size");
 
-    if(bi.address + aligned_size > m_header.root.ibFileEof)
+    if(bi.address + aligned_size > m_header.root_info.ibFileEof)
         throw unexpected_block("nonsensical block location; past eof");
 #endif
 
@@ -212,7 +212,7 @@ template<typename T>
 std::vector<fairport::byte> fairport::database_impl<T>::read_page_data(const page_info& pi)
 {
 #ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
-    if(pi.address + disk::page_size > m_header.root.ibFileEof)
+    if(pi.address + disk::page_size > m_header.root_info.ibFileEof)
         throw unexpected_page("nonsensical page location; past eof");
 
     if(((pi.address - disk::first_amap_page_location) % disk::page_size) != 0)
@@ -250,7 +250,7 @@ inline std::shared_ptr<fairport::bbt_page> fairport::database_impl<T>::read_bbt_
 { 
     if(!m_bbt_root)
     {
-        page_info pi = { m_header.root.brefBBT.bid, m_header.root.brefBBT.ib };
+        page_info pi = { m_header.root_info.brefBBT.bid, m_header.root_info.brefBBT.ib };
         m_bbt_root = read_bbt_page(pi); 
     }
 
@@ -262,7 +262,7 @@ inline std::shared_ptr<fairport::nbt_page> fairport::database_impl<T>::read_nbt_
 { 
     if(!m_nbt_root)
     {
-        page_info pi = { m_header.root.brefNBT.bid, m_header.root.brefNBT.ib };
+        page_info pi = { m_header.root_info.brefNBT.bid, m_header.root_info.brefNBT.ib };
         m_nbt_root = read_nbt_page(pi);
     }
 
@@ -520,7 +520,7 @@ inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::rea
 
     for(int i = 0; i < peblock->count; ++i)
         child_blocks.push_back(peblock->bid[i]);
-    
+
 #ifdef __GNUC__
     // GCC gave link errors on extended_block<T> and external_block<T> max_size
     // with the below alernative
@@ -567,7 +567,16 @@ template<typename T>
 inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::create_extended_block(const shared_db_ptr& parent, size_t size)
 {
     ushort level = size > disk::extended_block<T>::max_size ? 2 : 1;
+#ifdef __GNUC__
+    // More strange link errors
+    size_t child_max_size;
+    if(level == 1)
+        child_max_size = disk::external_block<T>::max_size;
+    else
+        child_max_size = disk::extended_block<T>::max_size;
+#else
     size_t child_max_size = level == 1 ? disk::external_block<T>::max_size : disk::extended_block<T>::max_size;
+#endif
     ulong child_max_blocks = level == 1 ? 1 : disk::extended_block<T>::max_count;
 
     return std::shared_ptr<extended_block>(new extended_block(parent, level, size, child_max_size, disk::extended_block<T>::max_count, child_max_blocks));
@@ -694,9 +703,19 @@ inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<
 template<typename T>
 inline fairport::block_id fairport::database_impl<T>::alloc_bid(bool is_internal)
 {
-    block_id next_bid = m_header.bidNextB;
+#ifdef __GNUC__
+    typename disk::header<T>::block_id_disk disk_id;
+    memcpy(&disk_id, m_header.bidNextB, sizeof(disk_id));
 
+    block_id next_bid = disk_id;
+
+    disk_id += disk::block_id_increment;
+    memcpy(m_header.bidNextB, &disk_id, sizeof(disk_id));
+#else
+    block_id next_bid = m_header.bidNextB;
     m_header.bidNextB += disk::block_id_increment;
+#endif
+
 
     if(is_internal)
         next_bid &= disk::block_id_internal_bit;

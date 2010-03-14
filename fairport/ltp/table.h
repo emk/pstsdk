@@ -30,7 +30,7 @@ public:
     const_table_row(ulong position, const const_table_ptr& table)
         : m_position(position), m_table(table) { }
 
-    row_id row_id() const;
+    row_id get_row_id() const;
 
     // const_property_object
     std::vector<prop_id> get_prop_list() const;
@@ -53,7 +53,7 @@ class const_table_row_iter : public boost::iterator_facade<const_table_row_iter,
 {
 public:
     const_table_row_iter()
-        : m_position(0), m_table(nullptr) { }
+        : m_position(0) { }
     const_table_row_iter(ulong pos, const const_table_ptr& table) 
         : m_position(pos), m_table(table)  { }
 
@@ -241,7 +241,7 @@ inline bool fairport::const_table_row::prop_exists(prop_id id) const
     return m_table->prop_exists(m_position, id);
 }
     
-inline fairport::row_id fairport::const_table_row::row_id() const
+inline fairport::row_id fairport::const_table_row::get_row_id() const
 { 
     return m_table->get_row_id(m_position); 
 }

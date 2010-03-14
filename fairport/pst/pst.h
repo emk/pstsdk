@@ -28,7 +28,7 @@ public:
 
     pst(const std::wstring& filename) 
         : m_db(open_database(filename)) { }
-    pst(pst&& other) 
+    pst(pst&& other)
         : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)) { }
 
     // subobject discovery/enumeration
@@ -78,9 +78,13 @@ inline fairport::property_bag& fairport::pst::get_property_bag()
 
 inline fairport::folder fairport::pst::open_folder(const std::wstring& name) const
 {
+#ifdef NO_LAMBDA
+    folder_iterator iter = std::find_if(folder_begin(), folder_end(), compiler_workarounds::folder_name_equal(name));
+#else
     folder_iterator iter = std::find_if(folder_begin(), folder_end(), [&name](const folder& f) {
         return f.get_name() == name;
     });
+#endif
     
     if(iter != folder_end())
         return *iter;

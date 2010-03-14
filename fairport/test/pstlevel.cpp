@@ -1,10 +1,9 @@
 #include <cassert>
 #include <iostream>
 #include <string>
-#include "test.h"
-
 #include <algorithm>
-#include <fstream>
+
+#include "test.h"
 
 #include "fairport/ndb/database.h"
 #include "fairport/ndb/database_iface.h"
@@ -18,7 +17,7 @@ void process_recipient(const fairport::recipient& r)
 {
     using namespace std;
     using namespace fairport;
-    
+
     wcout << "\t\t" << r.get_name() << "(" << r.get_email_address() << ")\n";
 }
 
@@ -26,11 +25,15 @@ void process_attachment(const fairport::attachment& a)
 {
     using namespace std;
     using namespace fairport;
-    
+
     wcout << "\t\t" << a.get_filename() << endl;
 
-    ofstream newfile(a.get_filename(), ios::out | ios::binary);
+#ifndef __GNUC__
+    std::wstring wfilename = a.get_filename();
+    std::string filename(wfilename.begin(), wfilename.end());
+    ofstream newfile(filename, ios::out | ios::binary);
     newfile << a;
+#endif
 }
 
 void process_message(const fairport::message& m)
@@ -43,18 +46,14 @@ void process_message(const fairport::message& m)
 
     if(m.get_attachment_count() > 0)
     {
-        for_each(m.attachment_begin(), m.attachment_end(), [](const attachment& a) { 
-            process_attachment(a);
-        });
+        for_each(m.attachment_begin(), m.attachment_end(), process_attachment);
     }
 
     wcout << "\tRecipient Count: " << m.get_recipient_count() << endl;
 
     if(m.get_recipient_count() > 0)
     {
-        for_each(m.recipient_begin(), m.recipient_end(), [](const recipient& r) { 
-            process_recipient(r);
-        });
+        for_each(m.recipient_begin(), m.recipient_end(), process_recipient);
     }
 }
 
@@ -66,14 +65,9 @@ void process_folder(const fairport::folder& f)
 
     wcout << "Folder (M" << f.get_message_count() << ", F" << f.get_subfolder_count() << ") : " << f.get_name() << endl;
 
-    for_each(f.message_begin(), f.message_end(), [](const message& m) {
-        process_message(m);
-    });
+    for_each(f.message_begin(), f.message_end(), process_message);
 
-    for_each(f.sub_folder_begin(), f.sub_folder_end(), [](const folder& f) {
-        process_folder(f);
-    });
-
+    for_each(f.sub_folder_begin(), f.sub_folder_end(), process_folder);
 }
 
 void process_pst(const fairport::pst& p)
@@ -92,11 +86,11 @@ void test_pstlevel()
 
     pst uni(L"test_unicode.pst");
     pst ansi(L"test_ansi.pst");
-    pst uni2(L"test2.pst");
+    //pst uni2(L"test2.pst");
 
     process_pst(uni);
     process_pst(ansi);
-    process_pst(uni2);
+    //process_pst(uni2);
 
     // make sure searching by name works
     process_folder(uni.open_folder(L"Folder"));

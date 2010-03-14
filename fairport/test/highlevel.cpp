@@ -18,7 +18,7 @@ void test_table(const fairport::table& tc)
 
     for(uint i = 0; i < tc.size(); ++i)
     {
-        wcout << "RowID: " << tc[i].row_id() << endl;
+        wcout << "RowID: " << tc[i].get_row_id() << endl;
         wstring display_name;
         wstring subject;
 
@@ -55,7 +55,7 @@ void test_attachment_table(const fairport::node& message, const fairport::table&
     using namespace fairport;
     for(uint i = 0; i < tc.size(); ++i)
     {
-        node attach = message.lookup(tc[i].row_id());
+        node attach = message.lookup(tc[i].get_row_id());
         
         wcout << "Attachment " << i << endl;
         property_bag pc(attach);
@@ -178,9 +178,9 @@ void test_highlevel()
 
     shared_db_ptr uni = open_database(L"test_unicode.pst");
     shared_db_ptr ansi = open_database(L"test_ansi.pst");
-    shared_db_ptr uni2 = open_database(L"test2.pst");
+    //shared_db_ptr uni2 = open_database(L"test2.pst");
 
     iterate(uni);
     iterate(ansi);
-    iterate(uni2);
+    //iterate(uni2);
 }

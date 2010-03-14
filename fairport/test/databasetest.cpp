@@ -111,13 +111,14 @@ void test_node_impl(fairport::node& n, size_t expected)
         uint expected_page_count = expected / disk::external_block<T>::max_size;
         if(expected % disk::external_block<T>::max_size != 0)
             expected_page_count++;
+
         uint actual_page_count = n.get_page_count();
         assert(expected_page_count == actual_page_count);
 
         uint test_value = 0xdeadbeef;
         size_t offset = expected-sizeof(test_value);
         n.write(test_value, offset);
-        
+
         uint read_test_value = n.read<uint>(offset);
 
         assert(test_value == read_test_value);

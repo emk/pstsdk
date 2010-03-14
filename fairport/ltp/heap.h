@@ -42,7 +42,7 @@ public:
 
     template<typename K, typename V>
     std::unique_ptr<bth_node<K,V>> open_bth(heap_id root);
-    
+
     friend class heap;
 
 private:
@@ -142,9 +142,9 @@ class bth_nonleaf_node :
 {
 public:
     bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, const std::vector<std::pair<K, heap_id>>& bth_info)
-        : bth_node<K,V>(h, id, level), m_bth_info(bth_info), m_child_nodes(bth_info.size(), NULL) { }
+        : bth_node<K,V>(h, id, level), m_bth_info(bth_info), m_child_nodes(bth_info.size()) { }
     bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, std::vector<std::pair<K, heap_id>>&& bth_info)
-        : bth_node<K,V>(h, id, level), m_bth_info(bth_info), m_child_nodes(bth_info.size(), NULL) { }
+        : bth_node<K,V>(h, id, level), m_bth_info(bth_info), m_child_nodes(bth_info.size()) { }
 
     // btree_node_nonleaf implementation
     const K& get_key(uint pos) const { return m_bth_info[pos].first; }

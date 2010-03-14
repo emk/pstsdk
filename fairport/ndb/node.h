@@ -25,18 +25,18 @@ class node_impl : public std::enable_shared_from_this<node_impl>
 public:
     // constructor for top level nodes
     node_impl(const shared_db_ptr& db, const node_info& info)
-        : m_db(db), m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(info.parent_id), m_parent_id(info.parent_id) { } 
+        : m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(info.parent_id), m_parent_id(info.parent_id), m_db(db) { }
 
     // constructor for subnodes
     node_impl(const std::shared_ptr<node_impl>& container_node, const subnode_info& info)
-        : m_db(container_node->m_db), m_pcontainer_node(container_node), m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(0), m_parent_id(0) { } 
+        : m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(0), m_parent_id(0), m_pcontainer_node(container_node), m_db(container_node->m_db) { }
 
     node_impl& operator=(const node_impl& other)
         { m_pdata = other.m_pdata; m_psub = other.m_psub; return *this; }
 
     node_id get_id() const { return m_id; }
     block_id get_data_id() const;
-    block_id get_sub_id() const; 
+    block_id get_sub_id() const;
 
     node_id get_parent_id() const { return m_parent_id; }
     bool is_subnode() { return m_pcontainer_node; }
@@ -45,20 +45,20 @@ public:
         { ensure_data_block(); return m_pdata; }
     std::shared_ptr<subnode_block> get_subnode_block() const 
         { ensure_sub_block(); return m_psub; }
-   
+
     size_t read(std::vector<byte>& buffer, ulong offset) const;
     template<typename T> T read(ulong offset) const;
     size_t read(std::vector<byte>& buffer, uint page_num, ulong offset) const;
     template<typename T> T read(uint page_num, ulong offset) const;
-    
+
     size_t write(const std::vector<byte>& buffer, ulong offset);
     template<typename T> void write(const T& obj, ulong offset);
     size_t write(const std::vector<byte>& buffer, uint page_num, ulong offset);
     template<typename T> void write(const T& obj, uint page_num, ulong offset);
-    
+
     size_t size() const;
     size_t resize(size_t size);
-    
+
     size_t get_page_size(uint page_num) const;
     uint get_page_count() const;
 
@@ -70,7 +70,7 @@ public:
 private:
     data_block* ensure_data_block() const;
     subnode_block* ensure_sub_block() const;
-    
+
     const node_id m_id;
     block_id m_original_data_id;
     block_id m_original_sub_id;
@@ -79,6 +79,7 @@ private:
     mutable std::shared_ptr<data_block> m_pdata;
     mutable std::shared_ptr<subnode_block> m_psub;
     node_id m_parent_id;
+
     std::shared_ptr<node_impl> m_pcontainer_node;
 
     shared_db_ptr m_db;
@@ -179,9 +180,9 @@ class block
 {
 public:
     block(const shared_db_ptr& db, const block_info& info)
-        : m_db(db), m_size(info.size), m_id(info.id), m_address(info.address), m_modified(false) { }
+        : m_modified(false), m_size(info.size), m_id(info.id), m_address(info.address), m_db(db) { }
     block(const block& block)
-        : m_db(block.m_db), m_size(block.m_size), m_id(0), m_address(0), m_modified(false) { }
+        : m_modified(false), m_size(block.m_size), m_id(0), m_address(0), m_db(block.m_db) { }
 
     virtual ~block() { }
 
@@ -201,10 +202,11 @@ protected:
     virtual void trim() { }
 
     bool m_modified;
-    weak_db_ptr m_db;
     size_t m_size;          // the size of this specific block on disk at last save
     block_id m_id;
     ulonglong m_address;    // the address of this specific block on disk, 0 if unknown
+
+    weak_db_ptr m_db;
 };
 
 class data_block : public block
@@ -239,17 +241,17 @@ class extended_block :
 public:
     // old block constructors (from disk)
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<block_id>& bi)
-        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_max_page_count(page_max_count), m_child_max_page_count(child_page_max_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
+        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<block_id>&& bi)
-        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_max_page_count(page_max_count), m_child_max_page_count(child_page_max_count), m_level(level), m_block_info(bi)
+        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi)
         { m_child_blocks.resize(m_block_info.size()); }
 
     // new block constructors
     extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<std::shared_ptr<data_block>>& child_blocks)
-        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_max_page_count(page_max_count), m_child_max_page_count(child_page_max_count), m_level(level), m_block_info(child_blocks.size()), m_child_blocks(child_blocks) 
+        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(child_blocks.size()), m_child_blocks(child_blocks) 
         { touch(); }
     extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<std::shared_ptr<data_block>>&& child_blocks)
-        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_max_page_count(page_max_count), m_child_max_page_count(child_page_max_count), m_level(level), m_child_blocks(child_blocks)
+        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(child_blocks)
         { m_block_info.resize(m_child_blocks.size()); touch(); }
     extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count);   
     
@@ -285,13 +287,13 @@ class external_block :
 public:
     // old block constructors (from disk)
     external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, const std::vector<byte>& buffer)
-        : data_block(db, info, info.size), m_buffer(buffer), m_max_size(max_size) { }
+        : data_block(db, info, info.size), m_max_size(max_size), m_buffer(buffer) { }
     external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, std::vector<byte>&& buffer)
-        : data_block(db, info, info.size), m_buffer(buffer), m_max_size(max_size) { }
+        : data_block(db, info, info.size), m_max_size(max_size), m_buffer(buffer) { }
 
     // new block constructors
     external_block(const shared_db_ptr& db, size_t max_size, size_t current_size)
-        : data_block(db, block_info(), current_size), m_buffer(current_size), m_max_size(max_size) 
+        : data_block(db, block_info(), current_size), m_max_size(max_size), m_buffer(current_size)
         { touch(); }
 
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
@@ -577,7 +579,7 @@ inline fairport::uint fairport::extended_block::get_page_count() const
 }
 
 inline fairport::extended_block::extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count)
-: data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_max_page_count(page_max_count), m_child_max_page_count(child_page_max_count), m_level(level)
+: data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level)
 {
     int total_subblocks = total_size / m_child_max_total_size;
     if(total_size % m_child_max_total_size != 0)

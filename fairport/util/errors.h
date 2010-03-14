@@ -84,8 +84,9 @@ template<typename K>
 class key_not_found : public std::exception
 {
 public:
-    explicit key_not_found(const K& k) 
-        : m_k(k) { } 
+    explicit key_not_found(const K& k)
+        : m_k(k) { }
+    virtual ~key_not_found() throw() { }
 
     const char* what() const throw()
         { return "key not found"; }

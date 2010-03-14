@@ -19,7 +19,7 @@ struct block_reference
     block_id_disk bid;
     location ib;
 };
-    
+
 //
 // header
 //
@@ -64,7 +64,7 @@ struct root
     block_reference<T> brefNBT;
     block_reference<T> brefBBT;
     byte fAMapValid;
-    byte bARVec;    
+    byte bARVec;
     ushort cARVec;
 };
 
@@ -93,13 +93,13 @@ struct header<ulonglong>
     block_id_disk bidNextP;
     ulong dwUnique;
     node_id rgnid[nid_type_max];
-    root<ulonglong> root;
+    root<ulonglong> root_info;
     byte rgbFM[header_fmap_entries];
     byte rgbFP[header_fpmap_size];
     byte bSentinel;
     byte bCryptMethod;
     byte rgbReserved[2];
-#ifdef __GNUC__ 
+#ifdef __GNUC__
     // GCC refuses to pack this next to rgbReserved
     byte bidNextB[8];
 #else
@@ -109,7 +109,7 @@ struct header<ulonglong>
 #endif
     ulong dwCRCFull;
     byte rgbVersionEncoded[3];
-    byte bLockSemaphore;    
+    byte bLockSemaphore;
     byte rgbLock[header_lock_entries];
 };
 
@@ -123,17 +123,21 @@ struct header<ulong>
     ulong dwMagic;
     ulong dwCRCPartial;
     ushort wMagicClient;
-    ushort wVer;       
+    ushort wVer;
     ushort wVerClient;
     byte bPlatformCreate;
     byte bPlatformAccess;
-    ulong dwOpenDBID; 
+    ulong dwOpenDBID;
     ulong dwOpenClaimID;
+#ifdef __GNUC__
+    byte bidNextB[4];
+#else
     block_id_disk bidNextB;
+#endif
     block_id_disk bidNextP;
     ulong dwUnique;
     node_id rgnid[nid_type_max];
-    root<ulong> root;
+    root<ulong> root_info;
     byte rgbFM[header_fmap_entries];
     byte rgbFP[header_fpmap_size];
     byte bSentinel;
@@ -600,7 +604,7 @@ struct extended_block<ulonglong>
     typedef ulonglong block_id_disk;
 
     static const size_t max_count = (external_block<ulonglong>::max_size - 8) / sizeof(extended_block<ulonglong>::block_id_disk);
-    static const size_t max_size = external_block<ulonglong>::max_size * extended_block<ulonglong>::max_count; 
+    static const size_t max_size = external_block<ulonglong>::max_size * extended_block<ulonglong>::max_count;
 
     byte block_type;
     byte level;

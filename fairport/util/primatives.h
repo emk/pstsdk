@@ -1,6 +1,12 @@
 #ifndef FAIRPORT_UTIL_PRIMATIVES_H
 #define FAIRPORT_UTIL_PRIMATIVES_H
 
+// Global compiler hacks
+#ifdef __GNUC__
+#define NO_LAMBDA
+#define NO_NULLPTR
+#endif
+
 // Global Validation Settings
 //
 // #define FAIRPORT_VALIDATION_LEVEL_NONE before including any fairport headers for no validation
@@ -35,6 +41,21 @@ static_assert(sizeof(byte) == 1, "fairport::byte unexpected size");
 static_assert(sizeof(ushort) == 2, "fairport::ushort unexpected size");
 static_assert(sizeof(uint) == 4, "fairport::uint unexpected size");
 static_assert(sizeof(ulonglong) == 8, "fairport::ulonglong unexpected size");
+
+#ifdef NO_NULLPTR
+const class
+{
+public:
+    template<class T>
+    operator T*() const
+        { return 0; }
+    template<class C, class T>
+    operator T C::*() const
+        { return 0; }
+private:
+    void operator&() const; // = delete;
+} nullptr = {};
+#endif
 
 typedef ulong node_id;
 typedef ulonglong block_id;
