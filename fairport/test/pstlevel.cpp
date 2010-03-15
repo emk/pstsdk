@@ -84,11 +84,13 @@ void test_pstlevel()
 
     pst uni(L"test_unicode.pst");
     pst ansi(L"test_ansi.pst");
-    //pst uni2(L"test2.pst");
+    pst s1(L"sample1.pst");
+    pst s2(L"sample2.pst");
 
     process_pst(uni);
     process_pst(ansi);
-    //process_pst(uni2);
+    process_pst(s1);
+    process_pst(s2);
 
     // make sure searching by name works
     process_folder(uni.open_folder(L"Folder"));

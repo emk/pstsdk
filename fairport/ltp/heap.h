@@ -4,6 +4,15 @@
 #include <vector>
 #include <algorithm>
 #include <boost/noncopyable.hpp>
+#include <boost/iostreams/concepts.hpp>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4244)
+#endif
+#include <boost/iostreams/stream.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include "fairport/util/primatives.h"
 
@@ -28,6 +37,27 @@ class bth_leaf_node;
 template<typename K, typename V>
 class bth_node;
 
+class heap_impl;
+typedef std::shared_ptr<heap_impl> heap_ptr;
+
+class hid_stream_device : public boost::iostreams::device<boost::iostreams::input_seekable, byte>
+{
+public:
+    hid_stream_device() : m_hid(0), m_pos(0) { }
+    std::streamsize read(byte* pbuffer, std::streamsize n); 
+    std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way);
+
+private:
+    friend class heap_impl;
+    hid_stream_device(const heap_ptr& _heap, heap_id id) : m_pos(0), m_hid(id), m_pheap(_heap) { }
+
+    std::streamsize m_pos;
+    heap_id m_hid;
+    heap_ptr m_pheap;
+};
+
+typedef boost::iostreams::stream<hid_stream_device> hid_stream;
+
 class heap_impl : public std::enable_shared_from_this<heap_impl>
 {
 public:
@@ -37,6 +67,7 @@ public:
     byte get_client_signature() const;
     size_t read(std::vector<byte>& buffer, heap_id id, ulong offset) const;
     std::vector<byte> read(heap_id id) const;
+    hid_stream open_stream(heap_id id);
     const node& get_node() const { return m_node; }
     node& get_node() { return m_node; }
 
@@ -56,8 +87,6 @@ private:
 
     node m_node;
 };
-
-typedef std::shared_ptr<heap_impl> heap_ptr;
 
 class heap
 {
@@ -87,6 +116,8 @@ public:
         { return m_pheap->read(buffer, id, offset); }
     std::vector<byte> read(heap_id id) const
         { return m_pheap->read(id); }
+    hid_stream open_stream(heap_id id)
+        { return m_pheap->open_stream(id); }
 
     const node& get_node() const
         { return m_pheap->get_node(); }
@@ -390,6 +421,43 @@ inline size_t fairport::heap_impl::read(std::vector<byte>& buffer, heap_id id, u
     disk::heap_page_map* pmap = reinterpret_cast<disk::heap_page_map*>(&map_buffer[0]);
 
     return m_node.read(buffer, get_heap_page(id), pmap->allocs[get_heap_index(id)]);
+}
+
+inline fairport::hid_stream fairport::heap_impl::open_stream(heap_id id)
+{
+    return hid_stream(hid_stream_device(shared_from_this(), id));
+}
+
+inline std::streamsize fairport::hid_stream_device::read(byte* pbuffer, std::streamsize n)
+{
+    if(m_hid && (m_pos + n > m_pheap->size(m_hid)))
+        n = m_pheap->size(m_hid) - m_pos;
+
+    if(n == 0 || m_hid == 0)
+        return 0;
+
+    std::vector<byte> buff(static_cast<uint>(n));
+    size_t read = m_pheap->read(buff, m_hid, static_cast<ulong>(m_pos));
+
+    memcpy(pbuffer, &buff[0], read);
+    return read;
+}
+
+inline std::streampos fairport::hid_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
+{
+    if(way == std::ios_base::beg)
+            m_pos = off;
+    else if(way == std::ios_base::end)
+        m_pos = m_pheap->size(m_hid) + off;
+    else
+        m_pos += off - 1;
+
+    if(m_pos < 0)
+        m_pos = 0;
+    else if(m_pos > m_pheap->size(m_hid))
+        m_pos = m_pheap->size(m_hid);
+
+    return m_pos;
 }
 
 inline std::vector<fairport::byte> fairport::heap_impl::read(heap_id id) const

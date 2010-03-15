@@ -1,12 +1,12 @@
-#include <typeinfo>
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
 #endif
 
-#include "test.h"
+#include <typeinfo>
 #include <iostream>
+#include "test.h"
 
 int main()
 {

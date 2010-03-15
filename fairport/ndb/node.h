@@ -6,6 +6,15 @@
 #include <memory>
 #include <cassert>
 #include <boost/iterator/transform_iterator.hpp>
+#include <boost/iostreams/concepts.hpp>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4244)
+#endif
+#include <boost/iostreams/stream.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include "fairport/util/util.h"
 #include "fairport/util/btree.h"
@@ -50,11 +59,13 @@ public:
     template<typename T> T read(ulong offset) const;
     size_t read(std::vector<byte>& buffer, uint page_num, ulong offset) const;
     template<typename T> T read(uint page_num, ulong offset) const;
+    size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
 
     size_t write(const std::vector<byte>& buffer, ulong offset);
     template<typename T> void write(const T& obj, ulong offset);
     size_t write(const std::vector<byte>& buffer, uint page_num, ulong offset);
     template<typename T> void write(const T& obj, uint page_num, ulong offset);
+    size_t write_raw(const byte* pdest_buffer, size_t size, ulong offset);
 
     size_t size() const;
     size_t resize(size_t size);
@@ -95,6 +106,24 @@ public:
 private:
     std::shared_ptr<node_impl> m_parent;
 };
+
+class node_stream_device : public boost::iostreams::device<boost::iostreams::seekable, byte>
+{
+public:
+    node_stream_device() : m_pos(0) { }
+    std::streamsize read(byte* pbuffer, std::streamsize n); 
+    std::streamsize write(const byte* pbuffer, std::streamsize n);
+    std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way);
+
+private:
+    friend class node;
+    node_stream_device(std::shared_ptr<node_impl>& _node) : m_pos(0), m_pnode(_node) { }
+
+    std::streamsize m_pos;
+    std::shared_ptr<node_impl> m_pnode;
+};
+
+typedef boost::iostreams::stream<node_stream_device> node_stream;
 
 class node
 {
@@ -151,7 +180,8 @@ public:
         { return m_pimpl->write(buffer, page_num, offset); }
     template<typename T> void write(const T& obj, uint page_num, ulong offset)
         { return m_pimpl->write<T>(obj, page_num, offset); }
-
+    node_stream open_as_stream()
+        { return node_stream(node_stream_device(m_pimpl)); }
     size_t resize(size_t size)
         { return m_pimpl->resize(size); }
 
@@ -422,6 +452,11 @@ inline size_t fairport::node_impl::read(std::vector<byte>& buffer, ulong offset)
     return ensure_data_block()->read(buffer, offset); 
 }
 
+inline size_t fairport::node_impl::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
+{ 
+    return ensure_data_block()->read_raw(pdest_buffer, size, offset); 
+}
+
 template<typename T> 
 inline T fairport::node_impl::read(ulong offset) const
 {
@@ -442,6 +477,12 @@ inline T fairport::node_impl::read(uint page_num, ulong offset) const
 inline size_t fairport::node_impl::write(const std::vector<byte>& buffer, ulong offset)
 {
     return ensure_data_block()->write(buffer, offset, m_pdata);
+}
+
+inline size_t fairport::node_impl::write_raw(const byte* pdest_buffer, size_t size, ulong offset)
+{
+    ensure_data_block();
+    return m_pdata->write_raw(pdest_buffer, size, offset, m_pdata);
 }
 
 template<typename T> 
@@ -491,6 +532,37 @@ inline void fairport::block::touch()
         m_size = 0;
         m_id = get_db_ptr()->alloc_bid(is_internal()); 
     }
+}
+
+inline std::streamsize fairport::node_stream_device::read(byte* pbuffer, std::streamsize n)
+{
+    size_t read = m_pnode->read_raw(pbuffer, static_cast<size_t>(n), static_cast<size_t>(m_pos));
+    m_pos += read;
+    return read;
+}
+
+inline std::streamsize fairport::node_stream_device::write(const byte* pbuffer, std::streamsize n)
+{
+    size_t written = m_pnode->write_raw(pbuffer, static_cast<size_t>(n), static_cast<size_t>(m_pos));
+    m_pos += written;
+    return written;
+}
+
+inline std::streampos fairport::node_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
+{
+    if(way == std::ios_base::beg)
+            m_pos = off;
+    else if(way == std::ios_base::end)
+        m_pos = m_pnode->size() + off - 1;
+    else
+        m_pos += off;
+
+    if(m_pos < 0)
+        m_pos = 0;
+    else if(m_pos > m_pnode->size())
+        m_pos = m_pnode->size();
+
+    return m_pos;
 }
 
 inline fairport::subnode_block* fairport::subnode_nonleaf_block::get_child(uint pos)

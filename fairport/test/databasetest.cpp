@@ -143,6 +143,30 @@ void test_node_resize(fairport::node n)
     }
 }
 
+template<typename T>
+void test_node_stream(fairport::node n)
+{
+    using namespace std;
+    using namespace fairport;
+    /*
+    vector<byte> contents(n.size());
+    node_stream stream = n.open_as_stream();
+
+    // pick a larger node if this fires
+    assert(n.size() > sizeof(int) * 4);
+
+    for(size_t i = 0; i < n.size() - sizeof(int); ++i)
+    {
+        int stream_int;
+        int byte_int;
+
+        stream >> stream_int;
+        memcpy(&byte_int, &contents[i * sizeof(int)], sizeof(byte_int));
+
+        assert(stream_int == byte_int);
+    }*/
+}
+
 void test_db()
 {
     using namespace std;
@@ -191,6 +215,7 @@ void test_db()
         process_node(n);
     }
     test_node_resize<ulonglong>(db_2->lookup_node(nid_message_store));
+    test_node_stream<ulonglong>(db_2->lookup_node(nid_message_store));
 
     block = 0;
     shared_ptr<const bbt_page> bbt_root = db_2->read_bbt_root();
@@ -215,6 +240,7 @@ void test_db()
         process_node(n);
     }
     test_node_resize<ulong>(db_3->lookup_node(nid_message_store));
+    test_node_stream<ulong>(db_2->lookup_node(nid_message_store));
 
     block = 0;
     shared_ptr<const bbt_page> bbt_root2 = db_3->read_bbt_root();

@@ -36,6 +36,7 @@ public:
     std::vector<prop_id> get_prop_list() const;
     prop_type get_prop_type(prop_id id) const;
     bool prop_exists(prop_id id) const;
+    prop_stream open_prop_stream(prop_id id);
 
 private:
     // const_property_object
@@ -88,6 +89,7 @@ public:
     virtual const node& get_node() const = 0;
     virtual ulonglong get_cell_value(ulong row, prop_id id) const = 0;
     virtual std::vector<byte> read_cell(ulong row, prop_id id) const = 0;
+    virtual prop_stream open_cell_stream(ulong row, prop_id id) = 0;
     virtual std::vector<prop_id> get_prop_list() const = 0;
     virtual prop_type get_prop_type(prop_id id) const = 0;
     virtual row_id get_row_id(ulong row) const = 0;
@@ -108,6 +110,7 @@ public:
         { return (ulong)m_prows->lookup(id); }
     ulonglong get_cell_value(ulong row, prop_id id) const;
     std::vector<byte> read_cell(ulong row, prop_id id) const;
+    prop_stream open_cell_stream(ulong row, prop_id id);
     std::vector<prop_id> get_prop_list() const;
     prop_type get_prop_type(prop_id id) const;
     row_id get_row_id(ulong row) const;
@@ -168,6 +171,8 @@ public:
         { return m_ptable->get_cell_value(row, id); }
     std::vector<byte> read_cell(ulong row, prop_id id) const
         { return m_ptable->read_cell(row, id); }
+    prop_stream open_cell_stream(ulong row, prop_id id)
+        { return m_ptable->open_cell_stream(row, id); }
     std::vector<prop_id> get_prop_list() const
         { return m_ptable->get_prop_list(); }
     prop_type get_prop_type(prop_id id) const
@@ -269,6 +274,11 @@ inline fairport::ulonglong fairport::const_table_row::get_value_8(prop_id id) co
 inline std::vector<fairport::byte> fairport::const_table_row::get_value_variable(prop_id id) const
 { 
     return m_table->read_cell(m_position, id); 
+}
+
+inline fairport::prop_stream fairport::const_table_row::open_prop_stream(prop_id id)
+{
+    return (std::const_pointer_cast<table_impl>(m_table))->open_cell_stream(m_position, id);
 }
 
 template<typename T>
@@ -404,6 +414,17 @@ inline std::vector<fairport::byte> fairport::basic_table<T>::read_cell(ulong row
         buffer = m_prows->get_heap_ptr()->read(hid);
     }
     return buffer;
+}
+
+template<typename T>
+inline fairport::prop_stream fairport::basic_table<T>::open_cell_stream(ulong row, prop_id id)
+{
+    heapnode_id hid = static_cast<heapnode_id>(get_cell_value(row, id));
+
+    if(is_subnode_id(hid))
+        return prop_stream(*(get_node().lookup(hid).open_as_stream()));
+    else
+        return prop_stream(*(m_prows->get_heap_ptr()->open_stream(hid)));
 }
 
 template<typename T>

@@ -5,10 +5,10 @@
 #
 # compiler options
 #
-CC=g++
+CC=cl
 
 ifeq ($(CC),cl) #MSVC
-OPTIONS=/DEBUG /DFAIRPORT_VALIDATION_LEVEL_FULL /Od /MDd /EHsc /Zi /nologo /W4 /WX /I "..\.."
+OPTIONS=/DEBUG /DFAIRPORT_VALIDATION_LEVEL_FULL /Od /MDd /EHsc /Zi /nologo /W4 /I "..\.."
 OUTPUTSWITCH=/Fe
 NOLINK=/c
 DELCMD=del

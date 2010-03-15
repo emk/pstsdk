@@ -4,12 +4,46 @@
 #include <type_traits>
 #include <functional>
 #include <algorithm>
+#include <boost/iostreams/concepts.hpp>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4244)
+#endif
+#include <boost/iostreams/stream.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include "fairport/util/primatives.h"
 #include "fairport/util/errors.h"
 
+#include "fairport/ltp/heap.h"
+
+#include "fairport/ndb/node.h"
+
 namespace fairport
 {
+
+class hnid_stream_device : public boost::iostreams::device<boost::iostreams::input_seekable, byte>
+{
+public:
+    std::streamsize read(byte* pbuffer, std::streamsize n)
+        { if(m_is_hid) return m_hid_device.read(pbuffer, n); else return m_node_device.read(pbuffer, n); }
+    std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
+        { if(m_is_hid) return m_hid_device.seek(off, way); else return m_node_device.seek(off, way); }
+
+    hnid_stream_device(const hid_stream_device& hid_device) : m_hid_device(hid_device), m_is_hid(true) { }
+    hnid_stream_device(const node_stream_device& node_device) : m_node_device(node_device), m_is_hid(false) { }
+
+private:
+    hid_stream_device m_hid_device;
+    node_stream_device m_node_device;
+    bool m_is_hid;
+
+    std::streamsize m_pos;
+};
+
+typedef boost::iostreams::stream<hnid_stream_device> prop_stream;
 
 class const_property_object
 {
@@ -23,6 +57,7 @@ public:
     T read_prop(prop_id id) const;
     template<typename T>
     std::vector<T> read_prop_array(prop_id id) const;
+    virtual prop_stream open_prop_stream(prop_id id) = 0;
 
 // GCC has time_t defined as a typedef of a long, so calling
 // read_prop<long> activates the time_t specialization. I'm
