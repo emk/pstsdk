@@ -107,12 +107,12 @@ private:
     std::shared_ptr<node_impl> m_parent;
 };
 
-class node_stream_device : public boost::iostreams::device<boost::iostreams::seekable, byte>
+class node_stream_device : public boost::iostreams::device<boost::iostreams::seekable>
 {
 public:
     node_stream_device() : m_pos(0) { }
-    std::streamsize read(byte* pbuffer, std::streamsize n); 
-    std::streamsize write(const byte* pbuffer, std::streamsize n);
+    std::streamsize read(char* pbuffer, std::streamsize n); 
+    std::streamsize write(const char* pbuffer, std::streamsize n);
     std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way);
 
 private:
@@ -534,9 +534,9 @@ inline void fairport::block::touch()
     }
 }
 
-inline std::streamsize fairport::node_stream_device::read(byte* pbuffer, std::streamsize n)
+inline std::streamsize fairport::node_stream_device::read(char* pbuffer, std::streamsize n)
 {
-    size_t read = m_pnode->read_raw(pbuffer, static_cast<size_t>(n), static_cast<size_t>(m_pos));
+    size_t read = m_pnode->read_raw(reinterpret_cast<byte*>(pbuffer), static_cast<size_t>(n), static_cast<size_t>(m_pos));
     m_pos += read;
 
     if(read)
@@ -545,9 +545,9 @@ inline std::streamsize fairport::node_stream_device::read(byte* pbuffer, std::st
         return -1;
 }
 
-inline std::streamsize fairport::node_stream_device::write(const byte* pbuffer, std::streamsize n)
+inline std::streamsize fairport::node_stream_device::write(const char* pbuffer, std::streamsize n)
 {
-    size_t written = m_pnode->write_raw(pbuffer, static_cast<size_t>(n), static_cast<size_t>(m_pos));
+    size_t written = m_pnode->write_raw(reinterpret_cast<const byte*>(pbuffer), static_cast<size_t>(n), static_cast<size_t>(m_pos));
     m_pos += written;
     return written;
 }

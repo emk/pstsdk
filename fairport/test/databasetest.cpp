@@ -150,28 +150,16 @@ void test_node_stream(fairport::node n)
     using namespace fairport;
     
     vector<byte> contents(n.size());
-    (void)n.read(contents, 0);
+    byte b;
+    int i = 0;
     node_stream stream = n.open_as_stream();
+    stream.unsetf(ios::skipws);
+
+    (void)n.read(contents, 0);
 
     // pick a larger node if this fires. I just want to make sure it's non-trivial.
     assert(n.size() > 100);
-    /*
-    for(size_t i = 0; i < n.size()/sizeof(int); ++i)
-    {
-        int stream_int;
-        int byte_int;
-
-        stream >> stream_int; // why doesn't this work?
-        stream.read((byte*)&stream_int, sizeof(stream_int));
-        memcpy(&byte_int, &contents[i * sizeof(int)], sizeof(byte_int));
-
-        assert(stream_int == byte_int);
-    }
-    */
     
-    byte b;
-    int i = 0;
-    stream.unsetf(ios::skipws);
     while(stream >> b)
     {
         byte c = contents[i];
@@ -180,23 +168,24 @@ void test_node_stream(fairport::node n)
     }
     
     // test seeking from the beginning
-    node_stream stream2 = n.open_as_stream();
-    stream2.seekg( 10, ios_base::beg );
-    assert((int)stream2.tellp() == 10);
-    stream2 >> b;
-    assert((int)stream2.tellp() == 11);
+    stream.clear();
+    stream.seekg(0, ios_base::beg);
+    stream.seekg( 10, ios_base::beg );
+    assert((int)stream.tellg() == 10);
+    stream >> b;
+    assert((int)stream.tellg() == 11);
     assert(b == contents[10]);
 
     // test seeking from current
-    stream2.seekg( 50, ios_base::cur );
-    assert((int)stream2.tellp() == 61);
-    stream2 >> b;
+    stream.seekg( 50, ios_base::cur );
+    assert((int)stream.tellg() == 61);
+    stream >> b;
     assert(b == contents[61]);
 
     // test seeking from end
-    stream2.seekg( -20, ios_base::end );
-    assert((int)stream2.tellp() == (int)(n.size()-20));
-    stream2 >> b;
+    stream.seekg( -20, ios_base::end );
+    assert((int)stream.tellg() == (int)(n.size()-20));
+    stream >> b;
     assert(b == contents[ n.size() - 5 ]);
     
 }

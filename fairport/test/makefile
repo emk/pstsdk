@@ -44,4 +44,4 @@ fairport.exe: $(OBJS)
 	$(CC) $(NOLINK) $(OPTIONS) $?
 
 clean:
-	$(DELCMD) *.obj *.o fairport.exe *.pdb *.ilk *.jpg *.i
+	$(DELCMD) *.obj *.o fairport.exe *.pdb *.ilk *.jpg *.i *.txt

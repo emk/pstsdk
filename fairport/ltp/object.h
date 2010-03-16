@@ -24,10 +24,10 @@
 namespace fairport
 {
 
-class hnid_stream_device : public boost::iostreams::device<boost::iostreams::input_seekable, byte>
+class hnid_stream_device : public boost::iostreams::device<boost::iostreams::input_seekable>
 {
 public:
-    std::streamsize read(byte* pbuffer, std::streamsize n)
+    std::streamsize read(char* pbuffer, std::streamsize n)
         { if(m_is_hid) return m_hid_device.read(pbuffer, n); else return m_node_device.read(pbuffer, n); }
     std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
         { if(m_is_hid) return m_hid_device.seek(off, way); else return m_node_device.seek(off, way); }

@@ -40,11 +40,11 @@ class bth_node;
 class heap_impl;
 typedef std::shared_ptr<heap_impl> heap_ptr;
 
-class hid_stream_device : public boost::iostreams::device<boost::iostreams::input_seekable, byte>
+class hid_stream_device : public boost::iostreams::device<boost::iostreams::input_seekable>
 {
 public:
     hid_stream_device() : m_hid(0), m_pos(0) { }
-    std::streamsize read(byte* pbuffer, std::streamsize n); 
+    std::streamsize read(char* pbuffer, std::streamsize n); 
     std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way);
 
 private:
@@ -428,7 +428,7 @@ inline fairport::hid_stream_device fairport::heap_impl::open_stream(heap_id id)
     return hid_stream_device(shared_from_this(), id);
 }
 
-inline std::streamsize fairport::hid_stream_device::read(byte* pbuffer, std::streamsize n)
+inline std::streamsize fairport::hid_stream_device::read(char* pbuffer, std::streamsize n)
 {
     if(m_hid && (m_pos + n > m_pheap->size(m_hid)))
         n = m_pheap->size(m_hid) - m_pos;
@@ -440,6 +440,9 @@ inline std::streamsize fairport::hid_stream_device::read(byte* pbuffer, std::str
     size_t read = m_pheap->read(buff, m_hid, static_cast<ulong>(m_pos));
 
     memcpy(pbuffer, &buff[0], read);
+
+    m_pos += read;
+
     return read;
 }
 

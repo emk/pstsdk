@@ -5,6 +5,18 @@
 #include "fairport/ndb.h"
 #include "fairport/ltp.h"
 
+void test_prop_stream(fairport::const_property_object& obj, fairport::prop_id id)
+{
+    fairport::prop_stream stream = obj.open_prop_stream(id);
+    std::vector<fairport::byte> contents = obj.read_prop<std::vector<fairport::byte>>(id);
+    fairport::byte b;
+    size_t pos = 0;
+
+    stream.unsetf(std::ios::skipws);
+    while(stream >> b)
+        assert(b == contents[pos++]);
+}
+
 void test_table(const fairport::table& tc)
 {
     using namespace std;
@@ -37,6 +49,11 @@ void test_table(const fairport::table& tc)
                 else if(tc[i].get_prop_type(proplist[j]) == prop_type_boolean)
                 {
                     wcout << "\t" << hex << proplist[j] << ": " << dec << (tc[i].read_prop<bool>(proplist[j]) ? L"true" : L"false") << endl;
+                }
+                else if(tc[i].get_prop_type(proplist[j]) == prop_type_binary)
+                {
+                    const_table_row row = tc[i];
+                    test_prop_stream(row, proplist[j]);
                 }
                 else
                 {
@@ -73,6 +90,10 @@ void test_attachment_table(const fairport::node& message, const fairport::table&
                 else if(pc.get_prop_type(proplist[i]) == prop_type_boolean)
                 {
                     wcout << "\t" << hex << proplist[i] << ": " << dec << (pc.read_prop<bool>(proplist[i]) ? L"true" : L"false") << endl;
+                }
+                else if(pc.get_prop_type(proplist[i]) == prop_type_binary)
+                {
+                    test_prop_stream(pc, proplist[i]);
                 }
                 else
                 {
@@ -116,6 +137,10 @@ void iterate(fairport::shared_db_ptr pdb)
                 if(pc.get_prop_type(proplist[i]) == prop_type_wstring)
                 {
                     /*wcout <<*/ pc.read_prop<std::wstring>(proplist[i])/* << endl*/;
+                }
+                else if(pc.get_prop_type(proplist[i]) == prop_type_binary)
+                {
+                    test_prop_stream(pc, proplist[i]);
                 }
             }
 
@@ -178,7 +203,11 @@ void test_highlevel()
 
     shared_db_ptr uni = open_database(L"test_unicode.pst");
     shared_db_ptr ansi = open_database(L"test_ansi.pst");
+    shared_db_ptr samp1 = open_database(L"sample1.pst");
+    shared_db_ptr samp2 = open_database(L"sample2.pst");
 
     iterate(uni);
     iterate(ansi);
+    iterate(samp1);
+    iterate(samp2);
 }
