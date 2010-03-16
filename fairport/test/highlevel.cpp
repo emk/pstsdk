@@ -178,9 +178,7 @@ void test_highlevel()
 
     shared_db_ptr uni = open_database(L"test_unicode.pst");
     shared_db_ptr ansi = open_database(L"test_ansi.pst");
-    //shared_db_ptr uni2 = open_database(L"test2.pst");
 
     iterate(uni);
     iterate(ansi);
-    //iterate(uni2);
 }

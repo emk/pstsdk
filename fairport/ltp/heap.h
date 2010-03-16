@@ -67,7 +67,7 @@ public:
     byte get_client_signature() const;
     size_t read(std::vector<byte>& buffer, heap_id id, ulong offset) const;
     std::vector<byte> read(heap_id id) const;
-    hid_stream open_stream(heap_id id);
+    hid_stream_device open_stream(heap_id id);
     const node& get_node() const { return m_node; }
     node& get_node() { return m_node; }
 
@@ -116,7 +116,7 @@ public:
         { return m_pheap->read(buffer, id, offset); }
     std::vector<byte> read(heap_id id) const
         { return m_pheap->read(id); }
-    hid_stream open_stream(heap_id id)
+    hid_stream_device open_stream(heap_id id)
         { return m_pheap->open_stream(id); }
 
     const node& get_node() const
@@ -423,9 +423,9 @@ inline size_t fairport::heap_impl::read(std::vector<byte>& buffer, heap_id id, u
     return m_node.read(buffer, get_heap_page(id), pmap->allocs[get_heap_index(id)]);
 }
 
-inline fairport::hid_stream fairport::heap_impl::open_stream(heap_id id)
+inline fairport::hid_stream_device fairport::heap_impl::open_stream(heap_id id)
 {
-    return hid_stream(hid_stream_device(shared_from_this(), id));
+    return hid_stream_device(shared_from_this(), id);
 }
 
 inline std::streamsize fairport::hid_stream_device::read(byte* pbuffer, std::streamsize n)
@@ -434,7 +434,7 @@ inline std::streamsize fairport::hid_stream_device::read(byte* pbuffer, std::str
         n = m_pheap->size(m_hid) - m_pos;
 
     if(n == 0 || m_hid == 0)
-        return 0;
+        return -1;
 
     std::vector<byte> buff(static_cast<uint>(n));
     size_t read = m_pheap->read(buff, m_hid, static_cast<ulong>(m_pos));
@@ -450,7 +450,7 @@ inline std::streampos fairport::hid_stream_device::seek(boost::iostreams::stream
     else if(way == std::ios_base::end)
         m_pos = m_pheap->size(m_hid) + off;
     else
-        m_pos += off - 1;
+        m_pos += off;
 
     if(m_pos < 0)
         m_pos = 0;

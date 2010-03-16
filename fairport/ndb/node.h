@@ -180,8 +180,8 @@ public:
         { return m_pimpl->write(buffer, page_num, offset); }
     template<typename T> void write(const T& obj, uint page_num, ulong offset)
         { return m_pimpl->write<T>(obj, page_num, offset); }
-    node_stream open_as_stream()
-        { return node_stream(node_stream_device(m_pimpl)); }
+    node_stream_device open_as_stream()
+        { return node_stream_device(m_pimpl); }
     size_t resize(size_t size)
         { return m_pimpl->resize(size); }
 
@@ -538,7 +538,11 @@ inline std::streamsize fairport::node_stream_device::read(byte* pbuffer, std::st
 {
     size_t read = m_pnode->read_raw(pbuffer, static_cast<size_t>(n), static_cast<size_t>(m_pos));
     m_pos += read;
-    return read;
+
+    if(read)
+        return read;
+    else
+        return -1;
 }
 
 inline std::streamsize fairport::node_stream_device::write(const byte* pbuffer, std::streamsize n)
@@ -553,7 +557,7 @@ inline std::streampos fairport::node_stream_device::seek(boost::iostreams::strea
     if(way == std::ios_base::beg)
             m_pos = off;
     else if(way == std::ios_base::end)
-        m_pos = m_pnode->size() + off - 1;
+        m_pos = m_pnode->size() + off;
     else
         m_pos += off;
 
@@ -702,7 +706,7 @@ inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t buf_
 {
     size_t read_size = buf_size;
 
-    assert(offset < get_total_size());
+    assert(offset <= get_total_size());
 
     if(offset + buf_size > get_total_size())
         read_size = get_total_size() - offset;
@@ -722,7 +726,7 @@ inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_
     }
     touch(); // mutate ourselves inplace
 
-    assert(offset < get_total_size());
+    assert(offset <= get_total_size());
 
     size_t write_size = buf_size;
 
@@ -739,7 +743,7 @@ inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_
 
 inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t buf_size, ulong offset) const
 {
-    assert(offset < get_total_size());
+    assert(offset <= get_total_size());
 
     if(offset + buf_size > get_total_size())
         buf_size = get_total_size() - offset;
@@ -781,7 +785,7 @@ inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_
     }
     touch(); // mutate ourselves inplace
 
-    assert(offset < get_total_size());
+    assert(offset <= get_total_size());
 
     if(offset + buf_size > get_total_size())
         buf_size = get_total_size() - offset;

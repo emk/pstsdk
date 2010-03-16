@@ -34,7 +34,7 @@ public:
     prop_type get_prop_type(prop_id id) const
         { return (prop_type)m_pbth->lookup(id).type; }
     bool prop_exists(prop_id id) const;
-    prop_stream open_prop_stream(prop_id id);
+    hnid_stream_device open_prop_stream(prop_id id);
     
     const node& get_node() const { return m_pbth->get_node(); }
     node& get_node() { return m_pbth->get_node(); }
@@ -181,16 +181,16 @@ inline std::vector<fairport::byte> fairport::property_bag::get_value_variable(pr
     return buffer;
 }
 
-inline fairport::prop_stream fairport::property_bag::open_prop_stream(prop_id id)
+inline fairport::hnid_stream_device fairport::property_bag::open_prop_stream(prop_id id)
 {
     heapnode_id h_id = (heapnode_id)get_value_4(id);
 
     if(h_id == 0)
-        return prop_stream(*(m_pbth->get_heap_ptr()->open_stream(h_id)));
+        return m_pbth->get_heap_ptr()->open_stream(h_id);
 
     if(is_subnode_id(h_id))
-        return prop_stream(*(m_pbth->get_node().lookup(h_id).open_as_stream()));
+        return m_pbth->get_node().lookup(h_id).open_as_stream();
     else
-        return prop_stream(*(m_pbth->get_heap_ptr()->open_stream(h_id)));
+        return m_pbth->get_heap_ptr()->open_stream(h_id);
 }
 #endif

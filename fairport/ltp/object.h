@@ -57,7 +57,7 @@ public:
     T read_prop(prop_id id) const;
     template<typename T>
     std::vector<T> read_prop_array(prop_id id) const;
-    virtual prop_stream open_prop_stream(prop_id id) = 0;
+    virtual hnid_stream_device open_prop_stream(prop_id id) = 0;
 
 // GCC has time_t defined as a typedef of a long, so calling
 // read_prop<long> activates the time_t specialization. I'm
