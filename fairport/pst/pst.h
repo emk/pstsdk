@@ -17,7 +17,7 @@
 namespace fairport
 {
 
-class pst : boost::noncopyable
+class pst : private boost::noncopyable
 {
     typedef boost::filter_iterator<is_nid_type<nid_type_folder>, const_nodeinfo_iterator> folder_filter_iterator;
     typedef boost::filter_iterator<is_nid_type<nid_type_message>, const_nodeinfo_iterator> message_filter_iterator;

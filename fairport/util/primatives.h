@@ -250,13 +250,16 @@ const byte message_subject_prefix_lead_byte = 0x01;
 //
 // Win32 GUID
 //
-struct win_guid
+struct guid
 {
     ulong data1;
     short data2;
     short data3;
     byte data4[8];
 };
+
+const guid ps_mapi = { 0x20328, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
+const guid ps_public_strings = { 0x20329, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
 
 } // end fairport namespace
 #endif
