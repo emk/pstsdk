@@ -43,8 +43,8 @@ typedef std::shared_ptr<heap_impl> heap_ptr;
 class hid_stream_device : public boost::iostreams::device<boost::iostreams::input_seekable>
 {
 public:
-    hid_stream_device() : m_hid(0), m_pos(0) { }
-    std::streamsize read(char* pbuffer, std::streamsize n); 
+    hid_stream_device() : m_pos(0), m_hid(0) { }
+    std::streamsize read(char* pbuffer, std::streamsize n);
     std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way);
 
 private:
@@ -430,7 +430,7 @@ inline fairport::hid_stream_device fairport::heap_impl::open_stream(heap_id id)
 
 inline std::streamsize fairport::hid_stream_device::read(char* pbuffer, std::streamsize n)
 {
-    if(m_hid && (m_pos + n > m_pheap->size(m_hid)))
+    if(m_hid && (static_cast<size_t>(m_pos) + n > m_pheap->size(m_hid)))
         n = m_pheap->size(m_hid) - m_pos;
 
     if(n == 0 || m_hid == 0)
@@ -457,7 +457,7 @@ inline std::streampos fairport::hid_stream_device::seek(boost::iostreams::stream
 
     if(m_pos < 0)
         m_pos = 0;
-    else if(m_pos > m_pheap->size(m_hid))
+    else if(static_cast<size_t>(m_pos) > m_pheap->size(m_hid))
         m_pos = m_pheap->size(m_hid);
 
     return m_pos;

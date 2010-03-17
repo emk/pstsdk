@@ -7,7 +7,7 @@
 
 void test_prop_stream(fairport::const_property_object& obj, fairport::prop_id id)
 {
-    fairport::prop_stream stream = obj.open_prop_stream(id);
+    fairport::prop_stream stream(obj.open_prop_stream(id));
     std::vector<fairport::byte> contents = obj.read_prop<std::vector<fairport::byte>>(id);
     fairport::byte b;
     size_t pos = 0;

@@ -148,25 +148,25 @@ void test_node_stream(fairport::node n)
 {
     using namespace std;
     using namespace fairport;
-    
+
     vector<byte> contents(n.size());
     byte b;
     int i = 0;
-    node_stream stream = n.open_as_stream();
+    node_stream stream(n.open_as_stream());
     stream.unsetf(ios::skipws);
 
     (void)n.read(contents, 0);
 
     // pick a larger node if this fires. I just want to make sure it's non-trivial.
     assert(n.size() > 100);
-    
+
     while(stream >> b)
     {
         byte c = contents[i];
         assert(b == c);
         ++i;
     }
-    
+
     // test seeking from the beginning
     stream.clear();
     stream.seekg(0, ios_base::beg);

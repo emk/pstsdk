@@ -563,7 +563,7 @@ inline std::streampos fairport::node_stream_device::seek(boost::iostreams::strea
 
     if(m_pos < 0)
         m_pos = 0;
-    else if(m_pos > m_pnode->size())
+    else if(static_cast<size_t>(m_pos) > m_pnode->size())
         m_pos = m_pnode->size();
 
     return m_pos;
