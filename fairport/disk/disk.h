@@ -838,6 +838,36 @@ struct gust_header
 };
 #pragma pack()
 
+//
+// nameid structures
+//
+
+struct nameid
+{
+    union 
+    {
+        ulong id;
+        ulong string_offset;
+    };
+    ulong index;
+};
+
+struct nameid_hash_entry
+{
+    ulong hash_base;
+    ulong index;
+};
+
+static_assert(sizeof(nameid) == 8, "nameid incorrect size");
+static_assert(sizeof(nameid_hash_entry) == 8, "nameid incorrect size");
+
+inline ushort nameid_get_prop_index(const nameid& n) { return (ushort)(n.index >> 16); }
+inline ushort nameid_get_guid_index(const nameid& n) { return (ushort)((ushort)n.index >> 1); }
+inline bool nameid_is_string(const nameid& n) { return n.index & 0x1; }
+inline ushort nameid_get_prop_index(const nameid_hash_entry& n) { return (ushort)(n.index >> 16); }
+inline ushort nameid_get_guid_index(const nameid_hash_entry& n) { return (ushort)((ushort)n.index >> 1); }
+inline bool nameid_is_string(const nameid_hash_entry& n) { return n.index & 0x1; }
+
 } // end disk namespace
 } // end fairport namespace
 

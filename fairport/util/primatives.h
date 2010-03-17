@@ -258,6 +258,7 @@ struct guid
     byte data4[8];
 };
 
+const guid ps_none = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 const guid ps_mapi = { 0x20328, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
 const guid ps_public_strings = { 0x20329, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
 

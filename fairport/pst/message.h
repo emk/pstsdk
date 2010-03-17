@@ -14,16 +14,21 @@
 namespace fairport
 {
 
+class message;
 class attachment
 {
 public:
     // property access
-    std::wstring get_filename() const
-        { return m_bag.read_prop<std::wstring>(0x3707); }
+    std::wstring get_filename() const;
     std::vector<byte> get_bytes() const
         { return m_bag.read_prop<std::vector<byte>>(0x3701); }
+    hnid_stream_device open_byte_stream()
+        { return m_bag.open_prop_stream(0x3701); }
     size_t size() const
         { return m_bag.read_prop<uint>(0xe20); }
+    bool is_object() const
+        { return m_bag.get_prop_type(0x3701) == prop_type_object; }
+    message open_as_message() const;
 
     // lower layer access
     const property_bag& get_property_bag() const
@@ -123,8 +128,12 @@ public:
     std::wstring get_subject() const;
     std::wstring get_body() const
         { return m_bag.read_prop<std::wstring>(0x1000); }
+    hnid_stream_device open_body_stream()
+        { return m_bag.open_prop_stream(0x1000); }
     std::wstring get_html_body() const
         { return m_bag.read_prop<std::wstring>(0x1013); }
+    hnid_stream_device open_html_body_stream()
+        { return m_bag.open_prop_stream(0x1013); }
     size_t size() const
         { return m_bag.read_prop<long>(0xe08); }
     size_t get_attachment_count() const;
@@ -173,6 +182,29 @@ private:
 };
 
 } // end namespace fairport
+
+inline std::wstring fairport::attachment::get_filename() const
+{
+    try
+    {
+        return m_bag.read_prop<std::wstring>(0x3707);
+    } 
+    catch(key_not_found<prop_id>&)
+    {
+        return m_bag.read_prop<std::wstring>(0x3704);
+    }
+}
+
+inline fairport::message fairport::attachment::open_as_message() const
+{
+    if(!is_object()) 
+        throw std::bad_cast("attachment is not a message");
+
+    std::vector<byte> buffer = get_bytes();
+    disk::sub_object* psubo = (disk::sub_object*)&buffer[0];
+
+    return message(m_bag.get_node().lookup(psubo->nid));
+}
 
 inline fairport::message::message(const fairport::message& other)
 : m_bag(other.m_bag)

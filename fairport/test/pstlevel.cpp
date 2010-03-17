@@ -21,6 +21,7 @@ void process_recipient(const fairport::recipient& r)
     wcout << "\t\t" << r.get_name() << "(" << r.get_email_address() << ")\n";
 }
 
+void process_message(const fairport::message& m);
 void process_attachment(const fairport::attachment& a)
 {
     using namespace std;
@@ -28,10 +29,17 @@ void process_attachment(const fairport::attachment& a)
 
     wcout << "\t\t" << a.get_filename() << endl;
 
-    std::wstring wfilename = a.get_filename();
-    std::string filename(wfilename.begin(), wfilename.end());
-    ofstream newfile(filename.c_str(), ios::out | ios::binary);
-    newfile << a;
+    if(a.is_object())
+    {
+        process_message(a.open_as_message());
+    }
+    else
+    {
+        std::wstring wfilename = a.get_filename();
+        std::string filename(wfilename.begin(), wfilename.end());
+        ofstream newfile(filename.c_str(), ios::out | ios::binary);
+        newfile << a;
+    }
 }
 
 void process_message(const fairport::message& m)
@@ -86,11 +94,13 @@ void test_pstlevel()
     pst ansi(L"test_ansi.pst");
     pst s1(L"sample1.pst");
     pst s2(L"sample2.pst");
+    pst submess(L"submessage.pst");
 
     process_pst(uni);
     process_pst(ansi);
     process_pst(s1);
     process_pst(s2);
+    process_pst(submess);
 
     // make sure searching by name works
     process_folder(uni.open_folder(L"Folder"));
