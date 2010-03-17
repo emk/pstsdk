@@ -420,7 +420,7 @@ inline size_t fairport::heap_impl::read(std::vector<byte>& buffer, heap_id id, u
     m_node.read(map_buffer, get_heap_page(id), header.page_map_offset);
     disk::heap_page_map* pmap = reinterpret_cast<disk::heap_page_map*>(&map_buffer[0]);
 
-    return m_node.read(buffer, get_heap_page(id), pmap->allocs[get_heap_index(id)]);
+    return m_node.read(buffer, get_heap_page(id), pmap->allocs[get_heap_index(id)] + offset);
 }
 
 inline fairport::hid_stream_device fairport::heap_impl::open_stream(heap_id id)
