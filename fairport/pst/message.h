@@ -198,7 +198,7 @@ inline std::wstring fairport::attachment::get_filename() const
 inline fairport::message fairport::attachment::open_as_message() const
 {
     if(!is_object()) 
-        throw std::bad_cast("attachment is not a message");
+        throw std::bad_cast();
 
     std::vector<byte> buffer = get_bytes();
     disk::sub_object* psubo = (disk::sub_object*)&buffer[0];
