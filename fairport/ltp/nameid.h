@@ -219,7 +219,7 @@ inline fairport::prop_id fairport::name_id_map::lookup(const named_prop& p) cons
     if(!m_bag.prop_exists(get_bucket_prop(hash_value)))
         throw key_not_found<named_prop>(p);
 
-    prop_stream bucket = const_cast<name_id_map*>(this)->m_bag.open_prop_stream(get_bucket_prop(hash_value));
+    prop_stream bucket(const_cast<name_id_map*>(this)->m_bag.open_prop_stream(get_bucket_prop(hash_value)));
     disk::nameid_hash_entry entry;
     while(bucket.read((char*)&entry, sizeof(entry)) != 0)
     {
