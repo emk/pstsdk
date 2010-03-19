@@ -138,7 +138,7 @@ int main()
 
         try
         {
-            prop_stream hash_values = names.open_prop_stream(p);
+            prop_stream hash_values(names.open_prop_stream(p));
 
             // calculate the number of values
             hash_values.seekg(0, ios_base::end);
