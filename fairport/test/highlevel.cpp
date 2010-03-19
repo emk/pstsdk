@@ -169,6 +169,38 @@ void iterate(fairport::shared_db_ptr pdb)
         {
             property_bag bag(n);
             std::vector<ushort> proplist(bag.get_prop_list());
+
+            // look for mv props
+            for(uint i = 0; i < proplist.size(); ++i)
+            {
+                switch(bag.get_prop_type(proplist[i]))
+                {
+                case prop_type_mv_wstring:
+                    {
+                    vector<wstring> wstrings = bag.read_prop_array<wstring>(proplist[i]);
+                    cout << "prop_type_mv_wstring" << endl;
+                    for(size_t i = 0; i < wstrings.size(); ++i)
+                        wcout << wstrings[i] << endl;
+                    }
+                    break;
+                case prop_type_mv_string:
+                    {
+                    vector<string> strings = bag.read_prop_array<string>(proplist[i]);
+                    cout << "prop_type_mv_string" << endl;
+                    for(size_t i = 0; i < strings.size(); ++i)
+                        cout << strings[i] << endl;
+                    }
+                    break;
+                case prop_type_mv_binary:
+                    {
+                    vector<vector<byte>> bins = bag.read_prop_array<vector<byte>>(proplist[i]);
+                    cout << "prop_type_mv_wstring" << endl;
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
         } 
         catch(exception&)
         {

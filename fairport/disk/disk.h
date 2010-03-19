@@ -777,6 +777,12 @@ struct sub_object
     ulong size;
 }; 
 
+struct mv_toc
+{
+    ulong count;
+    ulong offsets[1];
+};
+
 //
 // tc structures
 //
