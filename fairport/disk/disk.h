@@ -339,7 +339,7 @@ template<typename T>
 ushort compute_signature(const block_reference<T>& reference) { return compute_signature(reference.bid, reference.ib); }
 
 
-ulong compute_crc(void * pdata, ulong cb);
+ulong compute_crc(const void * pdata, ulong cb);
 
 void permute(void * pdata, ulong cb, bool encrypt);
 
@@ -881,10 +881,10 @@ inline fairport::ushort fairport::disk::compute_signature(T id, T address)
 }
     
 
-inline fairport::ulong fairport::disk::compute_crc(void * pdata, ulong cb)
+inline fairport::ulong fairport::disk::compute_crc(const void * pdata, ulong cb)
 {
     ulong crc = 0;
-    byte * pb = reinterpret_cast<byte*>(pdata);
+    const byte * pb = reinterpret_cast<const byte*>(pdata);
 
     while(cb-- > 0)
         crc = crc_table[(int)(byte)crc ^ *pb++] ^ (crc >> 8);

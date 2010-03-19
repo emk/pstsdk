@@ -10,6 +10,7 @@
 #include "fairport/ndb/node.h"
 
 #include "fairport/ltp/propbag.h"
+#include "fairport/ltp/nameid.h"
 
 #include "fairport/pst/folder.h"
 #include "fairport/pst/message.h"
@@ -29,7 +30,7 @@ public:
     pst(const std::wstring& filename) 
         : m_db(open_database(filename)) { }
     pst(pst&& other)
-        : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)) { }
+        : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)), m_map(std::move(other.m_map)) { }
 
     // subobject discovery/enumeration
     folder_iterator folder_begin() const
@@ -49,16 +50,27 @@ public:
     // property access
     std::wstring get_name() const
         { return get_property_bag().read_prop<std::wstring>(0x3001); }
+    prop_id lookup_prop_id(const guid& g, const std::wstring& name) const
+        { return get_name_id_map().lookup(g, name); }
+    prop_id lookup_prop_id(const guid& g, long id) const
+        { return get_name_id_map().lookup(g, id); }
+    prop_id lookup_prop_id(const named_prop& n)
+        { return get_name_id_map().lookup(n); }
+    named_prop lookup_name_prop(prop_id id) const
+        { return get_name_id_map().lookup(id); }
 
     // lower layer access
     property_bag& get_property_bag();
+    name_id_map& get_name_id_map();
     const property_bag& get_property_bag() const;
+    const name_id_map& get_name_id_map() const;
     shared_db_ptr get_db() const 
         { return m_db; }
 
 private:
     shared_db_ptr m_db;
     mutable std::unique_ptr<property_bag> m_bag;
+    mutable std::unique_ptr<name_id_map> m_map;
 };
 
 } // end fairport namespace
@@ -74,6 +86,19 @@ inline const fairport::property_bag& fairport::pst::get_property_bag() const
 inline fairport::property_bag& fairport::pst::get_property_bag()
 {
     return const_cast<property_bag&>(const_cast<const pst*>(this)->get_property_bag());
+}
+
+inline const fairport::name_id_map& fairport::pst::get_name_id_map() const
+{
+    if(!m_map)
+        m_map.reset(new name_id_map(m_db));
+
+    return *m_map;
+}
+
+inline fairport::name_id_map& fairport::pst::get_name_id_map()
+{
+    return const_cast<name_id_map&>(const_cast<const pst*>(this)->get_name_id_map());
 }
 
 inline fairport::folder fairport::pst::open_folder(const std::wstring& name) const

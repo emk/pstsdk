@@ -5,5 +5,6 @@
 #include "fairport/ltp/object.h"
 #include "fairport/ltp/propbag.h"
 #include "fairport/ltp/table.h"
+#include "fairport/ltp/nameid.h"
 
 #endif

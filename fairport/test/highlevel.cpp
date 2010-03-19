@@ -5,6 +5,54 @@
 #include "fairport/ndb.h"
 #include "fairport/ltp.h"
 
+// this function works because the set of named props present in sample1.pst is known
+void test_nameid_map_samp1(fairport::shared_db_ptr pdb)
+{
+    using namespace fairport;
+    name_id_map nm(pdb);
+
+    const guid g1 = { 0x20386, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
+    const guid g2 = { 0x62002, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
+
+    // is the count correct?
+    assert(nm.get_prop_count() == 172);
+
+    // test that the lookup succeeds and matches a few well known named props
+    named_prop t1(ps_public_strings, L"urn:schemas-microsoft-com:office:outlook#storetypeprivate");
+    assert(nm.lookup(t1) == 0x800f);
+    assert(nm.lookup(0x800f).get_name() == L"urn:schemas-microsoft-com:office:outlook#storetypeprivate");
+
+    named_prop t2(ps_public_strings, L"Keywords");
+    assert(nm.lookup(t2) == 0x8012);
+    assert(nm.lookup(0x8012).get_name() == L"Keywords");
+
+    named_prop t3(g1, L"x-ms-exchange-organization-authdomain");
+    assert(nm.lookup(t3) == 0x801c);
+    assert(nm.lookup(0x801c).get_name() == L"x-ms-exchange-organization-authdomain");
+
+    named_prop t4(g2, 0x8233);
+    assert(nm.lookup(t4) == 0x8008);
+    assert(nm.lookup(0x8008).get_id() == 0x8233);
+
+    named_prop t5(g2, 0x8205);
+    assert(nm.lookup(t5) == 0x8000);
+    assert(nm.lookup(0x8000).get_id() == 0x8205);
+
+    // test that the lookup fails for a few known-to-not-exist named props
+    bool not_found = false;
+
+    named_prop t6(ps_public_strings, L"fake-property");
+    try
+    {
+        nm.lookup(t6);
+    } 
+    catch(key_not_found<named_prop>&)
+    {
+        not_found = true;
+    }
+    assert(not_found);
+}
+
 void test_prop_stream(fairport::const_property_object& obj, fairport::prop_id id)
 {
     fairport::prop_stream stream(obj.open_prop_stream(id));
@@ -210,4 +258,7 @@ void test_highlevel()
     iterate(ansi);
     iterate(samp1);
     iterate(samp2);
+
+    // only valid to call on samp1
+    test_nameid_map_samp1(samp1);
 }

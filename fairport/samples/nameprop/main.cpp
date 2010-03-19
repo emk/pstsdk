@@ -116,7 +116,7 @@ int main()
 
         sstream.read((char*)&buffer[0], size);
 
-        std::wstring val((wchar_t*)&buffer[0], (wchar_t*)&buffer[size]);
+        std::wstring val(reinterpret_cast<wchar_t*>(&buffer[0]), size/sizeof(wchar_t));
         wcout << setw(6) << ((size_t)sstream.tellg() - size - 4) << ", " << setw(4) << size << ": " << val << endl;
 
         size_t pos = (size_t)sstream.tellg();
