@@ -8,12 +8,12 @@
 CC=cl
 
 ifeq ($(CC),cl) #MSVC
-OPTIONS=/Ox /EHsc /Zi /Za /nologo /W4 /wd4250 /I "..\..\.."
+OPTIONS=/Ox /EHsc /Zi /Za /nologo /W4 /wd4250 /I "..\.."
 OUTPUTSWITCH=/Fe
 NOLINK=/c
 DELCMD=del
 else #GCC
-OPTIONS=-Wall -I "..\..\.."
+OPTIONS=-Wall -I "..\.."
 OUTPUTSWITCH=-o 
 NOLINK=-c
 DELCMD=rm
