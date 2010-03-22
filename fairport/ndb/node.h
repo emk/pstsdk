@@ -716,7 +716,7 @@ inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t size
     return read_size;
 }
 
-inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<fairport::data_block>& presult)
+inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
 {
     std::shared_ptr<fairport::external_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
@@ -775,7 +775,7 @@ inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t size
     return total_bytes_read;
 }
 
-inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<fairport::data_block>& presult)
+inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
 {
     std::shared_ptr<extended_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller

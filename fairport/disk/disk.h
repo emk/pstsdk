@@ -7,6 +7,7 @@
 //! \todo Add a reference to the corresponding MS-PST section for each structure
 //! \ingroup disk
 //! \author Terry Mahaffey
+
 #ifndef FAIRPORT_DISK_DISK_H
 #define FAIRPORT_DISK_DISK_H
 
@@ -19,10 +20,10 @@ namespace fairport
 namespace disk
 {
 
-//! A structure used providing the address and id of a block or page
+//! \brief A structure used providing the address and id of a block or page
 //! \ingroup disk
 template<typename T>
-struct block_reference 
+struct block_reference
 {
     typedef T block_id_disk;
     typedef T location;
@@ -35,11 +36,11 @@ struct block_reference
 // header
 //
 
-//! The number of entries in the header's fmap structure
+//! \brief The number of entries in the header's fmap structure
 //! \ingroup disk
 const size_t header_fmap_entries = 128;
 
-//! The number of entries in the header's fpmap structure
+//! \brief The number of entries in the header's fpmap structure
 //! \ingroup disk
 const size_t header_fpmap_size = 128;
 
@@ -154,7 +155,7 @@ struct header<ulonglong>
 #endif
     ulong dwCRCFull;
     byte rgbVersionEncoded[3];
-    byte bLockSemaphore;
+    byte bLockSemaphore;               //!< Implementation specific
     byte rgbLock[header_lock_entries]; //!< Implementation specific
 };
 
@@ -525,9 +526,9 @@ const size_t first_amap_page_location = 0x4400;
 //! (like all pages) is \ref page_size bytes (512), this means the first 8 bytes
 //! of an AMap page are by definition always 0xFF.
 //! \ingroup disk
-template<typename T> 
-struct amap_page : public page<T> 
-{ 
+template<typename T>
+struct amap_page : public page<T>
+{
 };
 //! \cond static_asserts
 static_assert(sizeof(amap_page<ulong>) == page_size, "amap_page<ulong> incorrect size");
@@ -542,9 +543,9 @@ static_assert(sizeof(amap_page<ulonglong>) == page_size, "amap_page<ulonglong> i
 //! for backwards compatability purposes.
 //! \deprecated
 //! \ingroup disk
-template<typename T> 
-struct pmap_page : public page<T> 
-{ 
+template<typename T>
+struct pmap_page : public page<T>
+{
 };
 //! \cond static_asserts
 static_assert(sizeof(pmap_page<ulong>) == page_size, "pmap_page<ulong> incorrect size");
@@ -553,14 +554,14 @@ static_assert(sizeof(pmap_page<ulonglong>) == page_size, "pmap_page<ulonglong> i
 
 //! Free Map page
 //!
-//! A Free Map (or fmap) page has one byte per AMap page, indicating how many consecutive 
+//! A Free Map (or fmap) page has one byte per AMap page, indicating how many consecutive
 //! slots are available for allocation on that amap page. No longer used as of Outlook 2007
 //! SP2, but as with PMap pages are still created for backwards compatibility.
 //! \deprecated
 //! \ingroup disk
-template<typename T> 
-struct fmap_page : public page<T> 
-{ 
+template<typename T>
+struct fmap_page : public page<T>
+{
 };
 //! \cond static_asserts
 static_assert(sizeof(fmap_page<ulong>) == page_size, "fmap_page<ulong> incorrect size");
@@ -574,13 +575,13 @@ static_assert(sizeof(fmap_page<ulonglong>) == page_size, "fmap_page<ulonglong> i
 //! No longer used as of Outlook 2007, but still created for backwards compatibility.
 //!
 //! The lack of fpmap pages was the reason for the 2GB limit of ANSI pst files (rather than
-//! a more intuitive 4GB limit) - the fpmap region in the header only had enough slots to 
+//! a more intuitive 4GB limit) - the fpmap region in the header only had enough slots to
 //! "map" 2GB of space.
 //! \deprecated
 //! \ingroup disk
-template<typename T> 
-struct fpmap_page : public page<T> 
-{ 
+template<typename T>
+struct fpmap_page : public page<T>
+{
 };
 //! \cond static_asserts
 static_assert(sizeof(fpmap_page<ulong>) == page_size, "fpmap_page<ulong> incorrect size");
@@ -597,7 +598,7 @@ const size_t dlist_page_location = 0x4200;
 //! order of density. That is to say, the "emptiest" page is at the top. This is the
 //! data backing the new allocation scheme which replaced the old pmap/fmap/fpmap
 //! scheme, starting in Outlook 2007 SP2.
-//! \ingroup disk 
+//! \ingroup disk
 template<typename T>
 struct dlist_page
 {
@@ -623,7 +624,7 @@ static_assert(sizeof(dlist_page<ulong>) == page_size, "dlist_page<ulong> incorre
 static_assert(sizeof(dlist_page<ulonglong>) == page_size, "dlist_page<ulonglong> incorrect size");
 //! \endcond
 
-//! BTree Entry
+//! \brief BTree Entry
 //!
 //! An array of these are used on non-leaf BT Pages
 //! \ingroup disk
@@ -667,15 +668,15 @@ struct bbt_leaf_entry
 //! BTree Page
 //!
 //! Generally speaking, the generic form of a BTree page contains a fixed
-//! array of entries, followed by metadata about those entries and the page.
-//! The entry type (and entry size, and thus the max number of entries)
-//! varies between NBT and BBT pages.
+//! array of entries, followed by metadata about those entries and the
+//! page. The entry type (and entry size, and thus the max number of
+//! entries) varies between NBT and BBT pages.
 //! \ingroup disk
 template<typename T, typename EntryType>
 struct bt_page
 {
     static const size_t extra_space = page<T>::page_data_size - (sizeof(T) * sizeof(byte));
-    static const size_t max_entries = extra_space / sizeof(EntryType);
+    static const size_t max_entries = extra_space / sizeof(EntryType); //!< Maximum number of entries on a page
     union
     {
         EntryType entries[max_entries];
@@ -694,9 +695,9 @@ struct bt_page
 //!
 //! A BTree page instance.
 //! \ingroup disk
-template<typename T> 
-struct nbt_nonleaf_page : public bt_page<T, bt_entry<T>> 
-{ 
+template<typename T>
+struct nbt_nonleaf_page : public bt_page<T, bt_entry<T>>
+{
 };
 //! \cond static_asserts
 static_assert(sizeof(nbt_nonleaf_page<ulong>) == page_size, "nbt_nonleaf_page<ulong> incorrect size");
@@ -708,9 +709,9 @@ static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_pag
 //! A BTree page instance. Note that this structure is identical to
 //! a non-leaf NBT page.
 //! \ingroup disk
-template<typename T> 
-struct bbt_nonleaf_page : public bt_page<T, bt_entry<T>> 
-{ 
+template<typename T>
+struct bbt_nonleaf_page : public bt_page<T, bt_entry<T>>
+{
 };
 //! \cond static_asserts
 static_assert(sizeof(bbt_nonleaf_page<ulong>) == page_size, "bbt_nonleaf_page<ulong> incorrect size");
@@ -722,9 +723,9 @@ static_assert(sizeof(bbt_nonleaf_page<ulonglong>) == page_size, "bbt_nonleaf_pag
 //! A BTree page instance. The NBT leaf page has an array of nbt_leaf_entries
 //! ordered by node id, which describe the nodes of the database.
 //! \ingroup disk
-template<typename T> 
-struct nbt_leaf_page : public bt_page<T, nbt_leaf_entry<T>> 
-{ 
+template<typename T>
+struct nbt_leaf_page : public bt_page<T, nbt_leaf_entry<T>>
+{
 };
 //! \cond static_asserts
 static_assert(sizeof(nbt_leaf_page<ulong>) == page_size, "nbt_leaf_page<ulong> incorrect size");
@@ -736,9 +737,9 @@ static_assert(sizeof(nbt_leaf_page<ulonglong>) == page_size, "nbt_leaf_page<ulon
 //! A BTree page instance. The BBT leaf page has an array of bbt_leaf_entries
 //! ordered by block id, which describe the blocks in the database.
 //! \ingroup disk
-template<typename T> 
-struct bbt_leaf_page : public bt_page<T, bbt_leaf_entry<T>> 
-{ 
+template<typename T>
+struct bbt_leaf_page : public bt_page<T, bbt_leaf_entry<T>>
+{
 };
 //! \cond static_asserts
 static_assert(sizeof(bbt_leaf_page<ulong>) == page_size, "bbt_leaf_page<ulong> incorrect size");
@@ -753,7 +754,7 @@ static_assert(sizeof(bbt_leaf_page<ulonglong>) == page_size, "bbt_leaf_page<ulon
 //! \ingroup disk
 const size_t max_block_disk_size = 8 * 1024;
 
-//! The different block types. 
+//! The different block types.
 //! \ingroup disk
 enum block_types
 {
@@ -797,7 +798,7 @@ bool bid_is_external(T bid) { return ((bid & block_id_internal_bit) == 0); }
 //! \param bid The id of the block
 //! \returns true if the block is internal
 template<typename T>
-bool bid_is_internal(T bid) { return !bid_is_external(bid); } 
+bool bid_is_internal(T bid) { return !bid_is_external(bid); }
 
 //! \cond empty
 template<typename T>
@@ -806,17 +807,31 @@ struct block_trailer
 };
 //! \endcond
 
+//! \brief Unicode store version of the block trailer
+//!
+//! Blocks are of variable size. The BBT gives the unaligned size, which is an input
+//! to the \ref align_disk function to give the total size on disk. Using the total size and
+//! the address, one can read the block trailer - which is always located at and aligned to
+//! the end of the aligned size. The block trailer contains validation information about
+//! the block.
+//! \ingroup disk
 template<>
 struct block_trailer<ulonglong>
 {
     typedef ulonglong block_id_disk;
 
-    ushort cb;
-    ushort signature;
-    ulong crc;
-    block_id_disk bid;
+    ushort cb;           //!< Size of the block (unaligned)
+    ushort signature;    //!< Signature of this block, as calculated by the \ref compute_signature function
+    ulong crc;           //!< CRC of this block, as calculated by the \ref compute_crc function
+    block_id_disk bid;   //!< The id of this block
 };
 
+//! ANSI store version of the block trailer
+//!
+//! See the Unicode store version of the block trailer for more
+//! information. Note that the bid and CRC fields are in a different order
+//! in the ANSI version.
+//! \ingroup disk
 template<>
 struct block_trailer<ulong>
 {
@@ -828,11 +843,17 @@ struct block_trailer<ulong>
     ulong crc;
 };
 
+//! External block definition
+//!
+//! The data contained in an external block is "encrypted" as defined by
+//! the \ref crypt_method of the store. The id of an external block never 
+//! has the \ref block_id_internal_bit set.
+//! \ingroup disk
 template<typename T>
 struct external_block
 {
     static const size_t max_size = max_block_disk_size - sizeof(block_trailer<T>);
-    byte data[1];
+    byte data[1];   //!< Data contained in this block
 };
 
 //! \cond empty
@@ -842,6 +863,15 @@ struct extended_block
 };
 //! \endcond
 
+//! Unicode store version of the extended block
+//!
+//! Extended blocks are a way of extended the logical size of a block. It
+//! contains references to other blocks (which themselves may be extended
+//! blocks). This block can logically be thought of as the concatenation
+//! of the blocks it points to. Extended blocks begin with a header. Note
+//! the first byte of this header is the \ref block_type - a property
+//! shared with the \ref sub_block.
+//! \ingroup disk
 template<>
 struct extended_block<ulonglong>
 {
@@ -850,13 +880,18 @@ struct extended_block<ulonglong>
     static const size_t max_count = (external_block<ulonglong>::max_size - 8) / sizeof(extended_block<ulonglong>::block_id_disk);
     static const size_t max_size = external_block<ulonglong>::max_size * extended_block<ulonglong>::max_count;
 
-    byte block_type;
-    byte level;
-    ushort count;
-    ulong total_size;
-    block_id_disk bid[1];
+    byte block_type;       //!< Always \ref block_type_extended
+    byte level;            //!< If zero, this block points to external blocks. If one, this block points to level zero extended blocks.
+    ushort count;          //!< Number of entries in the bid array
+    ulong total_size;      //!< Total logical size of this block
+    block_id_disk bid[1];  //!< Array of blocks this block points to
 };
 
+//! ANSI store version of the extended block
+//!
+//! See the Unicode version for details. The ANSI version has a different
+//! max_count calcuation.
+//! \ingroup disk
 template<>
 struct extended_block<ulong>
 {
@@ -872,184 +907,287 @@ struct extended_block<ulong>
     block_id_disk bid[1];
 };
 
+//! Entries on a leaf \ref sub_block
+//!
+//! The leaf entry contains information about the subnode. Note there is
+//! no parent field.
+//! \ingroup disk
 template<typename T>
 struct sub_leaf_entry
 {
     typedef T block_id_disk;
 
-    node_id nid;
-    block_id_disk data;
-    block_id_disk sub;
+    node_id nid;        //!< Subnode id
+    block_id_disk data; //!< Data block of this subnode
+    block_id_disk sub;  //!< Subnode block of this subnode. Yes, subnodes can and do themselves had subnodes.
 };
 
+//! Entries on a nonleaf \ref sub_block
+//!
+//! Similar to non-leaf BT pages, nonleaf subnode blocks point to other
+//! subnode blocks.
+//! \ingroup disk
 template<typename T>
 struct sub_nonleaf_entry
 {
     typedef T block_id_disk;
 
-    node_id nid_key;
-    block_id_disk sub_block_bid;
+    node_id nid_key;             //!< Key of the subnode block
+    block_id_disk sub_block_bid; //!< Id of the subnode block
 };
 
+//! Subnode Blocks
+//!
+//! Subnode blocks form a "private NBT" for each node. Non-leaf subnode
+//! blocks point to leaf subnode blocks. Leaf subnode blocks contain the
+//! subnode information.
+//! \ingroup disk
 template<typename T, typename EntryType>
 struct sub_block
 {
-    byte block_type;
-    byte level;
-    ushort count;
-    EntryType entry[1];
+    byte block_type;    //!< Always \ref block_type_sub
+    byte level;         //!< One for non-leaf, zero for leaf
+    ushort count;       //!< Number of entries in the entry array
+    EntryType entry[1]; //!< Array of entries
 };
 
-template<typename T> 
-struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>> 
-{ 
+//! Subnode non-leaf block
+//!
+//! An instance of a \ref sub_block, containing \ref sub_nonleaf_entry
+//! items in the entry array
+//! \ingroup disk
+template<typename T>
+struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>>
+{
 };
 
-template<typename T> 
-struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T>> 
-{ 
+//! Subnode leaf block
+//!
+//! An instance of a \ref sub_block, containing \ref sub_leaf_entry items
+//! in the entry array
+//! \ingroup disk
+template<typename T>
+struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T>>
+{
 };
 
 //
 // heap structures
 //
 
-const byte heap_signature = 0xEC; 
+//! Signature of a heap
+//! \ingroup disk
+const byte heap_signature = 0xEC;
+
+//! Maximum allocation size in a heap
+//! \ingroup disk
 const uint heap_max_alloc_size = 3580;
 
+//! Different heap client signature types
+//! \ingroup disk
 enum heap_client_signature
 {
-   heap_sig_gmp = 0x6C,
-   heap_sig_tc = 0x7C,
-   heap_sig_smp = 0x8C,
-   heap_sig_hmp = 0x9C,
-   heap_sig_ch = 0xA5,
-   heap_sig_chtc = 0xAC,
-   heap_sig_bth = 0xB5,
-   heap_sig_pc = 0xBC,
+   heap_sig_gmp = 0x6C,  //< Internal
+   heap_sig_tc = 0x7C,   //< Table context
+   heap_sig_smp = 0x8C,  //< Internal
+   heap_sig_hmp = 0x9C,  //< Internal
+   heap_sig_ch = 0xA5,   //< \deprecated Internal
+   heap_sig_chtc = 0xAC, //< \deprecated Internal
+   heap_sig_bth = 0xB5,  //< BTree on Heap
+   heap_sig_pc = 0xBC,   //< Property Context
 };
 
+//! Header structure on the first heap block
+//! \ingroup disk
 struct heap_first_header
 {
-    static const uint fill_level_size = 4;
+    static const uint fill_level_size = 4; //!< Number of entries in the page_fill_levels map on this block
 
-    ushort page_map_offset;
-    byte signature;
-    byte client_signature;
-    heap_id root_id;
-    byte page_fill_levels[fill_level_size];
+    ushort page_map_offset;  //!< Offset of the start of the page map
+    byte signature;          //!< Always \ref heap_signature
+    byte client_signature;   //!< Client defined signature
+    heap_id root_id;         //!< Root allocation
+    byte page_fill_levels[fill_level_size]; //!< Fill level of this and next three heap blocks
 };
 
+//! Header structure on non-first/non-fill blocks
+//! \ingroup disk
 struct heap_page_header
 {
-    ushort page_map_offset;
+    ushort page_map_offset; //!< offset of the start of the page map
 };
 
+//! Header structure on non-first/fill blocks
+//! \ingroup disk
 struct heap_page_fill_header
 {
-    static const uint fill_level_size = 64;
+    static const uint fill_level_size = 64; //!< Number of entries in the page_fill_levels map on this block
 
-    ushort page_map_offset;
-    byte page_fill_levels[fill_level_size];
+    ushort page_map_offset; //!< Offset of the start of the page map
+    byte page_fill_levels[fill_level_size]; //!< Fill level of this and next sixty three heap blocks
 };
 
+//! Page map
+//!
+//! The page map gives the allocation location all of the heap allocations
+//! on this heap block. The allocs array contains the start of each
+//! allocation. The length of allocation N is determined simply by
+//! subtracting the start of the N+1 allocation from the start of Ns
+//! allocation. For this reason, the allocation array has N+1 entries,
+//! where the last entry gives the end of the last allocation.
+//!
+//! When an allocation is freed, all subsequent allocations are slid
+//! down, making the freed allocation zero in length.
+//! \ingroup disk
 struct heap_page_map
 {
-    ushort num_allocs;
-    ushort num_frees;
-    ushort allocs[1]; // contains num_allocs+1
+    ushort num_allocs; //!< Number of allocations on this block
+    ushort num_frees;  //!< Number of empty allocations on this
+    ushort allocs[1];  //!< The offset of each allocation
 };
 
 //
 // bth structures
 //
 
+//! Header of a BTH
+//!
+//! The BTH header contains information about the BTH, including
+//! the size of the key and entry.
+//! \ingroup disk
 struct bth_header
 {
-    byte bth_signature; 
-    byte key_size;
-    byte entry_size;
-    byte num_levels;
-    heap_id root;
+    byte bth_signature; //!< Always \ref heap_sig_bth
+    byte key_size;      //!< Key size in bytes
+    byte entry_size;    //!< Entry size in bytes
+    byte num_levels;    //!< Number of levels
+    heap_id root;       //!< Root of the actual tree structure
 };
 
+//! BTH Non-leaf Entry
+//!
+//! Clients must keep track of the current level as they are doing a BTH
+//! lookup. Non-leaf entries, similar to how the BT pages and sub_blocks
+//! work, contain the key and id of a lower level page.
+//! \ingroup disk
 template<typename K>
 struct bth_nonleaf_entry
 {
-    K key;
-    heap_id page;
+    K key;        //!< Key of the lower level page
+    heap_id page; //!< Heap id of the lower level page
 };
 
+//! BTH Leaf Entry
+//!
+//! Simply an ordered array of key/values.
+//! \ingroup disk
 template<typename K, typename V>
 struct bth_leaf_entry
 {
-    K key;
-    V value;
+    K key;   //!< Key instance
+    V value; //!< Value instance
 };
 
+//! BTH node
+//!
+//! A BTH node is simply an array of entries, where the entry is either
+//! a \ref bth_nonleaf_entry or a \ref bth_leaf_entry. Clients must keep
+//! track of the current level as they are recursing down a BTH, starting
+//! with the value stored in the \ref bth_header.
+//! \ingroup disk
 template<typename EntryType>
 struct bth_node
 {
-    EntryType entries[1];
+    EntryType entries[1]; //!< Array of entries
 };
 
-template<typename K, typename V> 
-struct bth_leaf_node : bth_node<bth_leaf_entry<K,V>> 
-{ 
+//! BTH Leaf node
+//!
+//! Instance of a BTH node, with \ref bth_leaf_entry for entries.
+//! \ingroup disk
+template<typename K, typename V>
+struct bth_leaf_node : bth_node<bth_leaf_entry<K,V>>
+{
 };
 
-template<typename K> 
-struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K>> 
-{ 
+//! BTH Nonleaf node
+//!
+//! Instance of a BTH node, with \ref bth_nonleaf_entry for entries.
+//! \ingroup disk
+template<typename K>
+struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K>>
+{
 };
 
 //
 // pc structures
 //
 
+//! Prop entry
+//!
+//! The value type of the BTH backing the pc
+//! \ingroup disk
 #pragma pack(2)
 struct prop_entry
 {
-    ushort type;
-    heapnode_id id;
+    ushort type;     //$< Property type
+    heapnode_id id;  //$< Heapnode id for variable length properties, or the value directly for fixed size property types
 };
 #pragma pack()
 
+//! Sub object
+//!
+//! When an attachment has its data attached as a prop_type_object, the
+//! PC structure points to one of these.
+//! \ingroup disk
 struct sub_object
 {
-    node_id nid;
-    ulong size;
-}; 
+    node_id nid; //$< The subnode id containing the data for the object
+    ulong size;  //$< The size of the object
+};
 
+//! Multi-valued property TOC
+
+//! Variable length multivalued props have a table of contents at the
+//! start of the allocation.
+//! \ingroup disk
 struct mv_toc
 {
-    ulong count;
-    ulong offsets[1];
+    ulong count;      //$< Number of entries in the TOC
+    ulong offsets[1]; //$< Array of offsets for the start of each entry
 };
 
 //
 // tc structures
 //
 
+//! Indices into the size offsets array
+//! \ingroup disk
 enum tc_offsets
 {
-    tc_offsets_four,
-    tc_offsets_two,
-    tc_offsets_one,
-    tc_offsets_bitmap,
-    tc_offsets_max
+    tc_offsets_four,    //$< Offset of the end of the four and eight byte columns
+    tc_offsets_two,     //$< Offset of the end of the two byte columns
+    tc_offsets_one,     //$< Offset of the end of the one byte columns
+    tc_offsets_bitmap,  //$< Offset of the end of the existance bitmap
+    tc_offsets_max      //$< Number of entries in the offset array
 };
 
+//! Column description structure
 #pragma pack(2)
 struct column_description
 {
-    ushort type;
-    prop_id id;
-    ushort offset;
-    byte size;
-    byte bit_offset;
+    ushort type;        //$< Column property type
+    prop_id id;         //$< Column property id
+    ushort offset;      //$< Offset into the row
+    byte size;          //$< Width of the column
+    byte bit_offset;    //$< Bit offset into the existance bitmap
 };
 
+//! GUST Column description structure
+//!
+//! Briefly (in Outlook 2007 RTM and SP1) there was a new type of TC
+//! in the store. It had a slightly different structure. This was it.
+//! \ingroup disk
 struct gust_column_description
 {
     ushort type;
@@ -1062,25 +1200,27 @@ struct gust_column_description
     node_id data_subnode;
 };
 
+//! Table context header
+//! \ingroup disk
 struct tc_header
 {
-    byte signature;
-    byte num_columns;
-    ushort size_offsets[tc_offsets_max];
-    heap_id row_btree_id;
-    heapnode_id row_matrix_id;
-    byte unused[4]; 
-    column_description columns[1];
+    byte signature;             //$< TC signature, \ref heap_sig_tc
+    byte num_columns;           //$< Number of columns in this table
+    ushort size_offsets[tc_offsets_max]; // Row offset array, see \ref tc_offsets
+    heap_id row_btree_id;       //$< The bth_header allocation for the row mapping btree
+    heapnode_id row_matrix_id;  //$< The heapnode_id allocation for the row matrix
+    byte unused[4];
+    column_description columns[1]; //$< Column description array, of length num_columns
 };
 
 struct gust_header
 {
     byte signature;
-    byte unused1; 
+    byte unused1;
     ushort size_offsets[tc_offsets_max];
     heap_id row_btree_id;
     heapnode_id row_matrix_id;
-    byte unused2[4]; 
+    byte unused2[4];
     ushort num_columns;
     node_id column_subnode;
     ulong unused3;
@@ -1094,7 +1234,7 @@ struct gust_header
 
 struct nameid
 {
-    union 
+    union
     {
         ulong id;
         ulong string_offset;
@@ -1130,7 +1270,6 @@ inline fairport::ushort fairport::disk::compute_signature(T id, T address)
 
     return (ushort(ushort(value >> 16) ^ ushort(value)));
 }
-    
 
 inline fairport::ulong fairport::disk::compute_crc(const void * pdata, ulong cb)
 {
@@ -1164,7 +1303,7 @@ inline void fairport::disk::cyclic(void * pdata, ulong cb, ulong key)
 
     w = (ushort)(key ^ (key >> 16));
 
-    while (cb-- > 0) 
+    while (cb-- > 0)
     {
         b = *pb;
         b = (byte)(b + (byte)w);
