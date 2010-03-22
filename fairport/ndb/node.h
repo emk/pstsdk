@@ -252,7 +252,7 @@ public:
 
     size_t write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult);
     template<typename T> void write(const T& buffer, ulong offset, std::shared_ptr<data_block>& presult);
-    virtual size_t write_raw(const byte* pdest_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult) = 0;
+    virtual size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult) = 0;
 
     virtual uint get_page_count() const = 0;
     virtual std::shared_ptr<external_block> get_page(uint page_num) const = 0;
@@ -286,7 +286,7 @@ public:
     extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count);   
     
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
-    size_t write_raw(const byte* pdest_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
+    size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
     
     uint get_page_count() const;
     std::shared_ptr<external_block> get_page(uint page_num) const;
@@ -327,7 +327,7 @@ public:
         { touch(); }
 
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
-    size_t write_raw(const byte* pdest_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
+    size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
 
     uint get_page_count() const { return 1; }
     std::shared_ptr<external_block> get_page(uint page_num) const;
@@ -702,7 +702,7 @@ inline std::shared_ptr<fairport::external_block> fairport::external_block::get_p
     return std::const_pointer_cast<external_block>(this->shared_from_this());
 }
 
-inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t buf_size, ulong offset) const
+inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
 {
     size_t read_size = buf_size;
 
@@ -716,7 +716,7 @@ inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t buf_
     return read_size;
 }
 
-inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_t buf_size, ulong offset, std::shared_ptr<fairport::data_block>& presult)
+inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<fairport::data_block>& presult)
 {
     std::shared_ptr<fairport::external_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
@@ -741,7 +741,7 @@ inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_
     return write_size;
 }
 
-inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t buf_size, ulong offset) const
+inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
 {
     assert(offset <= get_total_size());
 
@@ -775,7 +775,7 @@ inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t buf_
     return total_bytes_read;
 }
 
-inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_t buf_size, ulong offset, std::shared_ptr<fairport::data_block>& presult)
+inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<fairport::data_block>& presult)
 {
     std::shared_ptr<extended_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
