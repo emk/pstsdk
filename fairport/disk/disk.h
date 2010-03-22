@@ -1,12 +1,12 @@
 //! \file
 //! \brief Disk data structure definitions
+//! \author Terry Mahaffey
 //!
-//! This file contains the data structure definitions as well as utility functions
-//! defined in the MS-PST documentation.
+//! This file contains the data structure definitions as well as utility
+//! functions described in the MS-PST documentation.
 //!
 //! \todo Add a reference to the corresponding MS-PST section for each structure
 //! \ingroup disk
-//! \author Terry Mahaffey
 
 #ifndef FAIRPORT_DISK_DISK_H
 #define FAIRPORT_DISK_DISK_H
@@ -20,7 +20,7 @@ namespace fairport
 namespace disk
 {
 
-//! \brief A structure used providing the address and id of a block or page
+//! \brief The combination of the id and physical location of a block or page
 //! \ingroup disk
 template<typename T>
 struct block_reference
@@ -44,11 +44,11 @@ const size_t header_fmap_entries = 128;
 //! \ingroup disk
 const size_t header_fpmap_size = 128;
 
-//! The number of entries in the header's lock structure
+//! \brief The number of entries in the header's lock structure
 //! \ingroup disk
 const size_t header_lock_entries = 32;
 
-//! Valid database format values (ANSI vs. Unicode)
+//! \brief Valid database format values (ANSI vs. Unicode)
 //! \ingroup disk
 enum database_format
 {
@@ -56,7 +56,7 @@ enum database_format
     database_format_unicode = 20    //!< A Unicode file
 };
 
-//! Vaild database types (OST vs. PST)
+//! \brief Vaild database types (OST vs. PST)
 //! \ingroup disk
 enum database_type
 {
@@ -64,14 +64,14 @@ enum database_type
     database_pst = 19, //!< A PST file
 };
 
-//! PST Magic number
+//! \brief PST Magic number
 //! \ingroup disk
 const uint pst_magic = 0x4D53;
-//! OST Magic number
+//! \brief OST Magic number
 //! \ingroup disk
 const uint ost_magic = 0x4F53;
 
-//! Valid "encryption" methods
+//! \brief Valid "encryption" methods
 //!
 //! This value indicates what method was used to "encrypt" external data
 //! (external data means the data section of external blocks) in the file.
@@ -83,10 +83,11 @@ enum crypt_method
     crypt_method_cyclic = 2,  //!< The \ref cyclic method is used in this file.
 };
 
-//! The root of the database
+//! \brief The root of the database
 //!
-//! The root structures describes where the root pages of the NBT and BBT are located,
-//! the EOF location, how much space is free, the allocation state flag, and more.
+//! The root structures describes where the root pages of the NBT and BBT are
+//! located, the EOF location, how much space is free, the allocation state 
+//! flag, and more.
 //! \ingroup disk
 template<typename T>
 struct root
@@ -113,7 +114,7 @@ struct header
 };
 //! \endcond
 
-//! The Unicode header structure
+//! \brief The Unicode header structure
 //!
 //! Located at offset zero, all parsing of a PST file begins with reading the header.
 //! Most important among the header fields is the \ref root structure, which tells you
@@ -159,7 +160,7 @@ struct header<ulonglong>
     byte rgbLock[header_lock_entries]; //!< Implementation specific
 };
 
-//! The ANSI header structure
+//! \brief The ANSI header structure
 //!
 //! See the documentation for Unicode header. Note that some fields
 //! in the ANSI header are in a different order (most notably \a bidNextB).
@@ -208,7 +209,7 @@ struct header_crc_locations
 };
 //! \endcond
 
-//! The byte offsets used to calculate the CRCs in an ANSI PST
+//! \brief The byte offsets used to calculate the CRCs in an ANSI PST
 //! \ingroup disk
 template<>
 struct header_crc_locations<ulong>
@@ -218,7 +219,7 @@ struct header_crc_locations<ulong>
     static const size_t length = end - start;
 };
 
-//! The byte offsets used to calculate the CRCs in a Unicode PST file
+//! \brief The byte offsets used to calculate the CRCs in a Unicode PST file
 //! \ingroup disk
 template<>
 struct header_crc_locations<ulonglong>
@@ -389,7 +390,7 @@ const byte table3[] =
      237, 154, 100,  63, 193, 108, 249, 236
 };
 
-//! Calculate the signature of an item
+//! \brief Calculate the signature of an item
 //! \param id The id of the item to calculate
 //! \param address The location on disk of the item
 //! \returns The computed signature
@@ -397,21 +398,21 @@ const byte table3[] =
 template<typename T>
 ushort compute_signature(T id, T address);
 
-//! Calculate the signature of an item
+//! \brief Calculate the signature of an item
 //! \param reference A block_reference to the item
 //! \returns The computed signature
 //! \ingroup disk
 template<typename T>
 ushort compute_signature(const block_reference<T>& reference) { return compute_signature(reference.bid, reference.ib); }
 
-//! Compute the CRC of a block of data
+//! \brief Compute the CRC of a block of data
 //! \param pdata A pointer to the block of data
 //! \param cb The size of the data block
 //! \returns The computed CRC
 //! \ingroup disk
 ulong compute_crc(const void * pdata, ulong cb);
 
-//! Modifies the data block in place, according to the permute method
+//! \brief Modifies the data block in place, according to the permute method
 //!
 //! This algorithm is called to "encrypt" external data if the \ref crypt_method of the file
 //! is set to \ref crypt_method_permute
@@ -421,7 +422,7 @@ ulong compute_crc(const void * pdata, ulong cb);
 //! \ingroup disk
 void permute(void * pdata, ulong cb, bool encrypt);
 
-//! Modifies the data block in place, according to the cyclic method
+//! \brief Modifies the data block in place, according to the cyclic method
 //!
 //! This algorithm is called to "encrypt" external data if the \ref crypt_method of the file
 //! is set to \ref crypt_method_cyclic
@@ -434,13 +435,13 @@ void cyclic(void * pdata, ulong cb, ulong key);
 
 //
 // page structures
-// 
+//
 
-//! Size of all pages in the file in bytes, including the page trailer.
+//! \brief Size of all pages in the file in bytes, including the page trailer.
 //! \ingroup disk
 const size_t page_size = 512;
 
-//! Valid page types
+//! \brief Valid page types
 //!
 //! Used in the page_type and page_type_repeat fields of the page trailer.
 //! \ingroup disk
@@ -461,7 +462,7 @@ struct page_trailer
 };
 //! \endcond
 
-//! The Unicode store version of the page trailer
+//! \brief The Unicode store version of the page trailer
 //!
 //! The last structure in every page, aligned to the \ref page_size
 //! \ingroup disk
@@ -477,7 +478,7 @@ struct page_trailer<ulonglong>
     block_id_disk bid;     //!< The id of this page
 };
 
-//! The ANSI store version of the page trailer
+//! \brief The ANSI store version of the page trailer
 //!
 //! See the documentation for the Unicode version of the page trailer.
 //! Note that the \a bid and \a crc fields are in a different order in the ANSI file.
@@ -494,7 +495,7 @@ struct page_trailer<ulong>
     ulong crc;
 };
 
-//! Generic page structure
+//! \brief Generic page structure
 //! \ingroup disk
 template<typename T>
 struct page
@@ -509,15 +510,15 @@ static_assert(sizeof(page<ulong>) == page_size, "page<ulong> incorrect size");
 static_assert(sizeof(page<ulonglong>) == page_size, "page<ulonglong> incorrect size");
 //! \endcond
 
-//! Number of bytes each slot (bit) in an AMap page refers to
+//! \brief Number of bytes each slot (bit) in an AMap page refers to
 //! \ingroup disk
 const size_t bytes_per_slot = 64;
 
-//! The location of the first AMap page in the file
+//! \brief The location of the first AMap page in the file
 //! \ingroup disk
 const size_t first_amap_page_location = 0x4400;
 
-//! Allocation Map page
+//! \brief Allocation Map page
 //!
 //! Each bit in an AMap page refers to \ref bytes_per_slot bytes of the file.
 //! If that bit is set, that indicates those bytes in the file are occupied.
@@ -535,7 +536,7 @@ static_assert(sizeof(amap_page<ulong>) == page_size, "amap_page<ulong> incorrect
 static_assert(sizeof(amap_page<ulonglong>) == page_size, "amap_page<ulonglong> incorrect size");
 //! \endcond
 
-//! Page Map page
+//! \brief Page Map page
 //!
 //! Similar to an \ref amap_page, except each bit refers to \ref page_size bytes
 //! rather than \ref bytes_per_slot bytes. This allocation scheme is no longer used
@@ -552,7 +553,7 @@ static_assert(sizeof(pmap_page<ulong>) == page_size, "pmap_page<ulong> incorrect
 static_assert(sizeof(pmap_page<ulonglong>) == page_size, "pmap_page<ulonglong> incorrect size");
 //! \endcond
 
-//! Free Map page
+//! \brief Free Map page
 //!
 //! A Free Map (or fmap) page has one byte per AMap page, indicating how many consecutive
 //! slots are available for allocation on that amap page. No longer used as of Outlook 2007
@@ -568,7 +569,7 @@ static_assert(sizeof(fmap_page<ulong>) == page_size, "fmap_page<ulong> incorrect
 static_assert(sizeof(fmap_page<ulonglong>) == page_size, "fmap_page<ulonglong> incorrect size");
 //! \endcond
 
-//! Free Page Map page
+//! \brief Free Page Map page
 //!
 //! A Free Page Map page has one bit per PMap page, indicating if that PMap page has any
 //! slots available. A bit being set indicates there is no space available in that PMap page.
@@ -588,11 +589,11 @@ static_assert(sizeof(fpmap_page<ulong>) == page_size, "fpmap_page<ulong> incorre
 static_assert(sizeof(fpmap_page<ulonglong>) == page_size, "fpmap_page<ulonglong> incorrect size");
 //! \endcond
 
-//! The location of the only DList page in the file
+//! \brief The location of the only DList page in the file
 //! \ingroup disk
 const size_t dlist_page_location = 0x4200;
 
-//! Density List page
+//! \brief Density List page
 //!
 //! The Density List page contains a list of AMap pages in the file, in ascending
 //! order of density. That is to say, the "emptiest" page is at the top. This is the
@@ -637,7 +638,7 @@ struct bt_entry
     block_reference<T> ref;   //!< A reference to a lower level page
 };
 
-//! NBT Leaf Entry
+//! \brief NBT Leaf Entry
 //!
 //! An array of these are used on leaf NBT pages. It describes a node.
 //! \ingroup disk
@@ -653,7 +654,7 @@ struct nbt_leaf_entry
     node_id parent_nid;  //!< The parent node id
 };
 
-//! BBT Leaf Entry
+//! \brief BBT Leaf Entry
 //!
 //! An array of these are used on leaf BBT pages. It describes a block.
 //! \ingroup disk
@@ -665,7 +666,7 @@ struct bbt_leaf_entry
     ushort ref_count;       //!< The reference count of this block
 };
 
-//! BTree Page
+//! \brief BTree Page
 //!
 //! Generally speaking, the generic form of a BTree page contains a fixed
 //! array of entries, followed by metadata about those entries and the
@@ -691,7 +692,7 @@ struct bt_page
     page_trailer<T> trailer;   //!< The page trailer
 };
 
-//! NBT non-leaf page
+//! \brief NBT non-leaf page
 //!
 //! A BTree page instance.
 //! \ingroup disk
@@ -704,7 +705,7 @@ static_assert(sizeof(nbt_nonleaf_page<ulong>) == page_size, "nbt_nonleaf_page<ul
 static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_page<ulonglong> incorrect size");
 //! \endcond
 
-//! BBT non-leaf page
+//! \brief BBT non-leaf page
 //!
 //! A BTree page instance. Note that this structure is identical to
 //! a non-leaf NBT page.
@@ -718,7 +719,7 @@ static_assert(sizeof(bbt_nonleaf_page<ulong>) == page_size, "bbt_nonleaf_page<ul
 static_assert(sizeof(bbt_nonleaf_page<ulonglong>) == page_size, "bbt_nonleaf_page<ulonglong> incorrect size");
 //! \endcond
 
-//! NBT leaf page
+//! \brief NBT leaf page
 //!
 //! A BTree page instance. The NBT leaf page has an array of nbt_leaf_entries
 //! ordered by node id, which describe the nodes of the database.
@@ -732,7 +733,7 @@ static_assert(sizeof(nbt_leaf_page<ulong>) == page_size, "nbt_leaf_page<ulong> i
 static_assert(sizeof(nbt_leaf_page<ulonglong>) == page_size, "nbt_leaf_page<ulonglong> incorrect size");
 //! \endcond
 
-//! BBT leaf page
+//! \brief BBT leaf page
 //!
 //! A BTree page instance. The BBT leaf page has an array of bbt_leaf_entries
 //! ordered by block id, which describe the blocks in the database.
@@ -750,11 +751,11 @@ static_assert(sizeof(bbt_leaf_page<ulonglong>) == page_size, "bbt_leaf_page<ulon
 // block structures
 //
 
-//! The maximum individual block size
+//! \brief The maximum individual block size
 //! \ingroup disk
 const size_t max_block_disk_size = 8 * 1024;
 
-//! The different block types.
+//! \brief The different block types.
 //! \ingroup disk
 enum block_types
 {
@@ -763,7 +764,7 @@ enum block_types
     block_type_sub = 0x02       //!< A subnode block type
 };
 
-//! Aligns a block size to the size on disk
+//! \brief Aligns a block size to the size on disk
 //!
 //! Adds the block trailer and slot alignment to the data size
 //! \param size Block size
@@ -772,7 +773,7 @@ enum block_types
 template<typename T>
 size_t align_disk(size_t size);
 
-//! Aligns a block size to the slot size
+//! \brief Aligns a block size to the slot size
 //!
 //! Align the data size to the nearest \ref bytes_per_slot
 //! \param size Block size
@@ -780,21 +781,21 @@ size_t align_disk(size_t size);
 //! \ingroup disk
 size_t align_slot(size_t size);
 
-//! The internal bit indicates a block is an \ref extended_block or a \ref subnode_block
+//! \brief The internal bit indicates a block is an \ref extended_block or a \ref subnode_block
 //! \ingroup disk
 const uint block_id_internal_bit = 0x2;
 
-//! The block id counter in the header is incremented by this amount for each block
+//! \brief The block id counter in the header is incremented by this amount for each block
 //! \ingroup disk
 const uint block_id_increment = 0x4;
 
-//! Determines if a block is external or not
+//! \brief Determines if a block is external or not
 //! \param bid The id of the block
 //! \returns true if the block is external
 template<typename T>
 bool bid_is_external(T bid) { return ((bid & block_id_internal_bit) == 0); }
 
-//! Determines if a block is internal or not
+//! \brief Determines if a block is internal or not
 //! \param bid The id of the block
 //! \returns true if the block is internal
 template<typename T>
@@ -826,7 +827,7 @@ struct block_trailer<ulonglong>
     block_id_disk bid;   //!< The id of this block
 };
 
-//! ANSI store version of the block trailer
+//! \brief ANSI store version of the block trailer
 //!
 //! See the Unicode store version of the block trailer for more
 //! information. Note that the bid and CRC fields are in a different order
@@ -843,7 +844,7 @@ struct block_trailer<ulong>
     ulong crc;
 };
 
-//! External block definition
+//! \brief External block definition
 //!
 //! The data contained in an external block is "encrypted" as defined by
 //! the \ref crypt_method of the store. The id of an external block never 
@@ -863,7 +864,7 @@ struct extended_block
 };
 //! \endcond
 
-//! Unicode store version of the extended block
+//! \brief Unicode store version of the extended block
 //!
 //! Extended blocks are a way of extended the logical size of a block. It
 //! contains references to other blocks (which themselves may be extended
@@ -887,7 +888,7 @@ struct extended_block<ulonglong>
     block_id_disk bid[1];  //!< Array of blocks this block points to
 };
 
-//! ANSI store version of the extended block
+//! \brief ANSI store version of the extended block
 //!
 //! See the Unicode version for details. The ANSI version has a different
 //! max_count calcuation.
@@ -907,7 +908,7 @@ struct extended_block<ulong>
     block_id_disk bid[1];
 };
 
-//! Entries on a leaf \ref sub_block
+//! \brief Entries on a leaf \ref sub_block
 //!
 //! The leaf entry contains information about the subnode. Note there is
 //! no parent field.
@@ -922,7 +923,7 @@ struct sub_leaf_entry
     block_id_disk sub;  //!< Subnode block of this subnode. Yes, subnodes can and do themselves had subnodes.
 };
 
-//! Entries on a nonleaf \ref sub_block
+//! \brief Entries on a nonleaf \ref sub_block
 //!
 //! Similar to non-leaf BT pages, nonleaf subnode blocks point to other
 //! subnode blocks.
@@ -936,7 +937,7 @@ struct sub_nonleaf_entry
     block_id_disk sub_block_bid; //!< Id of the subnode block
 };
 
-//! Subnode Blocks
+//! \brief Subnode Blocks
 //!
 //! Subnode blocks form a "private NBT" for each node. Non-leaf subnode
 //! blocks point to leaf subnode blocks. Leaf subnode blocks contain the
@@ -951,7 +952,7 @@ struct sub_block
     EntryType entry[1]; //!< Array of entries
 };
 
-//! Subnode non-leaf block
+//! \brief Subnode non-leaf block
 //!
 //! An instance of a \ref sub_block, containing \ref sub_nonleaf_entry
 //! items in the entry array
@@ -961,7 +962,7 @@ struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>>
 {
 };
 
-//! Subnode leaf block
+//! \brief Subnode leaf block
 //!
 //! An instance of a \ref sub_block, containing \ref sub_leaf_entry items
 //! in the entry array
@@ -975,15 +976,15 @@ struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T>>
 // heap structures
 //
 
-//! Signature of a heap
+//! \brief Signature of a heap
 //! \ingroup disk
 const byte heap_signature = 0xEC;
 
-//! Maximum allocation size in a heap
+//! \brief Maximum allocation size in a heap
 //! \ingroup disk
 const uint heap_max_alloc_size = 3580;
 
-//! Different heap client signature types
+//! \brief Different heap client signature types
 //! \ingroup disk
 enum heap_client_signature
 {
@@ -997,7 +998,7 @@ enum heap_client_signature
    heap_sig_pc = 0xBC,   //< Property Context
 };
 
-//! Header structure on the first heap block
+//! \brief Header structure on the first heap block
 //! \ingroup disk
 struct heap_first_header
 {
@@ -1010,14 +1011,14 @@ struct heap_first_header
     byte page_fill_levels[fill_level_size]; //!< Fill level of this and next three heap blocks
 };
 
-//! Header structure on non-first/non-fill blocks
+//! \brief Header structure on non-first/non-fill blocks
 //! \ingroup disk
 struct heap_page_header
 {
     ushort page_map_offset; //!< offset of the start of the page map
 };
 
-//! Header structure on non-first/fill blocks
+//! \brief Header structure on non-first/fill blocks
 //! \ingroup disk
 struct heap_page_fill_header
 {
@@ -1027,7 +1028,7 @@ struct heap_page_fill_header
     byte page_fill_levels[fill_level_size]; //!< Fill level of this and next sixty three heap blocks
 };
 
-//! Page map
+//! \brief Provides a map of the allocations on a heap block
 //!
 //! The page map gives the allocation location all of the heap allocations
 //! on this heap block. The allocs array contains the start of each
@@ -1050,7 +1051,7 @@ struct heap_page_map
 // bth structures
 //
 
-//! Header of a BTH
+//! \brief Header of a BTH
 //!
 //! The BTH header contains information about the BTH, including
 //! the size of the key and entry.
@@ -1064,7 +1065,7 @@ struct bth_header
     heap_id root;       //!< Root of the actual tree structure
 };
 
-//! BTH Non-leaf Entry
+//! \brief BTH Non-leaf Entry
 //!
 //! Clients must keep track of the current level as they are doing a BTH
 //! lookup. Non-leaf entries, similar to how the BT pages and sub_blocks
@@ -1077,7 +1078,7 @@ struct bth_nonleaf_entry
     heap_id page; //!< Heap id of the lower level page
 };
 
-//! BTH Leaf Entry
+//! \brief BTH Leaf Entry
 //!
 //! Simply an ordered array of key/values.
 //! \ingroup disk
@@ -1088,7 +1089,7 @@ struct bth_leaf_entry
     V value; //!< Value instance
 };
 
-//! BTH node
+//! \brief BTH node
 //!
 //! A BTH node is simply an array of entries, where the entry is either
 //! a \ref bth_nonleaf_entry or a \ref bth_leaf_entry. Clients must keep
@@ -1101,7 +1102,7 @@ struct bth_node
     EntryType entries[1]; //!< Array of entries
 };
 
-//! BTH Leaf node
+//! \brief BTH Leaf node
 //!
 //! Instance of a BTH node, with \ref bth_leaf_entry for entries.
 //! \ingroup disk
@@ -1110,7 +1111,7 @@ struct bth_leaf_node : bth_node<bth_leaf_entry<K,V>>
 {
 };
 
-//! BTH Nonleaf node
+//! \brief BTH Nonleaf node
 //!
 //! Instance of a BTH node, with \ref bth_nonleaf_entry for entries.
 //! \ingroup disk
@@ -1123,7 +1124,7 @@ struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K>>
 // pc structures
 //
 
-//! Prop entry
+//! \brief Prop entry
 //!
 //! The value type of the BTH backing the pc
 //! \ingroup disk
@@ -1135,7 +1136,7 @@ struct prop_entry
 };
 #pragma pack()
 
-//! Sub object
+//! \brief Sub object
 //!
 //! When an attachment has its data attached as a prop_type_object, the
 //! PC structure points to one of these.
@@ -1146,8 +1147,8 @@ struct sub_object
     ulong size;  //$< The size of the object
 };
 
-//! Multi-valued property TOC
-
+//! \brief Multi-valued property TOC
+//!
 //! Variable length multivalued props have a table of contents at the
 //! start of the allocation.
 //! \ingroup disk
@@ -1161,7 +1162,7 @@ struct mv_toc
 // tc structures
 //
 
-//! Indices into the size offsets array
+//! \brief Indices into the size offsets array
 //! \ingroup disk
 enum tc_offsets
 {
@@ -1172,7 +1173,7 @@ enum tc_offsets
     tc_offsets_max      //$< Number of entries in the offset array
 };
 
-//! Column description structure
+//! \brief Column description structure
 #pragma pack(2)
 struct column_description
 {
@@ -1183,7 +1184,7 @@ struct column_description
     byte bit_offset;    //$< Bit offset into the existance bitmap
 };
 
-//! GUST Column description structure
+//! \brief GUST Column description structure
 //!
 //! Briefly (in Outlook 2007 RTM and SP1) there was a new type of TC
 //! in the store. It had a slightly different structure. This was it.
@@ -1200,7 +1201,7 @@ struct gust_column_description
     node_id data_subnode;
 };
 
-//! Table context header
+//! \brief Table context header
 //! \ingroup disk
 struct tc_header
 {
