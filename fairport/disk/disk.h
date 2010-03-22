@@ -1,3 +1,12 @@
+//! \file
+//! \brief Disk data structure definitions
+//!
+//! This file contains the data structure definitions as well as utility functions
+//! defined in the MS-PST documentation.
+//!
+//! \todo Add a reference to the corresponding MS-PST section for each structure
+//! \ingroup disk
+//! \author Terry Mahaffey
 #ifndef FAIRPORT_DISK_DISK_H
 #define FAIRPORT_DISK_DISK_H
 
@@ -10,75 +19,111 @@ namespace fairport
 namespace disk
 {
 
+//! A structure used providing the address and id of a block or page
+//! \ingroup disk
 template<typename T>
 struct block_reference 
 {
     typedef T block_id_disk;
     typedef T location;
 
-    block_id_disk bid;
-    location ib;
+    block_id_disk bid; //!< The id of the referenced object
+    location ib;       //!< The location on disk (index byte) of the referenced object
 };
 
 //
 // header
 //
 
+//! The number of entries in the header's fmap structure
+//! \ingroup disk
 const size_t header_fmap_entries = 128;
+
+//! The number of entries in the header's fpmap structure
+//! \ingroup disk
 const size_t header_fpmap_size = 128;
+
+//! The number of entries in the header's lock structure
+//! \ingroup disk
 const size_t header_lock_entries = 32;
 
+//! Valid database format values (ANSI vs. Unicode)
+//! \ingroup disk
 enum database_format
 {
-    database_format_ansi = 14,
-    database_format_unicode = 20
+    database_format_ansi = 14,      //!< An ANSI file
+    database_format_unicode = 20    //!< A Unicode file
 };
 
+//! Vaild database types (OST vs. PST)
+//! \ingroup disk
 enum database_type
 {
-    database_ost = 12,
-    database_pst = 19,
+    database_ost = 12, //!< A OST file
+    database_pst = 19, //!< A PST file
 };
 
+//! PST Magic number
+//! \ingroup disk
 const uint pst_magic = 0x4D53;
+//! OST Magic number
+//! \ingroup disk
 const uint ost_magic = 0x4F53;
 
+//! Valid "encryption" methods
+//!
+//! This value indicates what method was used to "encrypt" external data
+//! (external data means the data section of external blocks) in the file.
+//! \ingroup disk
 enum crypt_method
 {
-    crypt_method_none = 0,
-    crypt_method_permute = 1,
-    crypt_method_cyclic = 2,
+    crypt_method_none = 0,    //!< No "encryption" was used.
+    crypt_method_permute = 1, //!< The \ref permute method is used in this file.
+    crypt_method_cyclic = 2,  //!< The \ref cyclic method is used in this file.
 };
 
+//! The root of the database
+//!
+//! The root structures describes where the root pages of the NBT and BBT are located,
+//! the EOF location, how much space is free, the allocation state flag, and more.
+//! \ingroup disk
 template<typename T>
 struct root
 {
     typedef T location;
     typedef T count;
 
-    ulong cOrphans;
-    location ibFileEof;
-    location ibAMapLast;
-    count cbAMapFree;
-    count cbPMapFree;
-    block_reference<T> brefNBT;
-    block_reference<T> brefBBT;
-    byte fAMapValid;
-    byte bARVec;
-    ushort cARVec;
+    ulong cOrphans;             //!< The number of "orphans" in the BBT
+    location ibFileEof;         //!< EOF of the file, according the header
+    location ibAMapLast;        //!< The location of the last valid AMap page
+    count cbAMapFree;           //!< Amount of space free in all AMap pages
+    count cbPMapFree;           //!< Amount of space free in all PMap pages
+    block_reference<T> brefNBT; //!< The location of the root of the NBT
+    block_reference<T> brefBBT; //!< The location of the root of the BBT
+    byte fAMapValid;            //!< Indicates if the AMap pages are valid or not
+    byte bARVec;                //!< Indicates which AddRef vector is used
+    ushort cARVec;              //!< Number of elements in the AddRef vector
 };
 
+//! \cond empty
 template<typename T>
 struct header
 {
 };
+//! \endcond
 
+//! The Unicode header structure
+//!
+//! Located at offset zero, all parsing of a PST file begins with reading the header.
+//! Most important among the header fields is the \ref root structure, which tells you
+//! the location of the NBT and BBT root pages.
+//! \ingroup disk
 template<>
 struct header<ulonglong>
 {
-    typedef ulonglong block_id_disk;
-    typedef ulonglong location;
-    typedef ulonglong count;
+    typedef ulonglong block_id_disk;  //!< The id type used for blocks and pages in the file
+    typedef ulonglong location;       //!< The location type used in the file
+    typedef ulonglong count;          //!< The count type used in the file
 
     ulong dwMagic;
     ulong dwCRCPartial;
@@ -87,32 +132,37 @@ struct header<ulonglong>
     ushort wVerClient;
     byte bPlatformCreate;
     byte bPlatformAccess;
-    ulong dwOpenDBID;
-    ulong dwOpenClaimID;
-    block_id_disk bidUnused;
-    block_id_disk bidNextP;
+    ulong dwOpenDBID;                  //!< Implementation specific
+    ulong dwOpenClaimID;               //!< Implementation specific
+    block_id_disk bidUnused;           //!< Unused
+    block_id_disk bidNextP;            //!< The page id counter
     ulong dwUnique;
-    node_id rgnid[nid_type_max];
-    root<ulonglong> root_info;
-    byte rgbFM[header_fmap_entries];
-    byte rgbFP[header_fpmap_size];
-    byte bSentinel;
-    byte bCryptMethod;
-    byte rgbReserved[2];
+    node_id rgnid[nid_type_max];       //!< Array of node_id counters, one per node type
+    root<ulonglong> root_info;         //!< The root info for this database
+    byte rgbFM[header_fmap_entries];   //!< \deprecated The header's FMap entries
+    byte rgbFP[header_fpmap_size];     //!< \deprecated The header's FPMap entries
+    byte bSentinel;                    //!< \deprecated Sentinel byte indicating the end of the headers FPMap
+    byte bCryptMethod;                 //!< The \ref crypt_method used in this file
+    byte rgbReserved[2];               //!< Unused
 #ifdef __GNUC__
     // GCC refuses to pack this next to rgbReserved
     byte bidNextB[8];
 #else
 #pragma pack(4)
-    block_id_disk bidNextB;
+    block_id_disk bidNextB;            //!< The block id counter
 #pragma pack()
 #endif
     ulong dwCRCFull;
     byte rgbVersionEncoded[3];
     byte bLockSemaphore;
-    byte rgbLock[header_lock_entries];
+    byte rgbLock[header_lock_entries]; //!< Implementation specific
 };
 
+//! The ANSI header structure
+//!
+//! See the documentation for Unicode header. Note that some fields
+//! in the ANSI header are in a different order (most notably \a bidNextB).
+//! \ingroup disk
 template<>
 struct header<ulong>
 {
@@ -150,11 +200,15 @@ struct header<ulong>
     byte rgbLock[header_lock_entries];
 };
 
+//! \cond empty
 template<typename T>
 struct header_crc_locations
 {
 };
+//! \endcond
 
+//! The byte offsets used to calculate the CRCs in an ANSI PST
+//! \ingroup disk
 template<>
 struct header_crc_locations<ulong>
 {
@@ -163,6 +217,8 @@ struct header_crc_locations<ulong>
     static const size_t length = end - start;
 };
 
+//! The byte offsets used to calculate the CRCs in a Unicode PST file
+//! \ingroup disk
 template<>
 struct header_crc_locations<ulonglong>
 {
@@ -332,17 +388,46 @@ const byte table3[] =
      237, 154, 100,  63, 193, 108, 249, 236
 };
 
+//! Calculate the signature of an item
+//! \param id The id of the item to calculate
+//! \param address The location on disk of the item
+//! \returns The computed signature
+//! \ingroup disk
 template<typename T>
 ushort compute_signature(T id, T address);
 
+//! Calculate the signature of an item
+//! \param reference A block_reference to the item
+//! \returns The computed signature
+//! \ingroup disk
 template<typename T>
 ushort compute_signature(const block_reference<T>& reference) { return compute_signature(reference.bid, reference.ib); }
 
-
+//! Compute the CRC of a block of data
+//! \param pdata A pointer to the block of data
+//! \param cb The size of the data block
+//! \returns The computed CRC
+//! \ingroup disk
 ulong compute_crc(const void * pdata, ulong cb);
 
+//! Modifies the data block in place, according to the permute method
+//!
+//! This algorithm is called to "encrypt" external data if the \ref crypt_method of the file
+//! is set to \ref crypt_method_permute
+//! \param pdata A pointer to the data to "encrypt". This data is modified in place
+//! \param cb The size of the block of data
+//! \param encrypt True if "encrypting", false is unencrypting
+//! \ingroup disk
 void permute(void * pdata, ulong cb, bool encrypt);
 
+//! Modifies the data block in place, according to the cyclic method
+//!
+//! This algorithm is called to "encrypt" external data if the \ref crypt_method of the file
+//! is set to \ref crypt_method_cyclic
+//! \param pdata A pointer to the data to "encrypt". This data is modified in place
+//! \param cb The size of the block of data
+//! \param key The key used in the cycle process. Typically this is the block_id of the data being "encrypted".
+//! \ingroup disk
 void cyclic(void * pdata, ulong cb, ulong key);
 
 
@@ -350,35 +435,52 @@ void cyclic(void * pdata, ulong cb, ulong key);
 // page structures
 // 
 
+//! Size of all pages in the file in bytes, including the page trailer.
+//! \ingroup disk
 const size_t page_size = 512;
 
+//! Valid page types
+//!
+//! Used in the page_type and page_type_repeat fields of the page trailer.
+//! \ingroup disk
 enum page_type
 {
-    page_type_bbt = 0x80,
-    page_type_nbt = 0x81,
-    page_type_fmap = 0x82,
-    page_type_pmap = 0x83,
-    page_type_amap = 0x84,
-    page_type_fpmap = 0x85,
+    page_type_bbt = 0x80,   //!< A BBT (Blocks BTree) page
+    page_type_nbt = 0x81,   //!< A NBT (Nodes BTree) page
+    page_type_fmap = 0x82,  //!< \deprecated A FMap (Free Map) page
+    page_type_pmap = 0x83,  //!< \deprecated A PMap (Page Map) page
+    page_type_amap = 0x84,  //!< An AMap (Allocation Map) page
+    page_type_fpmap = 0x85, //!< \deprecated A FPMap (Free Page Map) page. Unicode stores only.
 };
 
+//! \cond empty
 template<typename T>
 struct page_trailer
 {
 };
+//! \endcond
 
+//! The Unicode store version of the page trailer
+//!
+//! The last structure in every page, aligned to the \ref page_size
+//! \ingroup disk
 template<>
 struct page_trailer<ulonglong>
 {
     typedef ulonglong block_id_disk;
 
-    byte page_type;
-    byte page_type_repeat;
-    ushort signature;
-    ulong crc;
-    block_id_disk bid;
+    byte page_type;        //!< The \ref page_type of this page
+    byte page_type_repeat; //!< Same as the page_type field, for validation purposes
+    ushort signature;      //!< Signature of this page, as calculated by the \ref compute_signature function
+    ulong crc;             //!< CRC of this page, as calculated by the \ref compute_crc function
+    block_id_disk bid;     //!< The id of this page
 };
 
+//! The ANSI store version of the page trailer
+//!
+//! See the documentation for the Unicode version of the page trailer.
+//! Note that the \a bid and \a crc fields are in a different order in the ANSI file.
+//! \ingroup disk
 template<>
 struct page_trailer<ulong>
 {
@@ -391,100 +493,184 @@ struct page_trailer<ulong>
     ulong crc;
 };
 
+//! Generic page structure
+//! \ingroup disk
 template<typename T>
 struct page
 {
-    static const size_t page_data_size = page_size - sizeof(page_trailer<T>);
+    static const size_t page_data_size = page_size - sizeof(page_trailer<T>); //!< Amount of usable space in a page
 
-    byte data[page_data_size];
-    page_trailer<T> trailer;
+    byte data[page_data_size]; //!< space used for actual data
+    page_trailer<T> trailer;   //!< The page trailer for this page
 };
+//! \cond static_asserts
 static_assert(sizeof(page<ulong>) == page_size, "page<ulong> incorrect size");
 static_assert(sizeof(page<ulonglong>) == page_size, "page<ulonglong> incorrect size");
+//! \endcond
 
+//! Number of bytes each slot (bit) in an AMap page refers to
+//! \ingroup disk
 const size_t bytes_per_slot = 64;
+
+//! The location of the first AMap page in the file
+//! \ingroup disk
 const size_t first_amap_page_location = 0x4400;
 
+//! Allocation Map page
+//!
+//! Each bit in an AMap page refers to \ref bytes_per_slot bytes of the file.
+//! If that bit is set, that indicates those bytes in the file are occupied.
+//! If the bit is not set, that indicates those bytes in the file are available
+//! for allocation. Note that each AMap page "maps" itself. Since an AMap page
+//! (like all pages) is \ref page_size bytes (512), this means the first 8 bytes
+//! of an AMap page are by definition always 0xFF.
+//! \ingroup disk
 template<typename T> 
 struct amap_page : public page<T> 
 { 
 };
+//! \cond static_asserts
 static_assert(sizeof(amap_page<ulong>) == page_size, "amap_page<ulong> incorrect size");
 static_assert(sizeof(amap_page<ulonglong>) == page_size, "amap_page<ulonglong> incorrect size");
+//! \endcond
 
+//! Page Map page
+//!
+//! Similar to an \ref amap_page, except each bit refers to \ref page_size bytes
+//! rather than \ref bytes_per_slot bytes. This allocation scheme is no longer used
+//! as of Outlook 2007 SP2, however these pages are still created in the file
+//! for backwards compatability purposes.
+//! \deprecated
+//! \ingroup disk
 template<typename T> 
 struct pmap_page : public page<T> 
 { 
 };
+//! \cond static_asserts
 static_assert(sizeof(pmap_page<ulong>) == page_size, "pmap_page<ulong> incorrect size");
 static_assert(sizeof(pmap_page<ulonglong>) == page_size, "pmap_page<ulonglong> incorrect size");
+//! \endcond
 
+//! Free Map page
+//!
+//! A Free Map (or fmap) page has one byte per AMap page, indicating how many consecutive 
+//! slots are available for allocation on that amap page. No longer used as of Outlook 2007
+//! SP2, but as with PMap pages are still created for backwards compatibility.
+//! \deprecated
+//! \ingroup disk
 template<typename T> 
 struct fmap_page : public page<T> 
 { 
 };
+//! \cond static_asserts
 static_assert(sizeof(fmap_page<ulong>) == page_size, "fmap_page<ulong> incorrect size");
 static_assert(sizeof(fmap_page<ulonglong>) == page_size, "fmap_page<ulonglong> incorrect size");
+//! \endcond
 
+//! Free Page Map page
+//!
+//! A Free Page Map page has one bit per PMap page, indicating if that PMap page has any
+//! slots available. A bit being set indicates there is no space available in that PMap page.
+//! No longer used as of Outlook 2007, but still created for backwards compatibility.
+//!
+//! The lack of fpmap pages was the reason for the 2GB limit of ANSI pst files (rather than
+//! a more intuitive 4GB limit) - the fpmap region in the header only had enough slots to 
+//! "map" 2GB of space.
+//! \deprecated
+//! \ingroup disk
 template<typename T> 
 struct fpmap_page : public page<T> 
 { 
 };
+//! \cond static_asserts
 static_assert(sizeof(fpmap_page<ulong>) == page_size, "fpmap_page<ulong> incorrect size");
 static_assert(sizeof(fpmap_page<ulonglong>) == page_size, "fpmap_page<ulonglong> incorrect size");
+//! \endcond
 
+//! The location of the only DList page in the file
+//! \ingroup disk
+const size_t dlist_page_location = 0x4200;
+
+//! Density List page
+//!
+//! The Density List page contains a list of AMap pages in the file, in ascending
+//! order of density. That is to say, the "emptiest" page is at the top. This is the
+//! data backing the new allocation scheme which replaced the old pmap/fmap/fpmap
+//! scheme, starting in Outlook 2007 SP2.
+//! \ingroup disk 
 template<typename T>
 struct dlist_page
 {
     static const size_t extra_space = page<T>::page_data_size - 8;
-    static const size_t max_entries = extra_space / sizeof(ulong);
+    static const size_t max_entries = extra_space / sizeof(ulong); //!< Maximum number of entries in the dlist page
 
-    byte flags;
-    byte num_entries;
+    byte flags;                       //!< Flags indicating the state of the dlist page
+    byte num_entries;                 //!< Number of entries in the entries array
     union
     {
-        ulong current_page;
-        ulong backfill_location;
+        ulong current_page;           //!< The current AMap page used for allocations
+        ulong backfill_location;      //!< The current backfill marker, when backfilling
     };
     union
     {
-        ulong entries[max_entries];
+        ulong entries[max_entries];   //!< Each entry has bits for the amap page (ordinal) and free space (slots)
         byte _ignore[extra_space];
     };
-    page_trailer<T> trailer;
+    page_trailer<T> trailer;          //!< The page trailer
 };
+//! \cond static_asserts
 static_assert(sizeof(dlist_page<ulong>) == page_size, "dlist_page<ulong> incorrect size");
 static_assert(sizeof(dlist_page<ulonglong>) == page_size, "dlist_page<ulonglong> incorrect size");
+//! \endcond
 
+//! BTree Entry
+//!
+//! An array of these are used on non-leaf BT Pages
+//! \ingroup disk
 template<typename T>
 struct bt_entry
 {
     typedef T bt_key;
 
-    bt_key key;
-    block_reference<T> ref;
+    bt_key key;               //!< The key of the page in ref
+    block_reference<T> ref;   //!< A reference to a lower level page
 };
 
+//! NBT Leaf Entry
+//!
+//! An array of these are used on leaf NBT pages. It describes a node.
+//! \ingroup disk
 template<typename T>
 struct nbt_leaf_entry
 {
     typedef T nid_index;
     typedef T block_id_disk;
 
-    nid_index nid;
-    block_id_disk data;
-    block_id_disk sub;
-    node_id parent_nid;
+    nid_index nid;       //!< The node id
+    block_id_disk data;  //!< The block id of the data block
+    block_id_disk sub;   //!< The block id of the subnode block
+    node_id parent_nid;  //!< The parent node id
 };
 
+//! BBT Leaf Entry
+//!
+//! An array of these are used on leaf BBT pages. It describes a block.
+//! \ingroup disk
 template<typename T>
 struct bbt_leaf_entry
 {
-    block_reference<T> ref;
-    ushort size;
-    ushort ref_count;
+    block_reference<T> ref; //!< A reference to this block on disk
+    ushort size;            //!< The unaligned size of this block
+    ushort ref_count;       //!< The reference count of this block
 };
 
+//! BTree Page
+//!
+//! Generally speaking, the generic form of a BTree page contains a fixed
+//! array of entries, followed by metadata about those entries and the page.
+//! The entry type (and entry size, and thus the max number of entries)
+//! varies between NBT and BBT pages.
+//! \ingroup disk
 template<typename T, typename EntryType>
 struct bt_page
 {
@@ -496,73 +682,129 @@ struct bt_page
         byte _ignore[extra_space];
     };
 
-    byte num_entries;
-    byte num_entries_max;
-    byte entry_size;
-    byte level;
+    byte num_entries;          //!< Number of entries on this page
+    byte num_entries_max;      //!< Maximum number of entries on this page
+    byte entry_size;           //!< The size of each entry
+    byte level;                //!< The level of this page. A level of zero indicates a leaf.
 
-    page_trailer<T> trailer;
+    page_trailer<T> trailer;   //!< The page trailer
 };
 
+//! NBT non-leaf page
+//!
+//! A BTree page instance.
+//! \ingroup disk
 template<typename T> 
 struct nbt_nonleaf_page : public bt_page<T, bt_entry<T>> 
 { 
 };
+//! \cond static_asserts
 static_assert(sizeof(nbt_nonleaf_page<ulong>) == page_size, "nbt_nonleaf_page<ulong> incorrect size");
 static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_page<ulonglong> incorrect size");
+//! \endcond
 
+//! BBT non-leaf page
+//!
+//! A BTree page instance. Note that this structure is identical to
+//! a non-leaf NBT page.
+//! \ingroup disk
 template<typename T> 
 struct bbt_nonleaf_page : public bt_page<T, bt_entry<T>> 
 { 
 };
+//! \cond static_asserts
 static_assert(sizeof(bbt_nonleaf_page<ulong>) == page_size, "bbt_nonleaf_page<ulong> incorrect size");
 static_assert(sizeof(bbt_nonleaf_page<ulonglong>) == page_size, "bbt_nonleaf_page<ulonglong> incorrect size");
+//! \endcond
 
+//! NBT leaf page
+//!
+//! A BTree page instance. The NBT leaf page has an array of nbt_leaf_entries
+//! ordered by node id, which describe the nodes of the database.
+//! \ingroup disk
 template<typename T> 
 struct nbt_leaf_page : public bt_page<T, nbt_leaf_entry<T>> 
 { 
 };
+//! \cond static_asserts
 static_assert(sizeof(nbt_leaf_page<ulong>) == page_size, "nbt_leaf_page<ulong> incorrect size");
 static_assert(sizeof(nbt_leaf_page<ulonglong>) == page_size, "nbt_leaf_page<ulonglong> incorrect size");
+//! \endcond
 
+//! BBT leaf page
+//!
+//! A BTree page instance. The BBT leaf page has an array of bbt_leaf_entries
+//! ordered by block id, which describe the blocks in the database.
+//! \ingroup disk
 template<typename T> 
 struct bbt_leaf_page : public bt_page<T, bbt_leaf_entry<T>> 
 { 
 };
+//! \cond static_asserts
 static_assert(sizeof(bbt_leaf_page<ulong>) == page_size, "bbt_leaf_page<ulong> incorrect size");
 static_assert(sizeof(bbt_leaf_page<ulonglong>) == page_size, "bbt_leaf_page<ulonglong> incorrect size");
+//! \endcond
 
 //
 // block structures
 //
 
+//! The maximum individual block size
+//! \ingroup disk
 const size_t max_block_disk_size = 8 * 1024;
 
+//! The different block types. 
+//! \ingroup disk
 enum block_types
 {
-    block_type_external = 0x00,
-    block_type_extended = 0x01,
-    block_type_sub = 0x02
+    block_type_external = 0x00, //!< An external data block
+    block_type_extended = 0x01, //!< An extended block type
+    block_type_sub = 0x02       //!< A subnode block type
 };
 
+//! Aligns a block size to the size on disk
+//!
+//! Adds the block trailer and slot alignment to the data size
+//! \param size Block size
+//! \returns The aligned block size
+//! \ingroup disk
 template<typename T>
 size_t align_disk(size_t size);
 
+//! Aligns a block size to the slot size
+//!
+//! Align the data size to the nearest \ref bytes_per_slot
+//! \param size Block size
+//! \returns The block size, aligned to slot size
+//! \ingroup disk
 size_t align_slot(size_t size);
 
+//! The internal bit indicates a block is an \ref extended_block or a \ref subnode_block
+//! \ingroup disk
 const uint block_id_internal_bit = 0x2;
+
+//! The block id counter in the header is incremented by this amount for each block
+//! \ingroup disk
 const uint block_id_increment = 0x4;
 
+//! Determines if a block is external or not
+//! \param bid The id of the block
+//! \returns true if the block is external
 template<typename T>
 bool bid_is_external(T bid) { return ((bid & block_id_internal_bit) == 0); }
 
+//! Determines if a block is internal or not
+//! \param bid The id of the block
+//! \returns true if the block is internal
 template<typename T>
 bool bid_is_internal(T bid) { return !bid_is_external(bid); } 
 
+//! \cond empty
 template<typename T>
 struct block_trailer
 {
 };
+//! \endcond
 
 template<>
 struct block_trailer<ulonglong>
@@ -593,10 +835,12 @@ struct external_block
     byte data[1];
 };
 
+//! \cond empty
 template<typename T>
 struct extended_block
 {
 };
+//! \endcond
 
 template<>
 struct extended_block<ulonglong>
@@ -863,9 +1107,10 @@ struct nameid_hash_entry
     ulong hash_base;
     ulong index;
 };
-
+//! \cond static_asserts
 static_assert(sizeof(nameid) == 8, "nameid incorrect size");
 static_assert(sizeof(nameid_hash_entry) == 8, "nameid incorrect size");
+//! \endcond
 
 inline ushort nameid_get_prop_index(const nameid& n) { return (ushort)(n.index >> 16); }
 inline ushort nameid_get_guid_index(const nameid& n) { return (ushort)((ushort)n.index >> 1); }

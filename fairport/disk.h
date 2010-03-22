@@ -1,3 +1,4 @@
+//! \defgroup disk Disk
 #ifndef FAIRPORT_DISK_H
 #define FAIRPORT_DISK_H
 
