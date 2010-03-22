@@ -704,11 +704,11 @@ inline std::shared_ptr<fairport::external_block> fairport::external_block::get_p
 
 inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
 {
-    size_t read_size = buf_size;
+    size_t read_size = size;
 
     assert(offset <= get_total_size());
 
-    if(offset + buf_size > get_total_size())
+    if(offset + size > get_total_size())
         read_size = get_total_size() - offset;
 
     memcpy(pdest_buffer, &m_buffer[offset], read_size);
@@ -722,15 +722,15 @@ inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_
     if(pblock.use_count() > 2) // one for me, one for the caller
     {
         std::shared_ptr<fairport::external_block> pnewblock(new external_block(*this));
-        return pnewblock->write_raw(psrc_buffer, buf_size, offset, presult);
+        return pnewblock->write_raw(psrc_buffer, size, offset, presult);
     }
     touch(); // mutate ourselves inplace
 
     assert(offset <= get_total_size());
 
-    size_t write_size = buf_size;
+    size_t write_size = size;
 
-    if(offset + buf_size > get_total_size())
+    if(offset + size > get_total_size())
         write_size = get_total_size() - offset;
 
     memcpy(&m_buffer[0]+offset, psrc_buffer, write_size);
@@ -745,10 +745,10 @@ inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t size
 {
     assert(offset <= get_total_size());
 
-    if(offset + buf_size > get_total_size())
-        buf_size = get_total_size() - offset;
+    if(offset + size > get_total_size())
+        size = get_total_size() - offset;
 
-    byte* pend = pdest_buffer + buf_size;
+    byte* pend = pdest_buffer + size;
 
     size_t total_bytes_read = 0;
 
@@ -760,13 +760,13 @@ inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t size
         ulong child_offset = offset % m_child_max_total_size;
 
         // call into our child to read the data
-        size_t bytes_read = get_child_block(child_pos)->read_raw(pdest_buffer, buf_size, child_offset);
-        assert(bytes_read <= buf_size);
+        size_t bytes_read = get_child_block(child_pos)->read_raw(pdest_buffer, size, child_offset);
+        assert(bytes_read <= size);
     
         // adjust pointers accordingly
         pdest_buffer += bytes_read;
         offset += bytes_read;
-        buf_size -= bytes_read;
+        size -= bytes_read;
         total_bytes_read += bytes_read;
 
         assert(pdest_buffer <= pend);
@@ -781,16 +781,16 @@ inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_
     if(pblock.use_count() > 2) // one for me, one for the caller
     {
         std::shared_ptr<extended_block> pnewblock(new extended_block(*this));
-        return pnewblock->write_raw(psrc_buffer, buf_size, offset, presult);
+        return pnewblock->write_raw(psrc_buffer, size, offset, presult);
     }
     touch(); // mutate ourselves inplace
 
     assert(offset <= get_total_size());
 
-    if(offset + buf_size > get_total_size())
-        buf_size = get_total_size() - offset;
+    if(offset + size > get_total_size())
+        size = get_total_size() - offset;
 
-    const byte* pend = psrc_buffer + buf_size;
+    const byte* pend = psrc_buffer + size;
     size_t total_bytes_written = 0;
 
     while(psrc_buffer != pend)
@@ -801,13 +801,13 @@ inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_
         ulong child_offset = offset % m_child_max_total_size;
 
         // call into our child to write the data
-        size_t bytes_written = get_child_block(child_pos)->write_raw(psrc_buffer, buf_size, child_offset, m_child_blocks[child_pos]);
-        assert(bytes_written <= buf_size);
+        size_t bytes_written = get_child_block(child_pos)->write_raw(psrc_buffer, size, child_offset, m_child_blocks[child_pos]);
+        assert(bytes_written <= size);
     
         // adjust pointers accordingly
         psrc_buffer += bytes_written;
         offset += bytes_written;
-        buf_size -= bytes_written;
+        size -= bytes_written;
         total_bytes_written += bytes_written;
 
         assert(psrc_buffer <= pend);
