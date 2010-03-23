@@ -110,7 +110,7 @@ template<>
 inline void database_impl<ulong>::validate_header()
 {
     // the behavior of open_database depends on this throw; this can not go under FAIRPORT_VALIDATION_WEAK
-    if(m_header.wVer >= disk::database_format_unicode)
+    if(m_header.wVer >= disk::database_format_unicode_min)
         throw invalid_format();
 
 #ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
@@ -125,7 +125,7 @@ template<>
 inline void database_impl<ulonglong>::validate_header()
 {
     // the behavior of open_database depends on this throw; this can not go under FAIRPORT_VALIDATION_WEAK
-    if(m_header.wVer < disk::database_format_unicode)
+    if(m_header.wVer < disk::database_format_unicode_min)
         throw invalid_format();
 
 #ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
