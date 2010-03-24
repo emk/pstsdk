@@ -37,27 +37,27 @@ struct block_reference
 // header
 //
 
-//! \defgroup headerrelated Header Structures
+//! \defgroup disk_headerrelated Header Structures
 //! \ingroup disk
 
 //! \brief The number of entries in the header's fmap structure
 //! \sa [MS-PST] 2.2.2.6/rgbFM
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 const size_t header_fmap_entries = 128;
 
 //! \brief The number of entries in the header's fpmap structure
 //! \sa [MS-PST] 2.2.2.6/rgbFP
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 const size_t header_fpmap_size = 128;
 
 //! \brief The number of entries in the header's lock structure
 //! \sa [MS-PST] 2.2.2.6/rgbReserved3
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 const size_t header_lock_entries = 32;
 
 //! \brief Valid database format values (ANSI vs. Unicode)
 //! \sa [MS-PST] 2.2.2.6/wVer
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 enum database_format
 {
     database_format_ansi_min = 14,      //!< Initial ANSI file version number
@@ -68,7 +68,7 @@ enum database_format
 
 //! \brief Vaild database types (OST vs. PST)
 //! \sa [MS-PST] 2.2.2.6/wVerClient
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 enum database_type
 {
     database_ost = 12, //!< A OST file
@@ -76,17 +76,17 @@ enum database_type
 };
 
 //! \brief PST Magic number
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 const ushort pst_magic = 0x4D53;
 //! \brief OST Magic number
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 const ushort ost_magic = 0x4F53;
 
 //! \brief Valid "encryption" methods
 //!
 //! This value indicates what method was used to "encrypt" external data
 //! (external data means the data section of external blocks) in the file.
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 enum crypt_method
 {
     crypt_method_none = 0,    //!< No "encryption" was used.
@@ -101,7 +101,7 @@ enum crypt_method
 //! flag, and more.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.5
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 template<typename T>
 struct root
 {
@@ -124,7 +124,7 @@ struct root
 //!
 //! At one point there was also a Low/High magic number, but it was never used.
 //! \sa [MS-PST] 2.2.2.6/dwMagic
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 const uint hlmagic = 0x4e444221;
 
 //! \cond empty
@@ -140,7 +140,7 @@ struct header
 //! Most important among the header fields is the \ref root structure, which tells you
 //! the location of the NBT and BBT root pages.
 //! \sa [MS-PST] 2.2.2.6
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 template<>
 struct header<ulonglong>
 {
@@ -186,7 +186,7 @@ struct header<ulonglong>
 //! See the documentation for Unicode header. Note that some fields
 //! in the ANSI header are in a different order (most notably \a bidNextB).
 //! \sa [MS-PST] 2.2.2.6
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 template<>
 struct header<ulong>
 {
@@ -233,7 +233,7 @@ struct header_crc_locations
 
 //! \brief The byte offsets used to calculate the CRCs in an ANSI PST
 //! \sa [MS-PST] 2.2.2.6/dwCRCPartial
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 template<>
 struct header_crc_locations<ulong>
 {
@@ -245,7 +245,7 @@ struct header_crc_locations<ulong>
 //! \brief The byte offsets used to calculate the CRCs in a Unicode PST file
 //! \sa [MS-PST] 2.2.2.6/dwCRCPartial
 //! \sa [MS-PST] 2.2.2.6/dwCRCFull
-//! \ingroup headerrelated
+//! \ingroup disk_headerrelated
 template<>
 struct header_crc_locations<ulonglong>
 {
@@ -483,20 +483,20 @@ void cyclic(void * pdata, ulong cb, ulong key);
 // page structures
 //
 
-//! \defgroup pagerelated Page Structures
+//! \defgroup disk_pagerelated Page Structures
 //! \ingroup disk
 
 
 //! \brief Size of all pages in the file in bytes, including the page trailer.
 //! \sa [MS-PST] 2.2.2.7
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 const size_t page_size = 512;
 
 //! \brief Valid page types
 //!
 //! Used in the page_type and page_type_repeat fields of the page trailer.
 //! \sa [MS-PST] 2.2.2.7.1/ptype
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 enum page_type
 {
     page_type_bbt = 0x80,   //!< A BBT (Blocks BTree) page
@@ -519,7 +519,7 @@ struct page_trailer
 //!
 //! The last structure in every page, aligned to the \ref page_size
 //! \sa [MS-PST] 2.2.2.7.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<>
 struct page_trailer<ulonglong>
 {
@@ -537,7 +537,7 @@ struct page_trailer<ulonglong>
 //! See the documentation for the Unicode version of the page trailer.
 //! Note that the \a bid and \a crc fields are in a different order in the ANSI file.
 //! \sa [MS-PST] 2.2.2.7.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<>
 struct page_trailer<ulong>
 {
@@ -553,7 +553,7 @@ struct page_trailer<ulong>
 //! \brief Generic page structure
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct page
 {
@@ -569,12 +569,12 @@ static_assert(sizeof(page<ulonglong>) == page_size, "page<ulonglong> incorrect s
 
 //! \brief Number of bytes each slot (bit) in an AMap page refers to
 //! \sa [MS-PST] 2.2.2.7.2
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 const size_t bytes_per_slot = 64;
 
 //! \brief The location of the first AMap page in the file
 //! \sa [MS-PST] 2.2.2.7.2
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 const size_t first_amap_page_location = 0x4400;
 
 //! \brief The authoritative source of free space in the file
@@ -587,7 +587,7 @@ const size_t first_amap_page_location = 0x4400;
 //! of an AMap page are by definition always 0xFF.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.2.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct amap_page : public page<T>
 {
@@ -606,7 +606,7 @@ static_assert(sizeof(amap_page<ulonglong>) == page_size, "amap_page<ulonglong> i
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \deprecated
 //! \sa [MS-PST] 2.2.2.7.3.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct pmap_page : public page<T>
 {
@@ -624,7 +624,7 @@ static_assert(sizeof(pmap_page<ulonglong>) == page_size, "pmap_page<ulonglong> i
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \deprecated
 //! \sa [MS-PST] 2.2.2.7.5.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct fmap_page : public page<T>
 {
@@ -646,7 +646,7 @@ static_assert(sizeof(fmap_page<ulonglong>) == page_size, "fmap_page<ulonglong> i
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \deprecated
 //! \sa [MS-PST] 2.2.2.7.6.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct fpmap_page : public page<T>
 {
@@ -658,7 +658,7 @@ static_assert(sizeof(fpmap_page<ulonglong>) == page_size, "fpmap_page<ulonglong>
 
 //! \brief The location of the only DList page in the file
 //! \sa [MS-PST] 2.2.2.7.4
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 const size_t dlist_page_location = 0x4200;
 
 //! \brief A metapage holding information about AMap pages
@@ -669,7 +669,7 @@ const size_t dlist_page_location = 0x4200;
 //! scheme, starting in Outlook 2007 SP2.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.4.2
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct dlist_page
 {
@@ -697,24 +697,24 @@ static_assert(sizeof(dlist_page<ulonglong>) == page_size, "dlist_page<ulonglong>
 
 //! \brief The portion of the dlist entry which refers to the amap page number
 //! \sa [MS-PST] 2.2.2.7.4.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 const ulong dlist_page_num_mask = 0x0000FFFF;
 
 //! \brief The bits to shift a dlist entry to get the slots on that amap page
 //! \sa [MS-PST] 2.2.2.7.4.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 const ulong dlist_slots_shift = 20;
 
 //! \brief Get a amap page number (ordinal) from a DLIST entry
 //! \param[in] entry The entry to inspect
 //! \sa [MS-PST] 2.2.2.7.4.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 inline ulong dlist_get_page_num(ulong entry) { return entry & dlist_page_num_mask; } 
 
 //! \brief Get the number of free slots from a DLIST entry
 //! \param[in] entry The entry to inspect
 //! \sa [MS-PST] 2.2.2.7.4.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 inline ulong dlist_get_slots(ulong entry) { return entry >> dlist_slots_shift; }
 
 //! \brief BTree Entry
@@ -722,7 +722,7 @@ inline ulong dlist_get_slots(ulong entry) { return entry >> dlist_slots_shift; }
 //! An array of these are used on non-leaf BT Pages
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.2
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct bt_entry
 {
@@ -737,7 +737,7 @@ struct bt_entry
 //! An array of these are used on leaf NBT pages. It describes a node.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.4
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct nbt_leaf_entry
 {
@@ -755,7 +755,7 @@ struct nbt_leaf_entry
 //! An array of these are used on leaf BBT pages. It describes a block.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.3
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct bbt_leaf_entry
 {
@@ -773,7 +773,7 @@ struct bbt_leaf_entry
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \tparam EntryType The type of entry on this page. In practice either a \ref bbt_leaf_entry, \ref nbt_leaf_entry, or \ref bt_entry
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T, typename EntryType>
 struct bt_page
 {
@@ -798,7 +798,7 @@ struct bt_page
 //! A BTree page instance.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct nbt_nonleaf_page : public bt_page<T, bt_entry<T>>
 {
@@ -814,7 +814,7 @@ static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_pag
 //! a non-leaf NBT page.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct bbt_nonleaf_page : public bt_page<T, bt_entry<T>>
 {
@@ -830,7 +830,7 @@ static_assert(sizeof(bbt_nonleaf_page<ulonglong>) == page_size, "bbt_nonleaf_pag
 //! ordered by node id, which describe the nodes of the database.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct nbt_leaf_page : public bt_page<T, nbt_leaf_entry<T>>
 {
@@ -846,7 +846,7 @@ static_assert(sizeof(nbt_leaf_page<ulonglong>) == page_size, "nbt_leaf_page<ulon
 //! ordered by block id, which describe the blocks in the database.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup pagerelated
+//! \ingroup disk_pagerelated
 template<typename T>
 struct bbt_leaf_page : public bt_page<T, bbt_leaf_entry<T>>
 {
@@ -860,16 +860,16 @@ static_assert(sizeof(bbt_leaf_page<ulonglong>) == page_size, "bbt_leaf_page<ulon
 // block structures
 //
 
-//! \defgroup blockrelated Block Structures
+//! \defgroup disk_blockrelated Block Structures
 //! \ingroup disk
 
 //! \brief The maximum individual block size
 //! \sa [MS-PST] 2.2.2.8
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 const size_t max_block_disk_size = 8 * 1024;
 
 //! \brief The different block types.
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 //! \sa [MS-PST] 2.2.2.8.3
 enum block_types
 {
@@ -885,7 +885,7 @@ enum block_types
 //! \param[in] size Block size
 //! \returns The aligned block size
 //! \sa [MS-PST] 2.2.2.7.7.3
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<typename T>
 size_t align_disk(size_t size);
 
@@ -895,24 +895,24 @@ size_t align_disk(size_t size);
 //! \param[in] size Block size
 //! \returns The block size, aligned to slot size
 //! \sa [MS-PST] 2.2.2.7.7.3
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 size_t align_slot(size_t size);
 
 //! \brief The internal bit indicates a block is an \ref extended_block or a \ref subnode_block
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 //! \sa [MS-PST] 2.2.2.2/i
 const uint block_id_internal_bit = 0x2;
 
 //! \brief The block id counter in the header is incremented by this amount for each block
 //! \sa [MS-PST] 2.2.2.6/bidNextB
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 const uint block_id_increment = 0x4;
 
 //! \brief Determines if a block is external or not
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \param[in] bid The id of the block
 //! \returns true if the block is external
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 //! \sa [MS-PST] 2.2.2.2/i
 template<typename T>
 bool bid_is_external(T bid) { return ((bid & block_id_internal_bit) == 0); }
@@ -922,7 +922,7 @@ bool bid_is_external(T bid) { return ((bid & block_id_internal_bit) == 0); }
 //! \param[in] bid The id of the block
 //! \returns true if the block is internal
 //! \sa [MS-PST] 2.2.2.2/i
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<typename T>
 bool bid_is_internal(T bid) { return !bid_is_external(bid); }
 
@@ -941,7 +941,7 @@ struct block_trailer
 //! the end of the aligned size. The block trailer contains validation information about
 //! the block.
 //! \sa [MS-PST] 2.2.2.8.1
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<>
 struct block_trailer<ulonglong>
 {
@@ -959,7 +959,7 @@ struct block_trailer<ulonglong>
 //! information. Note that the bid and CRC fields are in a different order
 //! in the ANSI version.
 //! \sa [MS-PST] 2.2.2.8.1
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<>
 struct block_trailer<ulong>
 {
@@ -978,7 +978,7 @@ struct block_trailer<ulong>
 //! has the \ref block_id_internal_bit set.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.1
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<typename T>
 struct external_block
 {
@@ -1003,7 +1003,7 @@ struct extended_block
 //! shared with the \ref sub_block.
 //! \sa [MS-PST] 2.2.2.8.3.2.1
 //! \sa [MS-PST] 2.2.2.8.3.2.2
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<>
 struct extended_block<ulonglong>
 {
@@ -1025,7 +1025,7 @@ struct extended_block<ulonglong>
 //! max_count calcuation.
 //! \sa [MS-PST] 2.2.2.8.3.2.1
 //! \sa [MS-PST] 2.2.2.8.3.2.2
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<>
 struct extended_block<ulong>
 {
@@ -1047,7 +1047,7 @@ struct extended_block<ulong>
 //! no parent field.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.3.1.1
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<typename T>
 struct sub_leaf_entry
 {
@@ -1064,7 +1064,7 @@ struct sub_leaf_entry
 //! subnode blocks.
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.3.2.1
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<typename T>
 struct sub_nonleaf_entry
 {
@@ -1082,7 +1082,7 @@ struct sub_nonleaf_entry
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \tparam EntryType The type of entry on this block. Generally \ref sub_nonleaf_entry or \ref sub_leaf_entry.
 //! \sa [MS-PST] 2.2.2.8.3.3
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<typename T, typename EntryType>
 struct sub_block
 {
@@ -1098,7 +1098,7 @@ struct sub_block
 //! items in the entry array
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.3.2.2
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<typename T>
 struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>>
 {
@@ -1110,7 +1110,7 @@ struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>>
 //! in the entry array
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.3.1.2
-//! \ingroup blockrelated
+//! \ingroup disk_blockrelated
 template<typename T>
 struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T>>
 {
