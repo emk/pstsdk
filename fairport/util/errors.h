@@ -1,3 +1,11 @@
+//! \file
+//! \brief The exceptions used by Fairport
+//! \author Terry Mahaffey
+//! \ingroup util
+
+//! \defgroup exception Exceptions
+//! \ingroup util
+
 #ifndef FAIRPORT_UTIL_ERRORS_H
 #define FAIRPORT_UTIL_ERRORS_H
 
@@ -7,6 +15,8 @@
 namespace fairport
 {
 
+//! \brief A block or node can not satisfy a resize request
+//! \ingroup exception
 class can_not_resize : public std::runtime_error
 {
 public:
@@ -14,6 +24,8 @@ public:
         : runtime_error(error) { }
 };
 
+//! \brief This function or method has not been implemented.
+//! \ingroup exception
 class not_implemented : public std::logic_error
 {
 public:
@@ -21,6 +33,8 @@ public:
         : logic_error(error) { }
 };
 
+//! \brief An error occured writing to the file.
+//! \ingroup exception
 class write_error : public std::runtime_error
 {
 public:
@@ -28,6 +42,8 @@ public:
         : runtime_error(error) { }
 };
 
+//! \brief The database is corrupt.
+//! \ingroup exception
 class database_corrupt : public std::runtime_error 
 {
 public:
@@ -35,6 +51,8 @@ public:
         : runtime_error(error) { }
 };
 
+//! \brief The database was not in the expected format.
+//! \ingroup exception
 class invalid_format : public database_corrupt
 {
 public:
@@ -42,6 +60,8 @@ public:
         : database_corrupt("Unexpected Database Format") { }
 };
 
+//! \brief An unexpected page or page type was encountered.
+//! \ingroup exception
 class unexpected_page : public database_corrupt
 {
 public:
@@ -49,6 +69,8 @@ public:
         : database_corrupt(error) { }
 };
 
+//! \brief An unexpected block or block type was encountered.
+//! \ingroup exception
 class unexpected_block : public database_corrupt
 {
 public:
@@ -56,30 +78,37 @@ public:
         : database_corrupt(error) { }
 };
 
+//! \brief A CRC of an item failed.
+//! \ingroup exception
 class crc_fail : public database_corrupt
 {
 public:
     crc_fail(const std::string& error, ulonglong location, block_id id, ulong actual, ulong expected)
         : database_corrupt(error), m_location(location), m_id(id), m_actual(actual), m_expected(expected) { }
 private:
-    ulonglong m_location;
-    block_id m_id;
-    ulong m_actual;
-    ulong m_expected;
+    ulonglong m_location;   //!< The location where this item was located
+    block_id m_id;          //!< The id of the item
+    ulong m_actual;         //!< The actual or calculated CRC
+    ulong m_expected;       //!< The expected CRC value
 };
 
+//! \brief An unexpected signature was encountered.
+//! \ingroup exception
 class sig_mismatch : public database_corrupt
 {
 public:
     sig_mismatch(const std::string& error, ulonglong location, block_id id, ulong actual, ulong expected)
         : database_corrupt(error), m_location(location), m_id(id), m_actual(actual), m_expected(expected) { }
 private:
-    ulonglong m_location;
-    block_id m_id;
-    ulong m_actual;
-    ulong m_expected;
+    ulonglong m_location;   //!< The location where this signature was expected
+    block_id m_id;          //!< The id of the item which should have had this signature
+    ulong m_actual;         //!< The actual signature
+    ulong m_expected;       //!< The expected signature
 };
 
+//! \brief The requested key was not found.
+//! \param K The key type
+//! \ingroup exception
 template<typename K>
 class key_not_found : public std::exception
 {
@@ -91,6 +120,8 @@ public:
     const char* what() const throw()
         { return "key not found"; }
 
+    //! \brief Returns the key which was not found
+    //! \returns The missing key
     const K& which() const
         { return m_k; }
 private:

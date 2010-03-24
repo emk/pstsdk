@@ -1,3 +1,11 @@
+//! \file
+//! \brief Primative structures defined by MS-PST and MAPI
+//! \author Terry Mahaffey
+//! \ingroup util
+
+//! \defgroup primative Primative Types
+//! \ingroup util
+
 #ifndef FAIRPORT_UTIL_PRIMATIVES_H
 #define FAIRPORT_UTIL_PRIMATIVES_H
 
@@ -7,17 +15,17 @@
 #define NO_NULLPTR
 #endif
 
-// Global Validation Settings
-//
-// #define FAIRPORT_VALIDATION_LEVEL_NONE before including any fairport headers for no validation
-//      well, slightly more than no validation - type checks are still performed
-// #define FAIRPORT_VALIDATION_LEVEL_WEAK before including any fairport headers for weak validation
-//      weak validation generally involves fast checks, such as signature matching, param validation, etc
-// #define FAIRPORT_VALIDATION_LEVEL_FULL before including any fairport headers for full validation
-//      full validation includes all weak checks plus crc validation and any other "expensive" check
-//
-// Weak validation is the default.
-//
+//! \brief Global Validation Settings
+//!
+//! - FAIRPORT_VALIDATION_LEVEL_NONE before including any fairport headers for no validation
+//!      well, slightly more than no validation - type checks are still performed
+//! - FAIRPORT_VALIDATION_LEVEL_WEAK before including any fairport headers for weak validation
+//!      weak validation generally involves fast checks, such as signature matching, param validation, etc
+//! - FAIRPORT_VALIDATION_LEVEL_FULL before including any fairport headers for full validation
+//!      full validation includes all weak checks plus crc validation and any other "expensive" check
+//!
+//! Weak validation is the default.
+//! \ingroup primative
 #ifndef FAIRPORT_VALIDATION_LEVEL_NONE
 #define FAIRPORT_VALIDATION_LEVEL_WEAK
 #endif
@@ -26,21 +34,26 @@
 // full validation also implies weak validation
 #define FAIRPORT_VALIDATION_LEVEL_WEAK
 #endif
-
 namespace fairport
 {
 
+/*! \addtogroup primative
+ * @{
+ */
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned long long ulonglong;
 typedef long long longlong;
 typedef unsigned char byte;
 typedef unsigned short ushort;
+/*! @} */
 
+//! \cond static_asserts
 static_assert(sizeof(byte) == 1, "fairport::byte unexpected size");
 static_assert(sizeof(ushort) == 2, "fairport::ushort unexpected size");
 static_assert(sizeof(uint) == 4, "fairport::uint unexpected size");
 static_assert(sizeof(ulonglong) == 8, "fairport::ulonglong unexpected size");
+//! \endcond
 
 #ifdef NO_NULLPTR
 const class
@@ -57,6 +70,9 @@ private:
 } nullptr = {};
 #endif
 
+/*! \addtogroup primative
+ * @{
+ */
 typedef ulong node_id;
 typedef ulonglong block_id;
 typedef block_id page_id;
@@ -67,12 +83,29 @@ typedef ulong heapnode_id;
 typedef ushort prop_id;
 
 typedef ulong row_id;
+/*! @} */
 
+//! \brief Tag structure used to indicate a copy constructed class should be
+//! an alias (shallow copy) rather than a deep copy
+//!
+//! When you copy construct an object with the alias tag, changes to the 
+//! alias object also are reflected in the original object. When you copy
+//! construct without an alias tag, you have two unique instances of the object
+//! and changes in either object are not reflected in the other.
+//!
+//! In either case both objects refer to the same physical item on disk - the
+//! alias tag only affects the in memory behavior.
+//!
+//! \ingroup primative
 struct alias_tag { };
 
 //
 // node id
 //
+
+//! \brief Different node types found in a PST file
+//! \sa [MS-PST] 2.2.2.1/nidType
+//! \ingroup primative
 enum nid_type
 {
     nid_type_none = 0x00,
@@ -106,18 +139,30 @@ enum nid_type
     nid_type_max = 0x20
 };
 
+//! \brief The portion of a node_id reserved for the type
+//! \sa [MS-PST] 2.2.2.1/nidType
+//! \ingroup primative
 const ulong nid_type_mask = 0x1FL;
 
+//! \brief Construct a node_id (NID) from a node type and index
+//! \sa [MS-PST] 2.2.2.1
+//! \ingroup primative
 #define make_nid(nid_type,nid_index) (((nid_type)&nid_type_mask)|((nid_index) << 5))
+
+//! \brief Construct a folders node_id for an OST file
+//! \ingroup primative
 #define make_prv_pub_nid(nid_index) (make_nid(nid_type_folder, nid_index_prv_pub_base + (nid_index)))
 
+//! \brief The predefined nodes in a PST/OST file
+//! \sa [MS-PST] 2.4.1
+//! \ingroup primative
 enum predefined_nid
 {
-    nid_message_store = make_nid(nid_type_internal, 0x1),
-    nid_name_id_map = make_nid(nid_type_internal, 0x3),
+    nid_message_store = make_nid(nid_type_internal, 0x1),   //!< The property bag for this file
+    nid_name_id_map = make_nid(nid_type_internal, 0x3),     //!< Contains the named prop mappings
     nid_normal_folder_template = make_nid(nid_type_folder, 0x6),
     nid_search_folder_template = make_nid(nid_type_search_folder, 0x7),
-    nid_root_folder = make_nid(nid_type_folder, 0x9),
+    nid_root_folder = make_nid(nid_type_folder, 0x9),       //!< Root folder of the store
     nid_search_management_queue = make_nid(nid_type_internal, 0xF),
     nid_search_activity_list = make_nid(nid_type_internal, 0x10),
     nid_search_domain_alternative = make_nid(nid_type_internal, 0x12),
@@ -143,7 +188,7 @@ enum predefined_nid
     nid_change_history_table = make_nid(nid_type_change_history_table, 0x35),
     nid_tombstone_table = make_nid(nid_type_tombstone_table, 0x36),
     nid_tombstone_date_table = make_nid(nid_type_tombstone_date_table, 0x37),
-    nid_all_message_search_folder = make_nid(nid_type_search_folder, 0x39),
+    nid_all_message_search_folder = make_nid(nid_type_search_folder, 0x39), //!< \deprecated The GUST
     nid_all_message_search_contents = make_nid(nid_type_search_contents_table, 0x39),
     nid_lrep_gmp = make_nid(nid_type_internal, 0x40),
     nid_lrep_folders_smp = make_nid(nid_type_internal, 0x41),
@@ -160,36 +205,61 @@ enum predefined_nid
     nid_indexing_notification = make_nid(nid_type_internal, 0x401)
 };
 
+//! \brief Get a node type from a node id
+//! \param[in] id The node id
+//! \returns The node type
+//! \sa [MS-PST] 2.2.2.1/nidType
+//! \ingroup primative
 inline nid_type get_nid_type(node_id id)
     { return (nid_type)(id & nid_type_mask); }
 
+//! \brief Get a node index from a node id
+//! \param[in] id The node id
+//! \returns The node index
+//! \sa [MS-PST] 2.2.2.1/nidIndex
+//! \ingroup primative
 inline ulong get_nid_index(node_id id)
     { return id >> 5; }
 
 //
 // heap id
 //
-enum heap_page_type
-{
-    heap_page_type_first = 0,
-    heap_page_type_normal = 1,
-    heap_page_type_fill_bitmap = 2
-};
 
+//! \brief Get the heap page from the heap id
+//! \param[in] id The heap id
+//! \returns The heap page
+//! \sa [MS-PST] 2.3.1.1/hidBlockIndex
+//! \ingroup primative
 inline ulong get_heap_page(heap_id id)
     { return (id >> 16); } 
 
+//! \brief Get the index from the heap id
+//! \param[in] id The heap id
+//! \returns The index
+//! \sa [MS-PST] 2.3.1.1/hidIndex
+//! \ingroup primative
 inline ulong get_heap_index(heap_id id)
     { return (((id >> 5) - 1) & 0x7FF); }
-
 
 //
 // heapnode id
 //
 
+//! \brief Inspects a heapnode_id (also known as a HNID) to determine if
+//! it is a heap_id (HID)
+//! \param[in] id The heapnode_id
+//! \returns true if this is a heap_id
+//! \sa [MS-PST] 2.3.3.2
+//! \ingroup primative
 inline bool is_heap_id(heapnode_id id)
     { return (get_nid_type(id) == nid_type_none); }
 
+//! \brief Inspects a heapnode_id (also known as a HNID) to determine if
+//! it is a node_id (NID)
+//! \param[in] id The heapnode_id
+//! \returns true if this is a node_id of a subnode
+//! \sa [MS-PST] 2.3.3.2
+//! \ingroup primative
 inline bool is_subnode_id(heapnode_id id)
     { return (get_nid_type(id) != nid_type_none); }
 
@@ -197,6 +267,9 @@ inline bool is_subnode_id(heapnode_id id)
 // properties
 //
 
+//! \brief The different property types as defined by MAPI
+//! \sa [MS-OXCDATA] 2.12.1
+//! \ingroup primative
 enum prop_type
 {
     prop_type_unspecified = 0,
@@ -211,7 +284,7 @@ enum prop_type
     prop_type_mv_double = 4101,
     prop_type_currency = 6,
     prop_type_mv_currency = 4102,
-    prop_type_apptime = 7, // VT_DATE
+    prop_type_apptime = 7,          //!< VT_DATE
     prop_type_mv_apptime = 4103,
     prop_type_error = 10,
     prop_type_boolean = 11,
@@ -222,7 +295,7 @@ enum prop_type
     prop_type_mv_string = 4126,
     prop_type_wstring = 31,
     prop_type_mv_wstring = 4127,
-    prop_type_systime = 64, // Win32 FILETIME
+    prop_type_systime = 64,         //!< Win32 FILETIME
     prop_type_mv_systime = 4160,
     prop_type_guid = 72,
     prop_type_mv_guid = 4168,
@@ -234,6 +307,8 @@ enum prop_type
 // mapi recipient type
 //
 
+//! \brief The different recipient types as defined by MAPI
+//! \ingroup primative
 enum recipient_type
 {
     mapi_to = 1,
@@ -245,11 +320,17 @@ enum recipient_type
 // message specific values
 //
 
+//! \brief A sentinel byte which indicates the message subject contains a prefix
+//! \sa [MS-PST] 2.5.3.1.1.1
+//! \ingroup primative
 const byte message_subject_prefix_lead_byte = 0x01;
 
 //
 // Win32 GUID
 //
+
+//! \brief A Win32 GUID structure
+//! \ingroup primative
 struct guid
 {
     ulong data1;
@@ -258,10 +339,19 @@ struct guid
     byte data4[8];
 };
 
+//! \brief The NULL guid
+//! \ingroup primative
 const guid ps_none = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+
+//! \brief The PS_MAPI guid
+//! \sa [MS-OXPROPS] 1.3.2
+//! \ingroup primative
 const guid ps_mapi = { 0x20328, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
+
+//! \brief The PS_PUBLIC_STRINGS guid
+//! \sa [MS-OXPROPS] 1.3.2
+//! \ingroup primative
 const guid ps_public_strings = { 0x20329, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
-const guid ps_internet_headers = { 0x20386, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
 
 } // end fairport namespace
 #endif

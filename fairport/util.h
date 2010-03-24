@@ -1,3 +1,4 @@
+//! \defgroup util Util
 #ifndef FAIRPORT_UTIL_H
 #define FAIRPORT_UTIL_H
 

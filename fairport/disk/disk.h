@@ -428,8 +428,8 @@ const byte table3[] =
 };
 
 //! \brief Calculate the signature of an item
-//! \param id The id of the item to calculate
-//! \param address The location on disk of the item
+//! \param[in] id The id of the item to calculate
+//! \param[in] address The location on disk of the item
 //! \returns The computed signature
 //! \sa [MS-PST] 5.5
 //! \ingroup disk
@@ -437,7 +437,7 @@ template<typename T>
 ushort compute_signature(T id, T address);
 
 //! \brief Calculate the signature of an item
-//! \param reference A block_reference to the item
+//! \param[in] reference A block_reference to the item
 //! \returns The computed signature
 //! \sa [MS-PST] 5.5
 //! \ingroup disk
@@ -445,8 +445,8 @@ template<typename T>
 ushort compute_signature(const block_reference<T>& reference) { return compute_signature(reference.bid, reference.ib); }
 
 //! \brief Compute the CRC of a block of data
-//! \param pdata A pointer to the block of data
-//! \param cb The size of the data block
+//! \param[in] pdata A pointer to the block of data
+//! \param[in] cb The size of the data block
 //! \returns The computed CRC
 //! \sa [MS-PST] 5.3
 //! \ingroup disk
@@ -456,9 +456,9 @@ ulong compute_crc(const void * pdata, ulong cb);
 //!
 //! This algorithm is called to "encrypt" external data if the \ref crypt_method of the file
 //! is set to \ref crypt_method_permute
-//! \param pdata A pointer to the data to "encrypt". This data is modified in place
-//! \param cb The size of the block of data
-//! \param encrypt True if "encrypting", false is unencrypting
+//! \param[in,out] pdata A pointer to the data to "encrypt". This data is modified in place
+//! \param[in] cb The size of the block of data
+//! \param[in] encrypt True if "encrypting", false is unencrypting
 //! \sa [MS-PST] 5.1
 //! \ingroup disk
 void permute(void * pdata, ulong cb, bool encrypt);
@@ -467,9 +467,9 @@ void permute(void * pdata, ulong cb, bool encrypt);
 //!
 //! This algorithm is called to "encrypt" external data if the \ref crypt_method of the file
 //! is set to \ref crypt_method_cyclic
-//! \param pdata A pointer to the data to "encrypt". This data is modified in place
-//! \param cb The size of the block of data
-//! \param key The key used in the cycle process. Typically this is the block_id of the data being "encrypted".
+//! \param[in, out] pdata A pointer to the data to "encrypt". This data is modified in place
+//! \param[in] cb The size of the block of data
+//! \param[in] key The key used in the cycle process. Typically this is the block_id of the data being "encrypted".
 //! \sa [MS-PST] 5.2
 //! \ingroup disk
 void cyclic(void * pdata, ulong cb, ulong key);
@@ -696,11 +696,13 @@ const ulong dlist_page_num_mask = 0x0000FFFF;
 const ulong dlist_slots_shift = 20;
 
 //! \brief Get a amap page number (ordinal) from a DLIST entry
+//! \param[in] entry The entry to inspect
 //! \sa [MS-PST] 2.2.2.7.4.1
 //! \ingroup page
 inline ulong dlist_get_page_num(ulong entry) { return entry & dlist_page_num_mask; } 
 
 //! \brief Get the number of free slots from a DLIST entry
+//! \param[in] entry The entry to inspect
 //! \sa [MS-PST] 2.2.2.7.4.1
 //! \ingroup page
 inline ulong dlist_get_slots(ulong entry) { return entry >> dlist_slots_shift; }
@@ -860,7 +862,7 @@ enum block_types
 //! \brief Aligns a block size to the size on disk
 //!
 //! Adds the block trailer and slot alignment to the data size
-//! \param size Block size
+//! \param[in] size Block size
 //! \returns The aligned block size
 //! \sa [MS-PST] 2.2.2.7.7.3
 //! \ingroup block
@@ -870,7 +872,7 @@ size_t align_disk(size_t size);
 //! \brief Aligns a block size to the slot size
 //!
 //! Align the data size to the nearest \ref bytes_per_slot
-//! \param size Block size
+//! \param[in] size Block size
 //! \returns The block size, aligned to slot size
 //! \sa [MS-PST] 2.2.2.7.7.3
 //! \ingroup block
@@ -887,15 +889,15 @@ const uint block_id_internal_bit = 0x2;
 const uint block_id_increment = 0x4;
 
 //! \brief Determines if a block is external or not
-//! \param bid The id of the block
+//! \param[in] bid The id of the block
 //! \returns true if the block is external
 //! \ingroup block
-template<typename T>
 //! \sa [MS-PST] 2.2.2.2/i
+template<typename T>
 bool bid_is_external(T bid) { return ((bid & block_id_internal_bit) == 0); }
 
 //! \brief Determines if a block is internal or not
-//! \param bid The id of the block
+//! \param[in] bid The id of the block
 //! \returns true if the block is internal
 //! \sa [MS-PST] 2.2.2.2/i
 //! \ingroup block
@@ -1211,7 +1213,7 @@ struct bth_header
     heap_id root;       //!< Root of the actual tree structure
 };
 
-//! \brief BTH Non-leaf Entry
+//! \brief Entries which make up a "non-leaf" BTH allocation
 //!
 //! Clients must keep track of the current level as they are doing a BTH
 //! lookup. Non-leaf entries, similar to how the BT pages and sub_blocks
@@ -1225,7 +1227,7 @@ struct bth_nonleaf_entry
     heap_id page; //!< Heap id of the lower level page
 };
 
-//! \brief BTH Leaf Entry
+//! \brief Entries which make up a "leaf" BTH allocation
 //!
 //! Simply an ordered array of key/values.
 //! \sa [MS-PST] 2.3.2.3
@@ -1444,42 +1446,42 @@ static_assert(sizeof(nameid_hash_entry) == 8, "nameid incorrect size");
 //! \endcond
 
 //! \brief Returns the index of a given nameid structure
-//! \param n the \ref nameid structure
+//! \param[in] n the \ref nameid structure
 //! \returns the index
 //! \sa [MS-PST] 2.4.7.1/wPropIdx
 //! \ingroup nameid
 inline ushort nameid_get_prop_index(const nameid& n) { return (ushort)(n.index >> 16); }
 
 //! \brief Returns the index into the guid stream of the guid of a given nameid structure
-//! \param n the \ref nameid structure
+//! \param[in] n the \ref nameid structure
 //! \returns the guid's index
 //! \ingroup nameid
 //! \sa [MS-PST] 2.4.7.1/wGuid
 inline ushort nameid_get_guid_index(const nameid& n) { return (ushort)((ushort)n.index >> 1); }
 
 //! \brief Returns true if the nameid structure is named by a string
-//! \param n the \ref nameid structure
+//! \param[in] n the \ref nameid structure
 //! \returns true if this is named by a string
 //! \sa [MS-PST] 2.4.7.1/N
 //! \ingroup nameid
 inline bool nameid_is_string(const nameid& n) { return n.index & 0x1; }
 
 //! \brief Returns the index of a given nameid_hash_entry structure
-//! \param n the nameid_hash_entry structure
+//! \param[in] n the nameid_hash_entry structure
 //! \returns the index
 //! \sa [MS-PST] 2.4.7.1/wPropIdx
 //! \ingroup nameid
 inline ushort nameid_get_prop_index(const nameid_hash_entry& n) { return (ushort)(n.index >> 16); }
 
 //! \brief Returns the index into the guid stream of the guid of a given nameid_hash_entry structure
-//! \param n the nameid_hash_entry structure
+//! \param[in] n the nameid_hash_entry structure
 //! \returns the guid's index
 //! \sa [MS-PST] 2.4.7.1/wGuid
 //! \ingroup nameid
 inline ushort nameid_get_guid_index(const nameid_hash_entry& n) { return (ushort)((ushort)n.index >> 1); }
 
 //! \brief Returns true if the nameid_hash_entry structure is named by a string
-//! \param n the nameid_hash_entry structure
+//! \param[in] n the nameid_hash_entry structure
 //! \returns true if this is named by a string
 //! \sa [MS-PST] 2.4.7.1/N
 //! \ingroup nameid
