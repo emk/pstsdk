@@ -1,3 +1,11 @@
+//! \file
+//! \brief Node and Block definitions
+//! \author Terry Mahaffey
+//!
+//! The concept of a node is the primary abstraction exposed by the NDB layer.
+//! Closely related is the concept of blocks, also defined here.
+//! \ingroup ndb
+
 #ifndef FAIRPORT_NDB_NODE_H
 #define FAIRPORT_NDB_NODE_H
 
@@ -29,149 +37,364 @@
 namespace fairport
 {
 
+//! \defgroup ndb_noderelated Node
+//! \ingroup ndb
+
+//! \brief The node implementation
+//!
+//! The node class is really divided into two classes, node and
+//! node_impl. The purpose of this design is to allow a node to conceptually
+//! "outlive" the stack based object encapsulating it. This is necessary
+//! if subobjects are opened which still need to refer to their parent.
+//! This is accomplished in this case, like others, via having a thin stack
+//! based object (\ref node) with a shared pointer to the implemenetation object
+//! (node_impl). Subnodes will grab a shared_ptr ref to the parents node_impl.
+//!
+//! See the documentation for \ref node to read more about what a node is.
+//! 
+//! The interface of node_impl follows closely that of node; differing mainly 
+//! in the construction and destruction semantics plus the addition of some 
+//! convenience functions.
+//! 
+//! \ref node and its \ref node_impl class generally have a one to one mapping,
+//! this isn't true only if someone opens an \ref alias_tag "alias" for a node.
+//! \ingroup ndb_noderelated
 class node_impl : public std::enable_shared_from_this<node_impl>
 {
 public:
-    // constructor for top level nodes
+    //! \brief Constructor for top level nodes
+    //!
+    //! This constructor is specific to nodes defined in the NBT
+    //! \param[in] db The database context we're located in
+    //! \param[in] info Information about this node
     node_impl(const shared_db_ptr& db, const node_info& info)
         : m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(info.parent_id), m_parent_id(info.parent_id), m_db(db) { }
 
-    // constructor for subnodes
+    //! \brief Constructor for subnodes
+    //!
+    //! This constructor is specific to nodes defined in other nodes
+    //! \param[in] container_node The parent or containing node
+    //! \param[in] info Information about this node
     node_impl(const std::shared_ptr<node_impl>& container_node, const subnode_info& info)
         : m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(0), m_parent_id(0), m_pcontainer_node(container_node), m_db(container_node->m_db) { }
 
+    //! \brief Set one node equal to another
+    //!
+    //! The assignment semantics of a node cause the assigned to node to refer
+    //! to the same data on disk as the assigned from node. It still has it's 
+    //! own unique id, parent, etc - only the data contained in this node is 
+    //! 'assigned'
+    //! \param[in] other The node to assign from
+    //! \returns *this after the assignment is done
     node_impl& operator=(const node_impl& other)
         { m_pdata = other.m_pdata; m_psub = other.m_psub; return *this; }
 
+    //! \brief Get the id of this node
+    //! \returns The id
     node_id get_id() const { return m_id; }
+    //! \brief Get the block_id of the data block of this node
+    //! \returns The id
     block_id get_data_id() const;
+    //! \brief Get the block_id of the subnode block of this node
+    //! \returns The id
     block_id get_sub_id() const;
 
+    //! \brief Get the parent id
+    //!
+    //! The parent id here is the field in the NBT. It is not the id of the
+    //! container node, if any. Generally the parent id of a message will
+    //! be a folder, etc.
+    //! \returns The id, zero if this is a subnode
     node_id get_parent_id() const { return m_parent_id; }
+
+    //! \brief Tells you if this is a subnode
+    //! \returns true if this is a subnode, false otherwise
     bool is_subnode() { return m_pcontainer_node; }
 
+    //! \brief Returns the data block associated with this node
+    //! \returns A shared pointer to the data block
     std::shared_ptr<data_block> get_data_block() const
         { ensure_data_block(); return m_pdata; }
+    //! \brief Returns the subnode block associated with this node
+    //! \returns A shared pointer to the subnode block
     std::shared_ptr<subnode_block> get_subnode_block() const 
         { ensure_sub_block(); return m_psub; }
-
+    
+    //! \brief Read data from this node
+    //!
+    //! Fills the specified buffer with data starting at the specified offset.
+    //! The size of the buffer indicates how much data to read.
+    //! \param[in,out] buffer The buffer to fill
+    //! \param[in] offset The location to read from
+    //! \returns The amount of data read
     size_t read(std::vector<byte>& buffer, ulong offset) const;
+    
+    //! \brief Read data from this node
+    //!
+    //! Returns a "T" located as the specified offset
+    //! \tparam T The type to read
+    //! \param[in] offset The location to read from
+    //! \returns The type read
     template<typename T> T read(ulong offset) const;
+
+    //! \brief Read data from this node
+    //!
+    //! Fills the specified buffer with data on the specified page at the
+    //! specified offset. The size of teh buffer indicates how much data to
+    //! read.
+    //! \note In this context, a "page" is an external block
+    //! \param[in,out] buffer The buffer to fill
+    //! \param[in] page_num The page to read from
+    //! \param[in] offset The location to read from
+    //! \returns The amount of data read
     size_t read(std::vector<byte>& buffer, uint page_num, ulong offset) const;
+    
+    //! \brief Read data from a specific block on this node
+    //! \note In this context, a "page" is an external block
+    //! \tparam T The type to read
+    //! \param[in] page_num The block (ordinal) to read data from
+    //! \param[in] offset The offset into that block to read from
+    //! \returns The type read
     template<typename T> T read(uint page_num, ulong offset) const;
+
+    //! \brief Read data from this node
+    //! \param[out] pdest_buffer The location to read the data into
+    //! \param[in] size The amount of data to read
+    //! \param[in] offset The location to read from
+    //! \returns The amount of data read
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
 
+//! \cond write_api
     size_t write(const std::vector<byte>& buffer, ulong offset);
     template<typename T> void write(const T& obj, ulong offset);
     size_t write(const std::vector<byte>& buffer, uint page_num, ulong offset);
     template<typename T> void write(const T& obj, uint page_num, ulong offset);
     size_t write_raw(const byte* pdest_buffer, size_t size, ulong offset);
+//! \endcond
 
+    //! \brief Returns the size of this node
+    //! \returns The node size
     size_t size() const;
+//! \cond write_api
     size_t resize(size_t size);
+//! \endcond
 
+    //! \brief Returns the size of a page in this node
+    //! \note In this context, a "page" is an external block
+    //! \param[in] page_num The page to get the size of
+    //! \returns The size of the page
     size_t get_page_size(uint page_num) const;
+
+    //! \brief Returns the number of pages in this node
+    //! \note In this context, a "page" is an external block
+    //! \returns The number of pages
     uint get_page_count() const;
 
     // iterate over subnodes
+    //! \brief Returns an iterator positioned at first subnodeinfo
+    //! \returns An iterator over subnodeinfos
     const_subnodeinfo_iterator subnode_info_begin() const;
+    //! \brief Returns an iterator positioned past the last subnodeinfo
+    //! \returns An iterator over subnodeinfos
     const_subnodeinfo_iterator subnode_info_end() const;
+
+    //! \brief Lookup a subnode by node id
+    //! \throws key_not_found<node_id> if a subnode with the specified node_id was not found
+    //! \param[in] id The subnode id to find
+    //! \returns The subnode
     node lookup(node_id id) const;
 
 private:
+    //! \brief Loads the data block from disk
+    //! \returns The data block for this node
     data_block* ensure_data_block() const;
+    //! \brief Loads the subnode block from disk
+    //! \returns The subnode block for this node
     subnode_block* ensure_sub_block() const;
 
-    const node_id m_id;
-    block_id m_original_data_id;
-    block_id m_original_sub_id;
-    node_id m_original_parent_id;
+    const node_id m_id;             //!< The node_id of this node
+    block_id m_original_data_id;    //!< The original block_id of the data block of this node
+    block_id m_original_sub_id;     //!< The original block_id of the subnode block of this node
+    node_id m_original_parent_id;   //!< The original node_id of the parent node of this node
 
-    mutable std::shared_ptr<data_block> m_pdata;
-    mutable std::shared_ptr<subnode_block> m_psub;
-    node_id m_parent_id;
+    mutable std::shared_ptr<data_block> m_pdata;    //!< The data block
+    mutable std::shared_ptr<subnode_block> m_psub;  //!< The subnode block
+    node_id m_parent_id;                            //!< The parent node_id to this node
 
-    std::shared_ptr<node_impl> m_pcontainer_node;
+    std::shared_ptr<node_impl> m_pcontainer_node;   //!< The container node, of which we're a subnode, if applicable
 
-    shared_db_ptr m_db;
+    shared_db_ptr m_db; //!< The database context pointer
 };
 
+//! \brief Defines a transform from a subnode_info to an actual node object
+//! 
+//! Nodes <i>actually</i> contain a collection of subnode_info objects, not
+//! a collection of subnodes. In order to provide the friendly facade of nodes
+//! appearing to have a collection of subnodes, we define this transform. It is
+//! used later with the boost iterator library to define a proxy iterator
+//! for the subnodes of a node.
+//! \ingroup ndb_noderelated
 class subnode_transform_info : public std::unary_function<subnode_info, node>
 {
 public:
+    //! \brief Initialize this functor with the container node involved
+    //! \param[in] parent The containing node
     subnode_transform_info(const std::shared_ptr<node_impl>& parent)
         : m_parent(parent) { }
+
+    //! \brief Given a subnode_info, construct a subnode
+    //! \param[in] info The info about the subnode
+    //! \returns A constructed node
     node operator()(const subnode_info& info) const;
 
 private:
-    std::shared_ptr<node_impl> m_parent;
+    std::shared_ptr<node_impl> m_parent; //!< The container node
 };
 
+//! \brief Defines a stream device for a node for use by boost iostream
+//!
+//! The boost iostream library requires that one defines a device, which
+//! implements a few key operations. This is the device for streaming out
+//! of a node.
+//! \ingroup ndb_noderelated
 class node_stream_device : public boost::iostreams::device<boost::iostreams::seekable>
 {
 public:
+    //! \brief Default construct the node stream device
     node_stream_device() : m_pos(0) { }
+
+    //! \brief Read data from this node into the buffer at the current position
+    //! \param[out] pbuffer The buffer to store the results into
+    //! \param[in] n The amount of data to read
+    //! \returns The amount of data read
     std::streamsize read(char* pbuffer, std::streamsize n); 
+
+    //! \cond write_api
     std::streamsize write(const char* pbuffer, std::streamsize n);
+    //! \endcond
+
+    //! \brief Move the current position into the node
+    //! \param[in] off The offset to move the current position
+    //! \param[in] way The location to move the current position from
+    //! \returns The new position
     std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way);
 
 private:
     friend class node;
+    //! \brief Construct the device from a node
     node_stream_device(std::shared_ptr<node_impl>& _node) : m_pos(0), m_pnode(_node) { }
 
-    std::streamsize m_pos;
-    std::shared_ptr<node_impl> m_pnode;
+    std::streamsize m_pos;              //!< The stream's current position
+    std::shared_ptr<node_impl> m_pnode; //!< The node this stream is over
 };
 
+//! \brief The actual node stream, defined using the boost iostream library
+//! and the \ref node_stream_device.
+//! \ingroup ndb_noderelated
 typedef boost::iostreams::stream<node_stream_device> node_stream;
 
+//! \brief An in memory representation of the "node" concept in a PST data file
+//!
+//! A node is the primary abstraction exposed by the \ref ndb to the
+//! upper layers. It's purpose is to abstract away the details of working with
+//! immutable blocks and subnode blocks. It can therefor be thought of simply
+//! as a mutable stream of bytes and a collection of sub nodes, themselves
+//! a mutable stream of bytes potentially with another collection of subnodes,
+//! etc.
+//!
+//! When using the \ref node class, think of it as creating an in memory 
+//! "instance" of the node on the disk. You can have several in memory
+//! instances of the same node on disk. You can even have an \ref alias_tag 
+//! "alias" of another in memory instance, as is sometimes required when 
+//! creating higher level abstractions. 
+//!
+//! There isn't much interesting to do with a node, you can query its size,
+//! read from a specific location, get it's id and parent id, iterate over
+//! subnodes, etc. Most of the interesting things are done by higher level
+//! abstractions which are built on top of and know specifically how to 
+//! interpret the bytes in a node - such as the \ref heap, \ref table, and \ref
+//! property_bag.
+//! \sa [MS-PST] 2.2.1.1
+//! \ingroup ndb_noderelated
 class node
 {
 public:
+    //! \brief A transform iterator, so we can expose the subnodes as a
+    //! collection of nodes rather than \ref subnode_info objects.
     typedef boost::transform_iterator<subnode_transform_info, const_subnodeinfo_iterator> subnode_iterator;
 
-    // constructor for top level nodes
+    //! \copydoc node_impl::node_impl(const shared_db_ptr&,const node_info&)
     node(const shared_db_ptr& db, const node_info& info)
         : m_pimpl(new node_impl(db, info)) { }
 
-    // constructor for subnodes
+    //! \brief Constructor for subnodes
+    //!
+    //! This constructor is specific to nodes defined in other nodes
+    //! \param[in] container_node The parent or containing node
+    //! \param[in] info Information about this node
     node(const node& container_node, const subnode_info& info)
         : m_pimpl(new node_impl(container_node.m_pimpl, info)) { }
+    //! \copydoc node_impl::node_impl(const std::shared_ptr<node_impl>&,const subnode_info&)
     node(const std::shared_ptr<node_impl>& container_node, const subnode_info& info)
         : m_pimpl(new node_impl(container_node, info)) { }
 
-
+    //! \brief Copy construct this node
+    //! 
+    //! This node will be another instance of the specified node
+    //! \param[in] other The node to copy
     node(const node& other)
         : m_pimpl(new node_impl(*other.m_pimpl)) { }
+
+    //! \brief Alias constructor
+    //!
+    //! This node will be an alias of the specified node. They will refer to the
+    //! same in memory object - they share a \ref node_impl instance.
+    //! \param[in] other The node to alias
     node(const node& other, alias_tag)
         : m_pimpl(other.m_pimpl) { }
+
+    //! \brief Move constructor
+    //! \param[in] other Node to move from
     node(node&& other)
         : m_pimpl(std::move(other.m_pimpl)) { }
 
+    //! \copydoc node_impl::operator=()
     node& operator=(const node& other)
         { m_pimpl = other.m_pimpl; return *this; }
 
+    //! \copydoc node_impl::get_id()
     node_id get_id() const { return m_pimpl->get_id(); }
+    //! \copydoc node_impl::get_data_id()
     block_id get_data_id() const { return m_pimpl->get_data_id(); }
+    //! \copydoc node_impl::get_sub_id()
     block_id get_sub_id() const { return m_pimpl->get_sub_id(); }
 
+    //! \copydoc node_impl::get_parent_id()
     node_id get_parent_id() const { return m_pimpl->get_parent_id(); } 
+    //! \copydoc node_impl::is_subnode()
     bool is_subnode() { return m_pimpl->is_subnode(); } 
 
+    //! \copydoc node_impl::get_data_block()
     std::shared_ptr<data_block> get_data_block() const
         { return m_pimpl->get_data_block(); }
+    //! \copydoc node_impl::get_subnode_block()
     std::shared_ptr<subnode_block> get_subnode_block() const 
         { return m_pimpl->get_subnode_block(); } 
    
+    //! \copydoc node_impl::read(std::vector<byte>&,ulong) const
     size_t read(std::vector<byte>& buffer, ulong offset) const
         { return m_pimpl->read(buffer, offset); }
+    //! \copydoc node_impl::read(ulong) const
     template<typename T> T read(ulong offset) const
         { return m_pimpl->read<T>(offset); }
+    //! \copydoc node_impl::read(std::vector<byte>&,uint,ulong) const
     size_t read(std::vector<byte>& buffer, uint page_num, ulong offset) const
         { return m_pimpl->read(buffer, page_num, offset); }
+    //! \copydoc node_impl::read(uint,ulong) const
     template<typename T> T read(uint page_num, ulong offset) const
         { return m_pimpl->read<T>(page_num, offset); }
 
+//! \cond write_api
     size_t write(std::vector<byte>& buffer, ulong offset) 
         { return m_pimpl->write(buffer, offset); }
     template<typename T> void write(const T& obj, ulong offset)
@@ -180,88 +403,210 @@ public:
         { return m_pimpl->write(buffer, page_num, offset); }
     template<typename T> void write(const T& obj, uint page_num, ulong offset)
         { return m_pimpl->write<T>(obj, page_num, offset); }
-    node_stream_device open_as_stream()
-        { return node_stream_device(m_pimpl); }
     size_t resize(size_t size)
         { return m_pimpl->resize(size); }
+//! \endcond
 
+    //! \brief Creates a stream device over this node
+    //!
+    //! The returned stream device can be used to construct a proper stream:
+    //! \code
+    //! node n;
+    //! node_stream nstream(n.open_as_stream());
+    //! \endcode
+    //! Which can then be used as any iostream would be.
+    //! \returns A node stream device for this node
+    node_stream_device open_as_stream()
+        { return node_stream_device(m_pimpl); }
+
+    //! \copydoc node_impl::size()
     size_t size() const { return m_pimpl->size(); }
+    //! \copydoc node_impl::get_page_size()
     size_t get_page_size(uint page_num) const 
         { return m_pimpl->get_page_size(page_num); }
+    //! \copydoc node_impl::get_page_count()
     uint get_page_count() const { return m_pimpl->get_page_count(); }
 
     // iterate over subnodes
+    //! \copydoc node_impl::subnode_info_begin()
     const_subnodeinfo_iterator subnode_info_begin() const
         { return m_pimpl->subnode_info_begin(); }
+    //! \copydoc node_impl::subnode_info_end()
     const_subnodeinfo_iterator subnode_info_end() const
         { return m_pimpl->subnode_info_end(); } 
+    
+    //! \brief Returns a proxy iterator for the first subnode
+    //!
+    //! This is known as a proxy iterator because the dereferenced type is
+    //! of type node, not node& or const node&. This means the object is an
+    //! rvalue, constructed specifically for the purpose of being returned
+    //! from this iterator.
+    //! \returns The proxy iterator
     subnode_iterator subnode_begin() const
         { return boost::make_transform_iterator(subnode_info_begin(), subnode_transform_info(m_pimpl)); }
+ 
+    //! \brief Returns a proxy iterator positioned past the last subnode
+    //!
+    //! This is known as a proxy iterator because the dereferenced type is
+    //! of type node, not node& or const node&. This means the object is an
+    //! rvalue, constructed specifically for the purpose of being returned
+    //! from this iterator.
+    //! \returns The proxy iterator
     subnode_iterator subnode_end() const
         { return boost::make_transform_iterator(subnode_info_end(), subnode_transform_info(m_pimpl)); }
+
+    //! \copydoc node_impl::lookup()
     node lookup(node_id id) const
         { return m_pimpl->lookup(id); }
 
 private:
-    std::shared_ptr<node_impl> m_pimpl;
+    std::shared_ptr<node_impl> m_pimpl; //!< Pointer to the node implementation
 };
 
+//! \defgroup ndb_blockrelated Blocks
+//! \ingroup ndb
+
+//! \brief The base class of the block class hierarchy
+//!
+//! A block is an atomic unit of storage in a PST file. This class, and other
+//! classes in this hierarchy, are in memory representations of those blocks
+//! on disk. They are immutable, and are shared freely between different node
+//! instances as needed (via shared pointers). A block also knows how to read
+//! any blocks it may refer to (in the case of extended_block or a 
+//! subnode_block).
+//!
+//! All blocks in the block hierarchy are also in the category of what is known
+//! as <i>dependant objects</i>. This means is they only keep a weak 
+//! reference to the database context to which they're a member. Contrast this
+//! to an independant object such as the \ref node, which keeps a strong ref
+//! or a full shared_ptr to the related context. This implies that someone
+//! must externally make sure the database context outlives it's blocks -
+//! this is usually done by the database context itself or the node which
+//! holds these blocks.
+//! \sa disk_blockrelated
+//! \sa [MS-PST] 2.2.2.8
+//! \ingroup ndb_blockrelated
 class block
 {
 public:
+    //! \brief Basic block constructor
+    //! \param[in] db The database context this block was opened in
+    //! \param[in] info Information about this block
     block(const shared_db_ptr& db, const block_info& info)
         : m_modified(false), m_size(info.size), m_id(info.id), m_address(info.address), m_db(db) { }
-    block(const block& block)
-        : m_modified(false), m_size(block.m_size), m_id(0), m_address(0), m_db(block.m_db) { }
+
+//! \cond write_api
+    block(const block& other)
+        : m_modified(false), m_size(other.m_size), m_id(0), m_address(0), m_db(other.m_db) { }
+//! \endcond
 
     virtual ~block() { }
 
+    //! \brief Returns the blocks internal/external state
+    //! \returns true if this is an internal block, false otherwise
     virtual bool is_internal() const = 0;
 
+    //! \brief Get the last known size of this block on disk
+    //! \returns The last known size of this block on disk
     size_t get_disk_size() const { return m_size; }
+//! \cond write_api
     void set_disk_size(size_t new_size) { m_size = new_size; }    
+//! \endcond
 
+    //! \brief Get the block_id of this block
+    //! \returns The block_id of this block
     block_id get_id() const { return m_id; }
+
+    //! \brief Get the address of this block on disk
+    //! \returns The address of this block, 0 for a new block.
     ulonglong get_address() const { return m_address; }
+//! \cond write_api
     void set_address(ulonglong new_address) { m_address = new_address; }
     
     void touch();
+//! \endcond
 
 protected:
     shared_db_ptr get_db_ptr() const { return shared_db_ptr(m_db); }
     virtual void trim() { }
 
-    bool m_modified;
-    size_t m_size;          // the size of this specific block on disk at last save
-    block_id m_id;
-    ulonglong m_address;    // the address of this specific block on disk, 0 if unknown
+    bool m_modified;        //!< True if this block has been modified and needs to be saved
+    size_t m_size;          //!< The size of this specific block on disk at last save
+    block_id m_id;          //!< The id of this block
+    ulonglong m_address;    //!< The address of this specific block on disk, 0 if unknown
 
     weak_db_ptr m_db;
 };
 
+//! \brief A block which represents end user data
+//!
+//! This class is the base class of both \ref extended_block and \ref
+//! external_block. This base class exists to abstract away their 
+//! differences, so a node can treat a given block (be it extended or
+//! external) simply as a stream of bytes.
+//! \ingroup ndb_blockrelated
 class data_block : public block
 {
 public:
+    //! \brief Constructor for a data_block
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] total_size The total logical size of this block
     data_block(const shared_db_ptr& db, const block_info& info, size_t total_size)
         : block(db, info), m_total_size(total_size) { }
     virtual ~data_block() { }
 
+    //! \brief Read data from this block
+    //!
+    //! Fills the specified buffer with data starting at the specified offset.
+    //! The size of the buffer indicates how much data to read.
+    //! \param[in,out] buffer The buffer to fill
+    //! \param[in] offset The location to read from
+    //! \returns The amount of data read
     size_t read(std::vector<byte>& buffer, ulong offset) const;
+
+    //! \brief Read data from this block
+    //!
+    //! Returns a "T" located as the specified offset
+    //! \tparam T The type to read
+    //! \param[in] offset The location to read from
+    //! \returns The type read
     template<typename T> T read(ulong offset) const;
+
+    //! \brief Read data from this block
+    //! \param[out] pdest_buffer The location to read the data into
+    //! \param[in] size The amount of data to read
+    //! \param[in] offset The location to read from
+    //! \returns The amount of data read
     virtual size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const = 0;
 
+//! \cond write_api
     size_t write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult);
     template<typename T> void write(const T& buffer, ulong offset, std::shared_ptr<data_block>& presult);
     virtual size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult) = 0;
+//! \endcond
 
+    //! \brief Get the number of physical pages in this data_block
+    //! \note In this context, "page" refers to an external_block
+    //! \returns The total number of external_blocks under this data_block
     virtual uint get_page_count() const = 0;
+
+    //! \brief Get a specific page of this data_block
+    //! \note In this context, "page" refers to an external_block
+    //! \throws out_of_range If page_num >= get_page_count()
+    //! \param[in] page_num The ordinal of the external_block to get, zero based
+    //! \returns The requested external_block
     virtual std::shared_ptr<external_block> get_page(uint page_num) const = 0;
 
+    //! \brief Get the total logical size of this block
+    //! \returns The total logical size of this block
     size_t get_total_size() const { return m_total_size; }
+//! \cond write_api
     virtual size_t resize(size_t size, std::shared_ptr<data_block>& presult) = 0;
+//! \endcond
 
 protected:
-    size_t m_total_size;    // the total or logical size (sum of all external child blocks)
+    size_t m_total_size;    //!< the total or logical size (sum of all external child blocks)
 };
 
 class extended_block : 
@@ -276,6 +621,7 @@ public:
         : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi)
         { m_child_blocks.resize(m_block_info.size()); }
 
+//! \cond write_api
     // new block constructors
     extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<std::shared_ptr<data_block>>& child_blocks)
         : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(child_blocks.size()), m_child_blocks(child_blocks) 
@@ -284,14 +630,19 @@ public:
         : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(child_blocks)
         { m_block_info.resize(m_child_blocks.size()); touch(); }
     extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count);   
-    
+//! \endcond
+
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
+//! \cond write_api
     size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
+//! \endcond
     
     uint get_page_count() const;
     std::shared_ptr<external_block> get_page(uint page_num) const;
     
+//! \cond write_api
     size_t resize(size_t size, std::shared_ptr<data_block>& presult);
+//! \endcond
     
     ushort get_level() const { return m_level; }
     bool is_internal() const { return true; }
@@ -474,6 +825,7 @@ inline T fairport::node_impl::read(uint page_num, ulong offset) const
     return ensure_data_block()->get_page(page_num)->read<T>(offset); 
 }
 
+//! \cond write_api
 inline size_t fairport::node_impl::write(const std::vector<byte>& buffer, ulong offset)
 {
     return ensure_data_block()->write(buffer, offset, m_pdata);
@@ -506,6 +858,7 @@ inline size_t fairport::node_impl::resize(size_t size)
 {
     return ensure_data_block()->resize(size, m_pdata);
 }
+//! \endcond
 
 inline fairport::data_block* fairport::node_impl::ensure_data_block() const
 { 
@@ -523,6 +876,7 @@ inline fairport::subnode_block* fairport::node_impl::ensure_sub_block() const
     return m_psub.get();
 }
 
+//! \cond write_api
 inline void fairport::block::touch()
 { 
     if(!m_modified)
@@ -533,6 +887,7 @@ inline void fairport::block::touch()
         m_id = get_db_ptr()->alloc_bid(is_internal()); 
     }
 }
+//! \endcond
 
 inline std::streamsize fairport::node_stream_device::read(char* pbuffer, std::streamsize n)
 {
@@ -545,12 +900,14 @@ inline std::streamsize fairport::node_stream_device::read(char* pbuffer, std::st
         return -1;
 }
 
+//! \cond write_api
 inline std::streamsize fairport::node_stream_device::write(const char* pbuffer, std::streamsize n)
 {
     size_t written = m_pnode->write_raw(reinterpret_cast<const byte*>(pbuffer), static_cast<size_t>(n), static_cast<size_t>(m_pos));
     m_pos += written;
     return written;
 }
+//! \endcond
 
 inline std::streampos fairport::node_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
 {
@@ -618,6 +975,7 @@ inline T fairport::data_block::read(ulong offset) const
     return t;
 }
 
+//! \cond write_api
 inline size_t fairport::data_block::write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult)
 {
     size_t write_size = buffer.size();
@@ -643,6 +1001,7 @@ void fairport::data_block::write(const T& buffer, ulong offset, std::shared_ptr<
 
     (void)write_raw(reinterpret_cast<const byte*>(&buffer), sizeof(T), offset, presult);
 }
+//! \endcond
 
 inline fairport::uint fairport::extended_block::get_page_count() const
 {
@@ -654,6 +1013,7 @@ inline fairport::uint fairport::extended_block::get_page_count() const
     return page_count;
 }
 
+//! \cond write_api
 inline fairport::extended_block::extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count)
 : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level)
 {
@@ -666,6 +1026,7 @@ inline fairport::extended_block::extended_block(const shared_db_ptr& db, ushort 
 
     touch();
 }
+//! \endcond
 
 inline fairport::data_block* fairport::extended_block::get_child_block(uint index) const
 {
@@ -775,6 +1136,7 @@ inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t size
     return total_bytes_read;
 }
 
+//! \cond write_api
 inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
 {
     std::shared_ptr<extended_block> pblock = shared_from_this();
@@ -899,6 +1261,7 @@ inline size_t fairport::extended_block::resize(size_t size, std::shared_ptr<data
 
     return size;
 }
+//! \endcond
 
 inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_info_begin() const
 {

@@ -3,7 +3,7 @@
 //! \author Terry Mahaffey
 //!
 //! This is where any generalized utility classes and functions go which
-//! aren't directly related to MS-PST in some fashion. It is my hope that
+//! are not directly related to MS-PST in some fashion. It is my hope that
 //! this file stay as small as possible.
 //! \ingroup util
 

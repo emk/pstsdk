@@ -1,4 +1,4 @@
-//! \defgroup disk Disk
+//! \defgroup disk Disk Layer
 #ifndef FAIRPORT_DISK_H
 #define FAIRPORT_DISK_H
 

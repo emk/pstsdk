@@ -302,7 +302,7 @@ const V& fairport::btree_node_leaf<K,V>::lookup(const K& k) const
 }
     
 template<typename K, typename V>
-void fairport::btree_node_leaf<K,V>::next(fairport::btree_iter_impl<K,V>& iter) const
+void fairport::btree_node_leaf<K,V>::next(btree_iter_impl<K,V>& iter) const
 {
     if(++iter.m_leaf_pos == this->num_values())
     {
@@ -326,7 +326,7 @@ void fairport::btree_node_leaf<K,V>::next(fairport::btree_iter_impl<K,V>& iter) 
 }
 
 template<typename K, typename V>
-void fairport::btree_node_leaf<K,V>::prev(fairport::btree_iter_impl<K,V>& iter) const
+void fairport::btree_node_leaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
 {
     if(iter.m_leaf_pos == 0)
     {
@@ -365,21 +365,21 @@ const V& fairport::btree_node_nonleaf<K,V>::lookup(const K& k) const
 }
 
 template<typename K, typename V>
-void fairport::btree_node_nonleaf<K,V>::first(fairport::btree_iter_impl<K,V>& iter) const
+void fairport::btree_node_nonleaf<K,V>::first(btree_iter_impl<K,V>& iter) const
 {
     iter.m_path.push_back(std::make_pair(const_cast<btree_node_nonleaf<K,V>*>(this), 0));
     get_child(0)->first(iter);
 }
 
 template<typename K, typename V>
-void fairport::btree_node_nonleaf<K,V>::last(fairport::btree_iter_impl<K,V>& iter) const
+void fairport::btree_node_nonleaf<K,V>::last(btree_iter_impl<K,V>& iter) const
 {
     iter.m_path.push_back(std::make_pair(const_cast<btree_node_nonleaf<K,V>*>(this), this->num_values()-1));
     get_child(this->num_values()-1)->last(iter);
 }
 
 template<typename K, typename V>
-void fairport::btree_node_nonleaf<K,V>::next(fairport::btree_iter_impl<K,V>& iter) const
+void fairport::btree_node_nonleaf<K,V>::next(btree_iter_impl<K,V>& iter) const
 {
     std::pair<btree_node_nonleaf<K,V>*, uint>& me = iter.m_path.back();
 
@@ -400,7 +400,7 @@ void fairport::btree_node_nonleaf<K,V>::next(fairport::btree_iter_impl<K,V>& ite
 }
 
 template<typename K, typename V>
-void fairport::btree_node_nonleaf<K,V>::prev(fairport::btree_iter_impl<K,V>& iter) const
+void fairport::btree_node_nonleaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
 {
     std::pair<btree_node_nonleaf<K,V>*, uint>& me = iter.m_path.back();
 
@@ -428,7 +428,7 @@ fairport::const_btree_node_iter<K,V>::const_btree_node_iter()
 }
 
 template<typename K, typename V>
-fairport::const_btree_node_iter<K,V>::const_btree_node_iter(const fairport::btree_node<K,V>* root, bool last)
+fairport::const_btree_node_iter<K,V>::const_btree_node_iter(const btree_node<K,V>* root, bool last)
 {
     if(last)
     {

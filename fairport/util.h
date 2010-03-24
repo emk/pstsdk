@@ -1,4 +1,4 @@
-//! \defgroup util Util
+//! \defgroup util Util Layer
 #ifndef FAIRPORT_UTIL_H
 #define FAIRPORT_UTIL_H
 

@@ -20,6 +20,7 @@ namespace disk
 {
 
 //! \brief The combination of the id and physical location of a block or page
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.4
 //! \ingroup disk
 template<typename T>
@@ -36,27 +37,27 @@ struct block_reference
 // header
 //
 
-//! \defgroup header Header Structures
+//! \defgroup headerrelated Header Structures
 //! \ingroup disk
 
 //! \brief The number of entries in the header's fmap structure
 //! \sa [MS-PST] 2.2.2.6/rgbFM
-//! \ingroup header
+//! \ingroup headerrelated
 const size_t header_fmap_entries = 128;
 
 //! \brief The number of entries in the header's fpmap structure
 //! \sa [MS-PST] 2.2.2.6/rgbFP
-//! \ingroup header
+//! \ingroup headerrelated
 const size_t header_fpmap_size = 128;
 
 //! \brief The number of entries in the header's lock structure
 //! \sa [MS-PST] 2.2.2.6/rgbReserved3
-//! \ingroup header
+//! \ingroup headerrelated
 const size_t header_lock_entries = 32;
 
 //! \brief Valid database format values (ANSI vs. Unicode)
 //! \sa [MS-PST] 2.2.2.6/wVer
-//! \ingroup header
+//! \ingroup headerrelated
 enum database_format
 {
     database_format_ansi_min = 14,      //!< Initial ANSI file version number
@@ -67,7 +68,7 @@ enum database_format
 
 //! \brief Vaild database types (OST vs. PST)
 //! \sa [MS-PST] 2.2.2.6/wVerClient
-//! \ingroup header
+//! \ingroup headerrelated
 enum database_type
 {
     database_ost = 12, //!< A OST file
@@ -75,17 +76,17 @@ enum database_type
 };
 
 //! \brief PST Magic number
-//! \ingroup header
+//! \ingroup headerrelated
 const ushort pst_magic = 0x4D53;
 //! \brief OST Magic number
-//! \ingroup header
+//! \ingroup headerrelated
 const ushort ost_magic = 0x4F53;
 
 //! \brief Valid "encryption" methods
 //!
 //! This value indicates what method was used to "encrypt" external data
 //! (external data means the data section of external blocks) in the file.
-//! \ingroup header
+//! \ingroup headerrelated
 enum crypt_method
 {
     crypt_method_none = 0,    //!< No "encryption" was used.
@@ -98,8 +99,9 @@ enum crypt_method
 //! The root structures describes where the root pages of the NBT and BBT are
 //! located, the EOF location, how much space is free, the allocation state 
 //! flag, and more.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.5
-//! \ingroup header
+//! \ingroup headerrelated
 template<typename T>
 struct root
 {
@@ -122,7 +124,7 @@ struct root
 //!
 //! At one point there was also a Low/High magic number, but it was never used.
 //! \sa [MS-PST] 2.2.2.6/dwMagic
-//! \ingroup header
+//! \ingroup headerrelated
 const uint hlmagic = 0x4e444221;
 
 //! \cond empty
@@ -138,7 +140,7 @@ struct header
 //! Most important among the header fields is the \ref root structure, which tells you
 //! the location of the NBT and BBT root pages.
 //! \sa [MS-PST] 2.2.2.6
-//! \ingroup header
+//! \ingroup headerrelated
 template<>
 struct header<ulonglong>
 {
@@ -184,7 +186,7 @@ struct header<ulonglong>
 //! See the documentation for Unicode header. Note that some fields
 //! in the ANSI header are in a different order (most notably \a bidNextB).
 //! \sa [MS-PST] 2.2.2.6
-//! \ingroup header
+//! \ingroup headerrelated
 template<>
 struct header<ulong>
 {
@@ -231,7 +233,7 @@ struct header_crc_locations
 
 //! \brief The byte offsets used to calculate the CRCs in an ANSI PST
 //! \sa [MS-PST] 2.2.2.6/dwCRCPartial
-//! \ingroup header
+//! \ingroup headerrelated
 template<>
 struct header_crc_locations<ulong>
 {
@@ -243,7 +245,7 @@ struct header_crc_locations<ulong>
 //! \brief The byte offsets used to calculate the CRCs in a Unicode PST file
 //! \sa [MS-PST] 2.2.2.6/dwCRCPartial
 //! \sa [MS-PST] 2.2.2.6/dwCRCFull
-//! \ingroup header
+//! \ingroup headerrelated
 template<>
 struct header_crc_locations<ulonglong>
 {
@@ -259,11 +261,11 @@ struct header_crc_locations<ulonglong>
 // utility functions
 //
 
-//! \defgroup utility Utility Functions
+//! \defgroup utilityrelated Utility Functions
 //! \ingroup disk
 
 //! \brief Precalulated CRC table, used by \ref compute_crc
-//! \ingroup utility
+//! \ingroup utilityrelated
 const ulong crc_table[] = {
     0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F,
     0xE963A535, 0x9E6495A3, 0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
@@ -312,7 +314,7 @@ const ulong crc_table[] = {
 
 //! \brief Data table1 used by \ref permute and \ref cyclic
 //! \sa [MS-PST] 5.1/mpbbR
-//! \ingroup utility
+//! \ingroup utilityrelated
 const byte table1[] =
 {
       65,  54,  19,  98, 168,  33, 110, 187,
@@ -351,7 +353,7 @@ const byte table1[] =
 
 //! \brief Data table2 used by \ref permute and \ref cyclic
 //! \sa [MS-PST] 5.1/mpbbS
-//! \ingroup utility
+//! \ingroup utilityrelated
 const byte table2[] =
 {
       20,  83,  15,  86, 179, 200, 122, 156,
@@ -390,7 +392,7 @@ const byte table2[] =
 
 //! \brief Data table3 used by \ref permute and \ref cyclic
 //! \sa [MS-PST] 5.1/mpbbI
-//! \ingroup utility
+//! \ingroup utilityrelated
 const byte table3[] =
 {
       71, 241, 180, 230,  11, 106, 114,  72,
@@ -428,19 +430,21 @@ const byte table3[] =
 };
 
 //! \brief Calculate the signature of an item
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \param[in] id The id of the item to calculate
 //! \param[in] address The location on disk of the item
 //! \returns The computed signature
 //! \sa [MS-PST] 5.5
-//! \ingroup disk
+//! \ingroup utilityrelated
 template<typename T>
 ushort compute_signature(T id, T address);
 
 //! \brief Calculate the signature of an item
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \param[in] reference A block_reference to the item
 //! \returns The computed signature
 //! \sa [MS-PST] 5.5
-//! \ingroup disk
+//! \ingroup utilityrelated
 template<typename T>
 ushort compute_signature(const block_reference<T>& reference) { return compute_signature(reference.bid, reference.ib); }
 
@@ -449,7 +453,7 @@ ushort compute_signature(const block_reference<T>& reference) { return compute_s
 //! \param[in] cb The size of the data block
 //! \returns The computed CRC
 //! \sa [MS-PST] 5.3
-//! \ingroup disk
+//! \ingroup utilityrelated
 ulong compute_crc(const void * pdata, ulong cb);
 
 //! \brief Modifies the data block in place, according to the permute method
@@ -479,20 +483,20 @@ void cyclic(void * pdata, ulong cb, ulong key);
 // page structures
 //
 
-//! \defgroup page Page Structures
+//! \defgroup pagerelated Page Structures
 //! \ingroup disk
 
 
 //! \brief Size of all pages in the file in bytes, including the page trailer.
 //! \sa [MS-PST] 2.2.2.7
-//! \ingroup page
+//! \ingroup pagerelated
 const size_t page_size = 512;
 
 //! \brief Valid page types
 //!
 //! Used in the page_type and page_type_repeat fields of the page trailer.
 //! \sa [MS-PST] 2.2.2.7.1/ptype
-//! \ingroup page
+//! \ingroup pagerelated
 enum page_type
 {
     page_type_bbt = 0x80,   //!< A BBT (Blocks BTree) page
@@ -515,7 +519,7 @@ struct page_trailer
 //!
 //! The last structure in every page, aligned to the \ref page_size
 //! \sa [MS-PST] 2.2.2.7.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<>
 struct page_trailer<ulonglong>
 {
@@ -533,7 +537,7 @@ struct page_trailer<ulonglong>
 //! See the documentation for the Unicode version of the page trailer.
 //! Note that the \a bid and \a crc fields are in a different order in the ANSI file.
 //! \sa [MS-PST] 2.2.2.7.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<>
 struct page_trailer<ulong>
 {
@@ -547,8 +551,9 @@ struct page_trailer<ulong>
 };
 
 //! \brief Generic page structure
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct page
 {
@@ -564,12 +569,12 @@ static_assert(sizeof(page<ulonglong>) == page_size, "page<ulonglong> incorrect s
 
 //! \brief Number of bytes each slot (bit) in an AMap page refers to
 //! \sa [MS-PST] 2.2.2.7.2
-//! \ingroup page
+//! \ingroup pagerelated
 const size_t bytes_per_slot = 64;
 
 //! \brief The location of the first AMap page in the file
 //! \sa [MS-PST] 2.2.2.7.2
-//! \ingroup page
+//! \ingroup pagerelated
 const size_t first_amap_page_location = 0x4400;
 
 //! \brief The authoritative source of free space in the file
@@ -580,8 +585,9 @@ const size_t first_amap_page_location = 0x4400;
 //! for allocation. Note that each AMap page "maps" itself. Since an AMap page
 //! (like all pages) is \ref page_size bytes (512), this means the first 8 bytes
 //! of an AMap page are by definition always 0xFF.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.2.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct amap_page : public page<T>
 {
@@ -597,9 +603,10 @@ static_assert(sizeof(amap_page<ulonglong>) == page_size, "amap_page<ulonglong> i
 //! rather than \ref bytes_per_slot bytes. This allocation scheme is no longer used
 //! as of Outlook 2007 SP2, however these pages are still created in the file
 //! for backwards compatability purposes.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \deprecated
 //! \sa [MS-PST] 2.2.2.7.3.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct pmap_page : public page<T>
 {
@@ -614,9 +621,10 @@ static_assert(sizeof(pmap_page<ulonglong>) == page_size, "pmap_page<ulonglong> i
 //! A Free Map (or fmap) page has one byte per AMap page, indicating how many consecutive
 //! slots are available for allocation on that amap page. No longer used as of Outlook 2007
 //! SP2, but as with PMap pages are still created for backwards compatibility.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \deprecated
 //! \sa [MS-PST] 2.2.2.7.5.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct fmap_page : public page<T>
 {
@@ -635,9 +643,10 @@ static_assert(sizeof(fmap_page<ulonglong>) == page_size, "fmap_page<ulonglong> i
 //! The lack of fpmap pages was the reason for the 2GB limit of ANSI pst files (rather than
 //! a more intuitive 4GB limit) - the fpmap region in the header only had enough slots to
 //! "map" 2GB of space.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \deprecated
 //! \sa [MS-PST] 2.2.2.7.6.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct fpmap_page : public page<T>
 {
@@ -649,7 +658,7 @@ static_assert(sizeof(fpmap_page<ulonglong>) == page_size, "fpmap_page<ulonglong>
 
 //! \brief The location of the only DList page in the file
 //! \sa [MS-PST] 2.2.2.7.4
-//! \ingroup page
+//! \ingroup pagerelated
 const size_t dlist_page_location = 0x4200;
 
 //! \brief A metapage holding information about AMap pages
@@ -658,8 +667,9 @@ const size_t dlist_page_location = 0x4200;
 //! order of density. That is to say, the "emptiest" page is at the top. This is the
 //! data backing the new allocation scheme which replaced the old pmap/fmap/fpmap
 //! scheme, starting in Outlook 2007 SP2.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.4.2
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct dlist_page
 {
@@ -687,31 +697,32 @@ static_assert(sizeof(dlist_page<ulonglong>) == page_size, "dlist_page<ulonglong>
 
 //! \brief The portion of the dlist entry which refers to the amap page number
 //! \sa [MS-PST] 2.2.2.7.4.1
-//! \ingroup page
+//! \ingroup pagerelated
 const ulong dlist_page_num_mask = 0x0000FFFF;
 
 //! \brief The bits to shift a dlist entry to get the slots on that amap page
 //! \sa [MS-PST] 2.2.2.7.4.1
-//! \ingroup page
+//! \ingroup pagerelated
 const ulong dlist_slots_shift = 20;
 
 //! \brief Get a amap page number (ordinal) from a DLIST entry
 //! \param[in] entry The entry to inspect
 //! \sa [MS-PST] 2.2.2.7.4.1
-//! \ingroup page
+//! \ingroup pagerelated
 inline ulong dlist_get_page_num(ulong entry) { return entry & dlist_page_num_mask; } 
 
 //! \brief Get the number of free slots from a DLIST entry
 //! \param[in] entry The entry to inspect
 //! \sa [MS-PST] 2.2.2.7.4.1
-//! \ingroup page
+//! \ingroup pagerelated
 inline ulong dlist_get_slots(ulong entry) { return entry >> dlist_slots_shift; }
 
 //! \brief BTree Entry
 //!
 //! An array of these are used on non-leaf BT Pages
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.2
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct bt_entry
 {
@@ -724,8 +735,9 @@ struct bt_entry
 //! \brief NBT Leaf Entry
 //!
 //! An array of these are used on leaf NBT pages. It describes a node.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.4
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct nbt_leaf_entry
 {
@@ -741,8 +753,9 @@ struct nbt_leaf_entry
 //! \brief BBT Leaf Entry
 //!
 //! An array of these are used on leaf BBT pages. It describes a block.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.3
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct bbt_leaf_entry
 {
@@ -757,8 +770,10 @@ struct bbt_leaf_entry
 //! array of entries, followed by metadata about those entries and the
 //! page. The entry type (and entry size, and thus the max number of
 //! entries) varies between NBT and BBT pages.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
+//! \tparam EntryType The type of entry on this page. In practice either a \ref bbt_leaf_entry, \ref nbt_leaf_entry, or \ref bt_entry
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T, typename EntryType>
 struct bt_page
 {
@@ -781,8 +796,9 @@ struct bt_page
 //! \brief NBT non-leaf page
 //!
 //! A BTree page instance.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct nbt_nonleaf_page : public bt_page<T, bt_entry<T>>
 {
@@ -796,8 +812,9 @@ static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_pag
 //!
 //! A BTree page instance. Note that this structure is identical to
 //! a non-leaf NBT page.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct bbt_nonleaf_page : public bt_page<T, bt_entry<T>>
 {
@@ -811,8 +828,9 @@ static_assert(sizeof(bbt_nonleaf_page<ulonglong>) == page_size, "bbt_nonleaf_pag
 //!
 //! A BTree page instance. The NBT leaf page has an array of nbt_leaf_entries
 //! ordered by node id, which describe the nodes of the database.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct nbt_leaf_page : public bt_page<T, nbt_leaf_entry<T>>
 {
@@ -826,8 +844,9 @@ static_assert(sizeof(nbt_leaf_page<ulonglong>) == page_size, "nbt_leaf_page<ulon
 //!
 //! A BTree page instance. The BBT leaf page has an array of bbt_leaf_entries
 //! ordered by block id, which describe the blocks in the database.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.7.7.1
-//! \ingroup page
+//! \ingroup pagerelated
 template<typename T>
 struct bbt_leaf_page : public bt_page<T, bbt_leaf_entry<T>>
 {
@@ -841,16 +860,16 @@ static_assert(sizeof(bbt_leaf_page<ulonglong>) == page_size, "bbt_leaf_page<ulon
 // block structures
 //
 
-//! \defgroup block Block Structures
+//! \defgroup blockrelated Block Structures
 //! \ingroup disk
 
 //! \brief The maximum individual block size
 //! \sa [MS-PST] 2.2.2.8
-//! \ingroup block
+//! \ingroup blockrelated
 const size_t max_block_disk_size = 8 * 1024;
 
 //! \brief The different block types.
-//! \ingroup block
+//! \ingroup blockrelated
 //! \sa [MS-PST] 2.2.2.8.3
 enum block_types
 {
@@ -862,10 +881,11 @@ enum block_types
 //! \brief Aligns a block size to the size on disk
 //!
 //! Adds the block trailer and slot alignment to the data size
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \param[in] size Block size
 //! \returns The aligned block size
 //! \sa [MS-PST] 2.2.2.7.7.3
-//! \ingroup block
+//! \ingroup blockrelated
 template<typename T>
 size_t align_disk(size_t size);
 
@@ -875,32 +895,34 @@ size_t align_disk(size_t size);
 //! \param[in] size Block size
 //! \returns The block size, aligned to slot size
 //! \sa [MS-PST] 2.2.2.7.7.3
-//! \ingroup block
+//! \ingroup blockrelated
 size_t align_slot(size_t size);
 
 //! \brief The internal bit indicates a block is an \ref extended_block or a \ref subnode_block
-//! \ingroup block
+//! \ingroup blockrelated
 //! \sa [MS-PST] 2.2.2.2/i
 const uint block_id_internal_bit = 0x2;
 
 //! \brief The block id counter in the header is incremented by this amount for each block
 //! \sa [MS-PST] 2.2.2.6/bidNextB
-//! \ingroup block
+//! \ingroup blockrelated
 const uint block_id_increment = 0x4;
 
 //! \brief Determines if a block is external or not
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \param[in] bid The id of the block
 //! \returns true if the block is external
-//! \ingroup block
+//! \ingroup blockrelated
 //! \sa [MS-PST] 2.2.2.2/i
 template<typename T>
 bool bid_is_external(T bid) { return ((bid & block_id_internal_bit) == 0); }
 
 //! \brief Determines if a block is internal or not
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \param[in] bid The id of the block
 //! \returns true if the block is internal
 //! \sa [MS-PST] 2.2.2.2/i
-//! \ingroup block
+//! \ingroup blockrelated
 template<typename T>
 bool bid_is_internal(T bid) { return !bid_is_external(bid); }
 
@@ -919,7 +941,7 @@ struct block_trailer
 //! the end of the aligned size. The block trailer contains validation information about
 //! the block.
 //! \sa [MS-PST] 2.2.2.8.1
-//! \ingroup block
+//! \ingroup blockrelated
 template<>
 struct block_trailer<ulonglong>
 {
@@ -937,7 +959,7 @@ struct block_trailer<ulonglong>
 //! information. Note that the bid and CRC fields are in a different order
 //! in the ANSI version.
 //! \sa [MS-PST] 2.2.2.8.1
-//! \ingroup block
+//! \ingroup blockrelated
 template<>
 struct block_trailer<ulong>
 {
@@ -954,8 +976,9 @@ struct block_trailer<ulong>
 //! The data contained in an external block is "encrypted" as defined by
 //! the \ref crypt_method of the store. The id of an external block never 
 //! has the \ref block_id_internal_bit set.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.1
-//! \ingroup block
+//! \ingroup blockrelated
 template<typename T>
 struct external_block
 {
@@ -980,7 +1003,7 @@ struct extended_block
 //! shared with the \ref sub_block.
 //! \sa [MS-PST] 2.2.2.8.3.2.1
 //! \sa [MS-PST] 2.2.2.8.3.2.2
-//! \ingroup block
+//! \ingroup blockrelated
 template<>
 struct extended_block<ulonglong>
 {
@@ -1002,7 +1025,7 @@ struct extended_block<ulonglong>
 //! max_count calcuation.
 //! \sa [MS-PST] 2.2.2.8.3.2.1
 //! \sa [MS-PST] 2.2.2.8.3.2.2
-//! \ingroup block
+//! \ingroup blockrelated
 template<>
 struct extended_block<ulong>
 {
@@ -1022,8 +1045,9 @@ struct extended_block<ulong>
 //!
 //! The leaf entry contains information about the subnode. Note there is
 //! no parent field.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.3.1.1
-//! \ingroup block
+//! \ingroup blockrelated
 template<typename T>
 struct sub_leaf_entry
 {
@@ -1038,8 +1062,9 @@ struct sub_leaf_entry
 //!
 //! Similar to non-leaf BT pages, nonleaf subnode blocks point to other
 //! subnode blocks.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.3.2.1
-//! \ingroup block
+//! \ingroup blockrelated
 template<typename T>
 struct sub_nonleaf_entry
 {
@@ -1054,8 +1079,10 @@ struct sub_nonleaf_entry
 //! Subnode blocks form a "private NBT" for each node. Non-leaf subnode
 //! blocks point to leaf subnode blocks. Leaf subnode blocks contain the
 //! subnode information.
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
+//! \tparam EntryType The type of entry on this block. Generally \ref sub_nonleaf_entry or \ref sub_leaf_entry.
 //! \sa [MS-PST] 2.2.2.8.3.3
-//! \ingroup block
+//! \ingroup blockrelated
 template<typename T, typename EntryType>
 struct sub_block
 {
@@ -1069,8 +1096,9 @@ struct sub_block
 //!
 //! An instance of a \ref sub_block, containing \ref sub_nonleaf_entry
 //! items in the entry array
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.3.2.2
-//! \ingroup block
+//! \ingroup blockrelated
 template<typename T>
 struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>>
 {
@@ -1080,8 +1108,9 @@ struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>>
 //!
 //! An instance of a \ref sub_block, containing \ref sub_leaf_entry items
 //! in the entry array
+//! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
 //! \sa [MS-PST] 2.2.2.8.3.3.1.2
-//! \ingroup block
+//! \ingroup blockrelated
 template<typename T>
 struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T>>
 {
@@ -1091,21 +1120,21 @@ struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T>>
 // heap structures
 //
 
-//! \defgroup heap Heap Structures
+//! \defgroup disk_heaprelated Heap Structures
 //! \ingroup disk
 
 //! \brief Signature of a heap
 //! \sa [MS-PST] 2.3.1.2/bSig
-//! \ingroup heap
+//! \ingroup disk_heaprelated
 const byte heap_signature = 0xEC;
 
 //! \brief Maximum allocation size in a heap
-//! \ingroup heap
+//! \ingroup disk_heaprelated
 const uint heap_max_alloc_size = 3580;
 
 //! \brief Different heap client signature types
 //! \sa [MS-PST] 2.3.1.2/bClientSig
-//! \ingroup heap
+//! \ingroup disk_heaprelated
 enum heap_client_signature
 {
    heap_sig_gmp = 0x6C,  //< Internal
@@ -1142,7 +1171,7 @@ enum heap_fill_level
 
 //! \brief Header structure on the first heap block
 //! \sa [MS-PST] 2.3.1.2
-//! \ingroup heap
+//! \ingroup disk_heaprelated
 struct heap_first_header
 {
     static const uint fill_level_size = 4; //!< Number of bytes in the \ref page_fill_levels map on this block
@@ -1156,7 +1185,7 @@ struct heap_first_header
 
 //! \brief Header structure on non-first/non-fill blocks
 //! \sa [MS-PST] 2.3.1.3
-//! \ingroup heap
+//! \ingroup disk_heaprelated
 struct heap_page_header
 {
     ushort page_map_offset; //!< offset of the start of the page map
@@ -1164,7 +1193,7 @@ struct heap_page_header
 
 //! \brief Header structure on non-first/fill blocks
 //! \sa [MS-PST] 2.3.1.4
-//! \ingroup heap
+//! \ingroup disk_heaprelated
 struct heap_page_fill_header
 {
     static const uint fill_level_size = 64; //!< Number of bytes in the page_fill_levels map on this block
@@ -1185,7 +1214,7 @@ struct heap_page_fill_header
 //! When an allocation is freed, all subsequent allocations are slid
 //! down, making the freed allocation zero in length.
 //! \sa [MS-PST] 2.3.1.5
-//! \ingroup heap
+//! \ingroup disk_heaprelated
 struct heap_page_map
 {
     ushort num_allocs; //!< Number of allocations on this block
@@ -1197,13 +1226,13 @@ struct heap_page_map
 // bth structures
 //
 
-//! \defgroup bth BTH Structures
+//! \defgroup disk_bthrelated BTH Structures
 //! \ingroup disk
 
 //! \brief Describes the BTH, including the size of the keys/values and the
 //! \ref heap_id of the root allocation.
 //! \sa [MS-PST] 2.3.2.1
-//! \ingroup bth
+//! \ingroup disk_bthrelated
 struct bth_header
 {
     byte bth_signature; //!< Always \ref heap_sig_bth
@@ -1218,8 +1247,9 @@ struct bth_header
 //! Clients must keep track of the current level as they are doing a BTH
 //! lookup. Non-leaf entries, similar to how the BT pages and sub_blocks
 //! work, contain the key and id of a lower level page.
+//! \tparam K The key type
 //! \sa [MS-PST] 2.3.2.2
-//! \ingroup bth
+//! \ingroup disk_bthrelated
 template<typename K>
 struct bth_nonleaf_entry
 {
@@ -1230,8 +1260,10 @@ struct bth_nonleaf_entry
 //! \brief Entries which make up a "leaf" BTH allocation
 //!
 //! Simply an ordered array of key/values.
+//! \tparam K The key type
+//! \tparam V The value type
 //! \sa [MS-PST] 2.3.2.3
-//! \ingroup bth
+//! \ingroup disk_bthrelated
 template<typename K, typename V>
 struct bth_leaf_entry
 {
@@ -1248,8 +1280,9 @@ struct bth_leaf_entry
 //!
 //! The number of entries is determined simply by the size of the heap
 //! allocation divided by the size of the EntryType.
+//! \tparam EntryType The entry type in this BTH. In practice eitehr a \ref bth_leaf_entry or \ref bth_nonleaf_entry.
 //! \sa [MS-PST] 2.3.2
-//! \ingroup bth
+//! \ingroup disk_bthrelated
 template<typename EntryType>
 struct bth_node
 {
@@ -1259,8 +1292,10 @@ struct bth_node
 //! \brief BTH Leaf node
 //!
 //! Instance of a BTH node, with \ref bth_leaf_entry for entries.
+//! \tparam K The key type
+//! \tparam V The value type
 //! \sa [MS-PST] 2.3.2.3
-//! \ingroup bth
+//! \ingroup disk_bthrelated
 template<typename K, typename V>
 struct bth_leaf_node : bth_node<bth_leaf_entry<K,V>>
 {
@@ -1269,8 +1304,10 @@ struct bth_leaf_node : bth_node<bth_leaf_entry<K,V>>
 //! \brief BTH Nonleaf node
 //!
 //! Instance of a BTH node, with \ref bth_nonleaf_entry for entries.
+//! \tparam K The key type
+//! \tparam V The value type
 //! \sa [MS-PST] 2.3.2.2
-//! \ingroup bth
+//! \ingroup disk_bthrelated
 template<typename K>
 struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K>>
 {
@@ -1280,7 +1317,7 @@ struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K>>
 // pc structures
 //
 
-//! \defgroup pc Property Context Structures
+//! \defgroup disk_pcrelated Property Context Structures
 //! \ingroup disk
 
 //! \brief The value type of the BTH backing a pc
@@ -1289,7 +1326,7 @@ struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K>>
 //! refering to a BTH header, with a key type of \ref prop_id and a value
 //! type of prop_entry.
 //! \sa [MS-PST] 2.3.3.3
-//! \ingroup pc
+//! \ingroup disk_pcrelated
 #pragma pack(2)
 struct prop_entry
 {
@@ -1302,7 +1339,7 @@ struct prop_entry
 //!
 //! When an attachment has its data attached as a prop_type_object, the
 //! PC structure points to one of these.
-//! \ingroup pc
+//! \ingroup disk_pcrelated
 struct sub_object
 {
     node_id nid; //$< The subnode id containing the data for the object
@@ -1315,7 +1352,7 @@ struct sub_object
 //! start of the allocation - giving the number and offset of each mv
 //! instance.
 //! \sa [MS-PST] 2.3.3.4.2
-//! \ingroup pc
+//! \ingroup disk_pcrelated
 struct mv_toc
 {
     ulong count;      //$< Number of entries in the TOC
@@ -1326,12 +1363,12 @@ struct mv_toc
 // tc structures
 //
 
-//! \defgroup tc Table Context Structures
+//! \defgroup disk_tcrelated Table Context Structures
 //! \ingroup disk
 
 //! \brief Indices into the size offsets array
 //! \sa [MS-PST] 2.3.4.1/rgib
-//! \ingroup tc
+//! \ingroup disk_tcrelated
 enum tc_offsets
 {
     tc_offsets_four,    //$< Offset of the end of the four and eight byte columns
@@ -1343,7 +1380,7 @@ enum tc_offsets
 
 //! \brief Describes a column
 //! \sa [MS-PST] 2.3.4.2
-//! \ingroup tc
+//! \ingroup disk_tcrelated
 #pragma pack(2)
 struct column_description
 {
@@ -1359,7 +1396,7 @@ struct column_description
 //! Briefly (in Outlook 2007 RTM and SP1) there was a new type of TC
 //! in the store. It had a slightly different structure. This was it.
 //! \deprecated
-//! \ingroup tc
+//! \ingroup disk_tcrelated
 struct gust_column_description
 {
     ushort type;
@@ -1374,7 +1411,7 @@ struct gust_column_description
 
 //! \brief The root_id allocation out of the Heap of a TC node
 //! \sa [MS-PST] 2.3.4.1
-//! \ingroup tc
+//! \ingroup disk_tcrelated
 struct tc_header
 {
     byte signature;             //$< TC signature, \ref heap_sig_tc
@@ -1388,7 +1425,7 @@ struct tc_header
 
 //! \brief GUST TC Header
 //! \deprecated
-//! \ingroup tc
+//! \ingroup disk_tcrelated
 struct gust_header
 {
     byte signature;
@@ -1408,7 +1445,7 @@ struct gust_header
 // nameid structures
 //
 
-//! \defgroup nameid Name to ID Mapping Structures
+//! \defgroup disk_nameidrelated Name to ID Mapping Structures
 //! \ingroup disk
 
 //! \brief Defines a id to name mapping
@@ -1416,7 +1453,7 @@ struct gust_header
 //! Found in the entry stream of the name id map node, the nameid is the 
 //! fundamental structure which defines the name to id mapping.
 //! \sa [MS-PST] 2.4.7.1
-//! \ingroup nameid
+//! \ingroup disk_nameidrelated
 struct nameid
 {
     union
@@ -1434,7 +1471,7 @@ struct nameid
 //! what bucket to put it in. The information in the index is used to lookup
 //! the real entry in the entry stream, where a true comparision is done.
 //! \sa [MS-PST] 2.4.7.5
-//! \ingroup nameid
+//! \ingroup disk_nameidrelated
 struct nameid_hash_entry
 {
     ulong hash_base;            //!< For numeric named props, this is just the id. Hash value of string props.
@@ -1449,13 +1486,13 @@ static_assert(sizeof(nameid_hash_entry) == 8, "nameid incorrect size");
 //! \param[in] n the \ref nameid structure
 //! \returns the index
 //! \sa [MS-PST] 2.4.7.1/wPropIdx
-//! \ingroup nameid
+//! \ingroup disk_nameidrelated
 inline ushort nameid_get_prop_index(const nameid& n) { return (ushort)(n.index >> 16); }
 
 //! \brief Returns the index into the guid stream of the guid of a given nameid structure
 //! \param[in] n the \ref nameid structure
 //! \returns the guid's index
-//! \ingroup nameid
+//! \ingroup disk_nameidrelated
 //! \sa [MS-PST] 2.4.7.1/wGuid
 inline ushort nameid_get_guid_index(const nameid& n) { return (ushort)((ushort)n.index >> 1); }
 
@@ -1463,28 +1500,28 @@ inline ushort nameid_get_guid_index(const nameid& n) { return (ushort)((ushort)n
 //! \param[in] n the \ref nameid structure
 //! \returns true if this is named by a string
 //! \sa [MS-PST] 2.4.7.1/N
-//! \ingroup nameid
+//! \ingroup disk_nameidrelated
 inline bool nameid_is_string(const nameid& n) { return n.index & 0x1; }
 
 //! \brief Returns the index of a given nameid_hash_entry structure
 //! \param[in] n the nameid_hash_entry structure
 //! \returns the index
 //! \sa [MS-PST] 2.4.7.1/wPropIdx
-//! \ingroup nameid
+//! \ingroup disk_nameidrelated
 inline ushort nameid_get_prop_index(const nameid_hash_entry& n) { return (ushort)(n.index >> 16); }
 
 //! \brief Returns the index into the guid stream of the guid of a given nameid_hash_entry structure
 //! \param[in] n the nameid_hash_entry structure
 //! \returns the guid's index
 //! \sa [MS-PST] 2.4.7.1/wGuid
-//! \ingroup nameid
+//! \ingroup disk_nameidrelated
 inline ushort nameid_get_guid_index(const nameid_hash_entry& n) { return (ushort)((ushort)n.index >> 1); }
 
 //! \brief Returns true if the nameid_hash_entry structure is named by a string
 //! \param[in] n the nameid_hash_entry structure
 //! \returns true if this is named by a string
 //! \sa [MS-PST] 2.4.7.1/N
-//! \ingroup nameid
+//! \ingroup disk_nameidrelated
 inline bool nameid_is_string(const nameid_hash_entry& n) { return n.index & 0x1; }
 
 } // end disk namespace

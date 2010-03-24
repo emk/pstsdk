@@ -1,3 +1,4 @@
+//! \defgroup ndb NDB Layer
 #ifndef FAIRPORT_NDB_H
 #define FAIRPORT_NDB_H
 

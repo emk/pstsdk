@@ -17,7 +17,7 @@
 
 //! \brief Global Validation Settings
 //!
-//! You may optionally #define one of the following values before including any fairport header:
+//! You may optionally define one of the following values before including any fairport header:
 //! - FAIRPORT_VALIDATION_LEVEL_NONE, no validation - except some type checks
 //! - FAIRPORT_VALIDATION_LEVEL_WEAK, involves fast checks such as signature matching, param validation, etc
 //! - FAIRPORT_VALIDATION_LEVEL_FULL, includes all weak checks plus crc validation and any other "expensive" checks

@@ -1,3 +1,4 @@
+//! \defgroup ltp LTP Layer
 #ifndef FAIRPORT_LTP_H
 #define FAIRPORT_LTP_H
 
