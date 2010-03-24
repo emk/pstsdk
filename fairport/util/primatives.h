@@ -17,12 +17,10 @@
 
 //! \brief Global Validation Settings
 //!
-//! - FAIRPORT_VALIDATION_LEVEL_NONE before including any fairport headers for no validation
-//!      well, slightly more than no validation - type checks are still performed
-//! - FAIRPORT_VALIDATION_LEVEL_WEAK before including any fairport headers for weak validation
-//!      weak validation generally involves fast checks, such as signature matching, param validation, etc
-//! - FAIRPORT_VALIDATION_LEVEL_FULL before including any fairport headers for full validation
-//!      full validation includes all weak checks plus crc validation and any other "expensive" check
+//! You may optionally #define one of the following values before including any fairport header:
+//! - FAIRPORT_VALIDATION_LEVEL_NONE, no validation - except some type checks
+//! - FAIRPORT_VALIDATION_LEVEL_WEAK, involves fast checks such as signature matching, param validation, etc
+//! - FAIRPORT_VALIDATION_LEVEL_FULL, includes all weak checks plus crc validation and any other "expensive" checks
 //!
 //! Weak validation is the default.
 //! \ingroup primative

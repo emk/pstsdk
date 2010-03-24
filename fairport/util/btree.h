@@ -103,17 +103,17 @@ protected:
     // iter support
     friend class const_btree_node_iter<K,V>;
     friend class btree_node_nonleaf<K,V>;
-    //! \brief Positions the iterator helper at the first element on this tree
-    //! \param[in,out] iter Private iterator helper class
+    //! \brief Positions the iterator at the first element on this tree
+    //! \param[in,out] iter Iterator state class
     virtual void first(btree_iter_impl<K,V>& iter) const = 0;
-    //! \brief Positions the iterator helper at the "end" element
-    //! \param[in,out] iter Private iterator helper class
+    //! \brief Positions the iterator at the "end" element
+    //! \param[in,out] iter Iterator state class
     virtual void last(btree_iter_impl<K,V>& iter) const = 0;
-    //! \brief Moves the iterator helper to the next element
-    //! \param[in,out] iter Private iterator helper class
+    //! \brief Moves the iterator to the next element
+    //! \param[in,out] iter Iterator state class
     virtual void next(btree_iter_impl<K,V>& iter) const = 0;
-    //! \brief Moves the iterator helper to the previous element
-    //! \param[in,out] iter Private iterator helper class
+    //! \brief Moves the iterator to the previous element
+    //! \param[in,out] iter Iterator state class
     virtual void prev(btree_iter_impl<K,V>& iter) const = 0;
 };
 
@@ -148,15 +148,11 @@ protected:
 
     // iter support
     friend class const_btree_node_iter<K,V>;
-    //! \copydoc btree_node::first
     void first(btree_iter_impl<K,V>& iter) const
         { iter.m_leaf = const_cast<btree_node_leaf<K,V>* >(this); iter.m_leaf_pos = 0; }
-    //! \copydoc btree_node::last
     void last(btree_iter_impl<K,V>& iter) const
         { iter.m_leaf = const_cast<btree_node_leaf<K,V>* >(this); iter.m_leaf_pos = this->num_values()-1; }
-    //! \copydoc btree_node::next
     void next(btree_iter_impl<K,V>& iter) const;
-    //! \copydoc btree_node::prev
     void prev(btree_iter_impl<K,V>& iter) const;
 };
 
@@ -193,13 +189,9 @@ protected:
     // iter support
     friend class const_btree_node_iter<K,V>;
     friend class btree_node_leaf<K,V>;
-    //! \copydoc btree_node::first
     void first(btree_iter_impl<K,V>& iter) const;
-    //! \copydoc btree_node::last
     void last(btree_iter_impl<K,V>& iter) const;
-    //! \copydoc btree_node::next
     void next(btree_iter_impl<K,V>& iter) const;
-    //! \copydoc btree_node::prev
     void prev(btree_iter_impl<K,V>& iter) const;
 };
 
