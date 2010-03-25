@@ -1,3 +1,4 @@
+//! \cond write_api
 #ifndef FAIRPORT_NDB_CONTEXT_H
 #define FAIRPORT_NDB_CONTEXT_H
 
@@ -178,3 +179,4 @@ std::shared_ptr<fairport::subnode_nonleaf_block> fairport::db_context_impl::read
 }
 
 #endif
+//! \endcond

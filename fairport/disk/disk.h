@@ -1132,6 +1132,10 @@ const byte heap_signature = 0xEC;
 //! \ingroup disk_heaprelated
 const uint heap_max_alloc_size = 3580;
 
+//! \brief Maximum allocation size in a heap in a version 14 ANSI file
+//! \ingroup disk_heaprelated
+const uint heap_max_alloc_size_wver_14 = 3068;
+
 //! \brief Different heap client signature types
 //! \sa [MS-PST] 2.3.1.2/bClientSig
 //! \ingroup disk_heaprelated

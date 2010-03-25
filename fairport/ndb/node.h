@@ -609,14 +609,43 @@ protected:
     size_t m_total_size;    //!< the total or logical size (sum of all external child blocks)
 };
 
+//! \brief A data block which refers to other data blocks, in order to extend
+//! the physical size limit (8k) to a larger logical size.
+//!
+//! An extended_block is essentially a list of block_ids of other \ref 
+//! data_block, which themselves may be an extended_block or an \ref
+//! external_block. Ultimately they form a "data tree", the leafs of which
+//! form the "logical" contents of the block.
+//! 
+//! This class is an in memory representation of the disk::extended_block
+//! structure.
+//! \sa [MS-PST] 2.2.2.8.3.2
+//! \ingroup ndb_blockrelated
 class extended_block : 
     public data_block, 
     public std::enable_shared_from_this<extended_block>
 {
 public:
-    // old block constructors (from disk)
+    //! \brief Construct an extended block from disk
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] level The level of this extended block (1 or 2)
+    //! \param[in] total_size The total logical size of this block
+    //! \param[in] child_max_total_size The maximum logical size of a child block
+    //! \param[in] page_count_max The maximum number of external blocks that can be contained in this block
+    //! \param[in] child_page_max_count The maximum number of external blocks that can be contained in a child block
+    //! \param[in] bi The \ref block_info for all child blocks
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<block_id>& bi)
         : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
+    //! \brief Construct a block from disk, with an rvalue vector
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] level The level of this extended block (1 or 2)
+    //! \param[in] total_size The total logical size of this block
+    //! \param[in] child_max_total_size The maximum logical size of a child block
+    //! \param[in] page_count_max The maximum number of external blocks that can be contained in this block
+    //! \param[in] child_page_max_count The maximum number of external blocks that can be contained in a child block
+    //! \param[in] bi The \ref block_info for all child blocks
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<block_id>&& bi)
         : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi)
         { m_child_blocks.resize(m_block_info.size()); }
@@ -644,6 +673,11 @@ public:
     size_t resize(size_t size, std::shared_ptr<data_block>& presult);
 //! \endcond
     
+    //! \brief Get the "level" of this extended_block
+    //! 
+    //! A level 1 extended_block (or "xblock") points to external blocks.
+    //! A level 2 extended_block (or "xxblock") points to other extended_blocks
+    //! \returns 1 for an xblock, 2 for an xxblock
     ushort get_level() const { return m_level; }
     bool is_internal() const { return true; }
 
@@ -651,39 +685,63 @@ private:
     extended_block& operator=(const extended_block& other); // = delete
     data_block* get_child_block(uint index) const;
 
-    const size_t m_child_max_total_size;    // maximum (logical) size of a child block
-    const ulong m_child_max_page_count;     // maximum number of child blocks a child can contain
-    const ulong m_max_page_count;           // maximum number of child blocks this block can contain
+    const size_t m_child_max_total_size;    //!< maximum (logical) size of a child block
+    const ulong m_child_max_page_count;     //!< maximum number of child blocks a child can contain
+    const ulong m_max_page_count;           //!< maximum number of child blocks this block can contain
+
+    //! \brief Return the max logical size of this xblock
     size_t get_max_size() const { return m_child_max_total_size * m_max_page_count; }
 
-    const ushort m_level;
-    std::vector<block_id> m_block_info;
-    mutable std::vector<std::shared_ptr<data_block>> m_child_blocks;
+    const ushort m_level;                   //!< The level of this block
+    std::vector<block_id> m_block_info;     //!< block_ids of the child blocks in this tree
+    mutable std::vector<std::shared_ptr<data_block>> m_child_blocks; //!< Cached child blocks
 };
 
+//! \brief Contains actual data
+//!
+//! An external_block contains the actual data contents used by the higher
+//! layers. This data is also "encrypted", although the encryption/decryption
+//! process occurs immediately before/after going to disk, not here.
+//! \sa [MS-PST] 2.2.2.8.3.1
+//! \ingroup ndb_blockrelated
 class external_block : 
     public data_block, 
     public std::enable_shared_from_this<external_block>
 {
 public:
-    // old block constructors (from disk)
+    //! \brief Construct a block from disk
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] max_size The maximum possible size of this block
+    //! \param[in] buffer The actual external data (decoded)
     external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, const std::vector<byte>& buffer)
         : data_block(db, info, info.size), m_max_size(max_size), m_buffer(buffer) { }
+    //! \brief Construct a block from disk, with an rvalue vector
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] max_size The maximum possible size of this block
+    //! \param[in] buffer The actual external data (decoded)
     external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, std::vector<byte>&& buffer)
         : data_block(db, info, info.size), m_max_size(max_size), m_buffer(buffer) { }
 
+//! \cond write_api
     // new block constructors
     external_block(const shared_db_ptr& db, size_t max_size, size_t current_size)
         : data_block(db, block_info(), current_size), m_max_size(max_size), m_buffer(current_size)
         { touch(); }
+//! \endcond
 
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
+//! \cond write_api
     size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
+//! \endcond
 
     uint get_page_count() const { return 1; }
     std::shared_ptr<external_block> get_page(uint page_num) const;
 
+//! \cond write_api
     size_t resize(size_t size, std::shared_ptr<data_block>& presult);
+//! \endcond
 
     bool is_internal() const { return false; }
 
@@ -696,34 +754,71 @@ private:
     std::vector<byte> m_buffer;
 };
 
+
+//! \brief A block which contains information about subnodes
+//!
+//! Subnode blocks form a sort of "private NBT" for a node. This class is
+//! the root class of that hierarchy, with child classes for the leaf and
+//! non-leaf versions of a subnode block.
+//!
+//! This hierarchy also models the \ref btree_node structure, inheriting the 
+//! actual iteration and lookup logic.
+//! \sa [MS-PST] 2.2.2.8.3.3
+//! \ingroup ndb_blockrelated
 class subnode_block : 
     public block, 
     public virtual btree_node<node_id, subnode_info>
 {
 public:
+    //! \brief Construct a block from disk
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] level The level of this subnode_block (0 or 1)
     subnode_block(const shared_db_ptr& db, const block_info& info, ushort level)
         : block(db, info), m_level(level) { }
 
     virtual ~subnode_block() { }
 
+    //! \brief Get the level of this subnode_block
+    //! \returns 0 for a leaf block, 1 otherwise
     ushort get_level() const { return m_level; }
 
     bool is_internal() const { return true; }
     
 protected:
-    ushort m_level;
+    ushort m_level; //!< Level of this subnode_block
 };
 
+//! \brief Contains references to subnode_leaf_blocks.
+//!
+//! Because of the width of a subnode_leaf_block and the relative scarcity of
+//! subnodes, it's actually pretty uncommon to encounter a subnode non-leaf
+//! block in practice. But it does occur, typically on large tables.
+//!
+//! This is the in memory version of one of these blocks. It forms the node
+//! of a tree, similar to the NBT, pointing to child blocks. There can only
+//! be one level of these - a subnode_nonleaf_block can not point to other
+//! subnode_nonleaf_blocks.
+//! \sa [MS-PST] 2.2.2.8.3.3.2
+//! \ingroup ndb_blockrelated
 class subnode_nonleaf_block : 
     public subnode_block, 
     public btree_node_nonleaf<node_id, subnode_info>, 
     public std::enable_shared_from_this<subnode_nonleaf_block>
 {
 public:
-    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, block_id>>& subnodes)
-        : subnode_block(db, info, 1), m_subnode_info(subnodes) { }
-    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>>&& subnodes)
-        : subnode_block(db, info, 1), m_subnode_info(subnodes) { }
+    //! \brief Construct a block from disk
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] subblocks Information about the child blocks
+    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, block_id>>& subblocks)
+        : subnode_block(db, info, 1), m_subnode_info(subblocks) { }
+    //! \brief Construct a block from disk, with an rvalue vector
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] subblocks Information about the child blocks
+    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>>&& subblocks)
+        : subnode_block(db, info, 1), m_subnode_info(subblocks) { }
 
     // btree_node_nonleaf implementation
     const node_id& get_key(uint pos) const
@@ -733,18 +828,33 @@ public:
     uint num_values() const { return m_subnode_info.size(); }
     
 private:
-    std::vector<std::pair<node_id, block_id>> m_subnode_info;
-    mutable std::vector<std::shared_ptr<subnode_block>> m_child_blocks;
+    std::vector<std::pair<node_id, block_id>> m_subnode_info;           //!< Info about the sub-blocks
+    mutable std::vector<std::shared_ptr<subnode_block>> m_child_blocks; //!< Cached sub-blocks (leafs)
 };
 
+//! \brief Contains the actual subnode information
+//!
+//! Typically a node will point directly to one of these. Because they are
+//! blocks, and thus up to 8k in size, they can hold information for about
+//! ~300 subnodes in a unicode store, and up to ~600 in an ANSI store.
+//! \sa [MS-PST] 2.2.2.8.3.3.1
+//! \ingroup ndb_blockrelated
 class subnode_leaf_block : 
     public subnode_block, 
     public btree_node_leaf<node_id, subnode_info>, 
     public std::enable_shared_from_this<subnode_leaf_block>
 {
 public:
+    //! \brief Construct a block from disk
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] subnodes Information about the subnodes
     subnode_leaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, subnode_info>>& subnodes)
         : subnode_block(db, info, 0), m_subnodes(subnodes) { }
+    //! \brief Construct a block from disk, with an rvalue vector
+    //! \param[in] db The database context
+    //! \param[in] info Information about this block
+    //! \param[in] subnodes Information about the subnodes
     subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info>>&& subnodes)
         : subnode_block(db, info, 0), m_subnodes(subnodes) { }
 
@@ -757,7 +867,7 @@ public:
         { return m_subnodes.size(); }
 
 private:
-    std::vector<std::pair<node_id, subnode_info>> m_subnodes;
+    std::vector<std::pair<node_id, subnode_info>> m_subnodes;   //!< The actual subnode information
 };
 
 } // end fairport namespace
@@ -1077,6 +1187,7 @@ inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t size
     return read_size;
 }
 
+//! \cond write_api
 inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
 {
     std::shared_ptr<fairport::external_block> pblock = shared_from_this();
@@ -1101,6 +1212,7 @@ inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_
 
     return write_size;
 }
+//! \endcond
 
 inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
 {
