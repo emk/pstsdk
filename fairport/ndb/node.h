@@ -626,7 +626,7 @@ class extended_block :
     public std::enable_shared_from_this<extended_block>
 {
 public:
-    //! \brief Construct an extended block from disk
+    //! \brief Construct an extended_block from disk
     //! \param[in] db The database context
     //! \param[in] info Information about this block
     //! \param[in] level The level of this extended block (1 or 2)
@@ -635,30 +635,16 @@ public:
     //! \param[in] page_count_max The maximum number of external blocks that can be contained in this block
     //! \param[in] child_page_max_count The maximum number of external blocks that can be contained in a child block
     //! \param[in] bi The \ref block_info for all child blocks
-    extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<block_id>& bi)
-        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi), m_child_blocks(bi.size()) { }
-    //! \brief Construct a block from disk, with an rvalue vector
-    //! \param[in] db The database context
-    //! \param[in] info Information about this block
-    //! \param[in] level The level of this extended block (1 or 2)
-    //! \param[in] total_size The total logical size of this block
-    //! \param[in] child_max_total_size The maximum logical size of a child block
-    //! \param[in] page_count_max The maximum number of external blocks that can be contained in this block
-    //! \param[in] child_page_max_count The maximum number of external blocks that can be contained in a child block
-    //! \param[in] bi The \ref block_info for all child blocks
-    extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<block_id>&& bi)
-        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi)
+    extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<block_id> bi)
+        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(std::move(bi))
         { m_child_blocks.resize(m_block_info.size()); }
 
 //! \cond write_api
     // new block constructors
-    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<std::shared_ptr<data_block>>& child_blocks)
-        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(child_blocks.size()), m_child_blocks(child_blocks) 
-        { touch(); }
-    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<std::shared_ptr<data_block>>&& child_blocks)
-        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(child_blocks)
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<std::shared_ptr<data_block>> child_blocks)
+        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(std::move(child_blocks))
         { m_block_info.resize(m_child_blocks.size()); touch(); }
-    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count);   
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count);
 //! \endcond
 
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
@@ -709,20 +695,13 @@ class external_block :
     public std::enable_shared_from_this<external_block>
 {
 public:
-    //! \brief Construct a block from disk
+    //! \brief Construct an external_block from disk
     //! \param[in] db The database context
     //! \param[in] info Information about this block
     //! \param[in] max_size The maximum possible size of this block
     //! \param[in] buffer The actual external data (decoded)
-    external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, const std::vector<byte>& buffer)
-        : data_block(db, info, info.size), m_max_size(max_size), m_buffer(buffer) { }
-    //! \brief Construct a block from disk, with an rvalue vector
-    //! \param[in] db The database context
-    //! \param[in] info Information about this block
-    //! \param[in] max_size The maximum possible size of this block
-    //! \param[in] buffer The actual external data (decoded)
-    external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, std::vector<byte>&& buffer)
-        : data_block(db, info, info.size), m_max_size(max_size), m_buffer(buffer) { }
+    external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, std::vector<byte> buffer)
+        : data_block(db, info, info.size), m_max_size(max_size), m_buffer(std::move(buffer)) { }
 
 //! \cond write_api
     // new block constructors
@@ -807,18 +786,12 @@ class subnode_nonleaf_block :
     public std::enable_shared_from_this<subnode_nonleaf_block>
 {
 public:
-    //! \brief Construct a block from disk
+    //! \brief Construct a subnode_nonleaf_block from disk
     //! \param[in] db The database context
     //! \param[in] info Information about this block
     //! \param[in] subblocks Information about the child blocks
-    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, block_id>>& subblocks)
-        : subnode_block(db, info, 1), m_subnode_info(subblocks) { }
-    //! \brief Construct a block from disk, with an rvalue vector
-    //! \param[in] db The database context
-    //! \param[in] info Information about this block
-    //! \param[in] subblocks Information about the child blocks
-    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>>&& subblocks)
-        : subnode_block(db, info, 1), m_subnode_info(subblocks) { }
+    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>> subblocks)
+        : subnode_block(db, info, 1), m_subnode_info(std::move(subblocks)) { }
 
     // btree_node_nonleaf implementation
     const node_id& get_key(uint pos) const
@@ -845,18 +818,12 @@ class subnode_leaf_block :
     public std::enable_shared_from_this<subnode_leaf_block>
 {
 public:
-    //! \brief Construct a block from disk
+    //! \brief Construct a subnode_leaf_block from disk
     //! \param[in] db The database context
     //! \param[in] info Information about this block
     //! \param[in] subnodes Information about the subnodes
-    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, subnode_info>>& subnodes)
-        : subnode_block(db, info, 0), m_subnodes(subnodes) { }
-    //! \brief Construct a block from disk, with an rvalue vector
-    //! \param[in] db The database context
-    //! \param[in] info Information about this block
-    //! \param[in] subnodes Information about the subnodes
-    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info>>&& subnodes)
-        : subnode_block(db, info, 0), m_subnodes(subnodes) { }
+    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info>> subnodes)
+        : subnode_block(db, info, 0), m_subnodes(std::move(subnodes)) { }
 
     // btree_node_leaf implementation
     const subnode_info& get_value(uint pos) const 

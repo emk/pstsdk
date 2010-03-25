@@ -81,6 +81,8 @@ protected:
 //!
 //! This hierarchy also models the \ref btree_node structure, inheriting the 
 //! actual iteration and lookup logic.
+//! \tparam K key type
+//! \tparam V value type
 //! \sa [MS-PST] 1.3.1.1
 //! \sa [MS-PST] 2.2.2.7.7
 //! \ingroup ndb_pagerelated
@@ -109,6 +111,8 @@ private:
 //!
 //! A bt_nonleaf_page makes up the body of the NBT and BBT (which differ only
 //! at the leaf). 
+//! \tparam K key type
+//! \tparam V value type
 //! \sa [MS-PST] 2.2.2.7.7.2
 //! \ingroup ndb_pagerelated
 template<typename K, typename V>
@@ -118,15 +122,13 @@ class bt_nonleaf_page :
     public std::enable_shared_from_this<bt_nonleaf_page<K,V>>
 {
 public:
-    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, const std::vector<std::pair<K, page_info>>& subpi)
-        : bt_page<K,V>(db, pi, level), m_page_info(subpi), m_child_pages(subpi.size()) { }
     //! \brief Construct a bt_nonleaf_page from disk
     //! \param[in] db The database context
     //! \param[in] pi Information about this page
     //! \param[in] level Distance from leaf
     //! \param[in] subpi Information about the child pages
-    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, std::vector<std::pair<K, page_info>>&& subpi)
-        : bt_page<K,V>(db, pi, level), m_page_info(subpi), m_child_pages() { m_child_pages.resize(m_page_info.size()); }
+    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, std::vector<std::pair<K, page_info>> subpi)
+        : bt_page<K,V>(db, pi, level), m_page_info(std::move(subpi)), m_child_pages(m_page_info.size()) { }
 
     // btree_node_nonleaf implementation
     const K& get_key(uint pos) const { return m_page_info[pos].first; }
@@ -139,6 +141,10 @@ private:
     mutable std::vector<std::shared_ptr<bt_page<K,V>>> m_child_pages; //!< Cached child pages
 };
 
+//! \brief Contains the actual key value pairs of the btree
+//! \tparam K key type
+//! \tparam V value type
+//! \ingroup ndb_pagerelated
 template<typename K, typename V>
 class bt_leaf_page : 
     public bt_page<K,V>, 
@@ -146,10 +152,12 @@ class bt_leaf_page :
     public std::enable_shared_from_this<bt_leaf_page<K,V>>
 {
 public:
-    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, const std::vector<std::pair<K,V>>& data)
-        : bt_page<K,V>(db, pi, 0), m_page_data(data) { }
-    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, std::vector<std::pair<K,V>>&& data)
-        : bt_page<K,V>(db, pi, 0), m_page_data(data) { }
+    //! \brief Construct a leaf page from disk
+    //! \param[in] db The database context
+    //! \param[in] pi Information about this page
+    //! \param[in] data The key/value pairs on this leaf page
+    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, std::vector<std::pair<K,V>> data)
+        : bt_page<K,V>(db, pi, 0), m_page_data(std::move(data)) { }
 
     // btree_node_leaf implementation
     const V& get_value(uint pos) const
@@ -160,7 +168,7 @@ public:
         { return m_page_data.size(); }
 
 private:
-    std::vector<std::pair<K,V>> m_page_data;
+    std::vector<std::pair<K,V>> m_page_data; //!< The key/value pairs on this leaf page
 };
 
 template<>
