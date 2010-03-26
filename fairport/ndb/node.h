@@ -632,7 +632,7 @@ public:
     //! \param[in] level The level of this extended block (1 or 2)
     //! \param[in] total_size The total logical size of this block
     //! \param[in] child_max_total_size The maximum logical size of a child block
-    //! \param[in] page_count_max The maximum number of external blocks that can be contained in this block
+    //! \param[in] page_max_count The maximum number of external blocks that can be contained in this block
     //! \param[in] child_page_max_count The maximum number of external blocks that can be contained in a child block
     //! \param[in] bi The \ref block_info for all child blocks
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<block_id> bi)
