@@ -285,11 +285,13 @@ void test_highlevel()
     shared_db_ptr ansi = open_database(L"test_ansi.pst");
     shared_db_ptr samp1 = open_database(L"sample1.pst");
     shared_db_ptr samp2 = open_database(L"sample2.pst");
+    shared_db_ptr submess = open_database(L"submessage.pst");
 
     iterate(uni);
     iterate(ansi);
     iterate(samp1);
     iterate(samp2);
+    iterate(submess);
 
     // only valid to call on samp1
     test_nameid_map_samp1(samp1);

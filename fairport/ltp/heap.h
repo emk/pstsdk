@@ -406,13 +406,14 @@ inline size_t fairport::heap_impl::size(heap_id id) const
 
 inline size_t fairport::heap_impl::read(std::vector<byte>& buffer, heap_id id, ulong offset) const
 {
-    if(buffer.size() > size(id))
+    size_t hid_size = size(id);
+    if(buffer.size() > hid_size)
         throw std::length_error("buffer.size() > size()");
 
-    if(offset > size(id))
+    if(offset > hid_size)
         throw std::length_error("offset > size()");
 
-    if(offset + buffer.size() > size(id))
+    if(offset + buffer.size() > hid_size)
         throw std::length_error("size + offset > size()");
 
     disk::heap_page_header header = m_node.read<disk::heap_page_header>(get_heap_page(id), 0);

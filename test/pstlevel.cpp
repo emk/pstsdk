@@ -29,7 +29,7 @@ void process_attachment(const fairport::attachment& a)
 
     wcout << "\t\t" << a.get_filename() << endl;
 
-    if(a.is_object())
+    if(a.is_message())
     {
         process_message(a.open_as_message());
     }

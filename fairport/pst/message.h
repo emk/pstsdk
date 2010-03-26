@@ -26,8 +26,8 @@ public:
         { return m_bag.open_prop_stream(0x3701); }
     size_t size() const
         { return m_bag.read_prop<uint>(0xe20); }
-    bool is_object() const
-        { return m_bag.get_prop_type(0x3701) == prop_type_object; }
+    bool is_message() const
+        { return m_bag.read_prop<uint>(0x3705) == 5; }
     message open_as_message() const;
 
     // lower layer access
@@ -40,8 +40,8 @@ private:
     attachment& operator=(const attachment&); // = delete
     friend class message;
     friend class attachment_transform;
-    attachment(const property_bag& attachment)
-        : m_bag(attachment) { }
+    attachment(property_bag attachment)
+        : m_bag(std::move(attachment)) { }
 
     property_bag m_bag;
 };
@@ -197,7 +197,7 @@ inline std::wstring fairport::attachment::get_filename() const
 
 inline fairport::message fairport::attachment::open_as_message() const
 {
-    if(!is_object()) 
+    if(!is_message()) 
         throw std::bad_cast();
 
     std::vector<byte> buffer = get_bytes();
