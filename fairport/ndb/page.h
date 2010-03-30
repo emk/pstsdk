@@ -170,7 +170,7 @@ public:
 private:
     std::vector<std::pair<K,V>> m_page_data; //!< The key/value pairs on this leaf page
 };
-
+//! \cond dont_show_these_member_function_specializations
 template<>
 inline bt_page<block_id, block_info>* bt_nonleaf_page<block_id, block_info>::get_child(uint pos)
 {
@@ -214,7 +214,7 @@ inline const bt_page<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::g
 
     return m_child_pages[pos].get();
 }
-
+//! \endcond
 } // end namespace
 
 #ifdef _MSC_VER

@@ -14,8 +14,10 @@
 
 #include "fairport/util/primatives.h"
 
+//! \brief Contains the definition of all in memory representations of disk structures
 namespace fairport
 {
+//! \brief Contains the definition of all structures as persisted to disk
 namespace disk
 {
 

@@ -1,3 +1,10 @@
+//! \file
+//! \brief Database implementation
+//! \author Terry Mahaffey
+//!
+//! Contains the db_context implementations for ANSI and Unicode stores
+//! \ingroup ndb
+
 #ifndef FAIRPORT_NDB_DATABASE_H
 #define FAIRPORT_NDB_DATABASE_H
 
@@ -25,21 +32,57 @@ class database_impl;
 typedef database_impl<ulonglong> large_pst;
 typedef database_impl<ulong> small_pst;
 
+//! \brief Open a db_context for the given file
+//! \throws invalid_format if the file format is not understood
+//! \throws runtime_error if an error occurs opening the file
+//! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) if the CRC of this header doesn't match
+//! \param[in] filename The filename to open
+//! \returns A shared_ptr to the opened context
+//! \ingroup ndb_databaserelated
 shared_db_ptr open_database(const std::wstring& filename);
+//! \brief Try to open the given file as an ANSI store
+//! \throws invalid_format if the file format is not ANSI
+//! \throws runtime_error if an error occurs opening the file
+//! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) if the CRC of this header doesn't match
+//! \param[in] filename The filename to open
+//! \returns A shared_ptr to the opened context
+//! \ingroup ndb_databaserelated
 std::shared_ptr<small_pst> open_small_pst(const std::wstring& filename);
+//! \brief Try to open the given file as a Unicode store
+//! \throws invalid_format if the file format is not Unicode
+//! \throws runtime_error if an error occurs opening the file
+//! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) if the CRC of this header doesn't match
+//! \param[in] filename The filename to open
+//! \returns A shared_ptr to the opened context
+//! \ingroup ndb_databaserelated
 std::shared_ptr<large_pst> open_large_pst(const std::wstring& filename);
 
+//! \brief PST implementation
+//!
+//! The actual implementation of a database context - this class is responsible
+//! for translating between the disk format (as indicated by the 
+//! template parameter) and the disk-agnostic in memory classes returned from
+//! the various factory methods.
+//!
+//! \ref open_database will instantiate the correct database_impl type for a
+//! given filename.
+//! \tparam T ulonglong for a Unicode store, ulong for an ANSI store
+//! \ingroup ndb_databaserelated
 template<typename T>
 class database_impl : public db_context
 {
 public:
 
+    //! \name Lookup functions
+    //@{
     node lookup_node(node_id nid)
         { return node(this->shared_from_this(), lookup_node_info(nid)); }
     node_info lookup_node_info(node_id nid);
     block_info lookup_block_info(block_id bid); 
-    
-    // page factory functions
+    //@}
+
+    //! \name Page factory functions
+    //@{
     std::shared_ptr<bbt_page> read_bbt_root();
     std::shared_ptr<nbt_page> read_nbt_root();
     std::shared_ptr<bbt_page> read_bbt_page(const page_info& pi);
@@ -48,7 +91,10 @@ public:
     std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const page_info& pi);
     std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(const page_info& pi);
     std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(const page_info& pi);
+    //@}
 
+    //! \name Block factory functions
+    //@{
     std::shared_ptr<block> read_block(const shared_db_ptr& parent, block_id bid)
         { return read_block(parent, lookup_block_info(bid)); }
     std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, block_id bid)
@@ -71,20 +117,43 @@ public:
     std::shared_ptr<subnode_block> read_subnode_block(const shared_db_ptr& parent, const block_info& bi);
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi);
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi);
+    //@}
 
+//! \cond write_api
     std::shared_ptr<external_block> create_external_block(const shared_db_ptr& parent, size_t size);
     std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, std::shared_ptr<external_block>& pblock);
     std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, std::shared_ptr<extended_block>& pblock);
     std::shared_ptr<extended_block> create_extended_block(const shared_db_ptr& parent, size_t size);
 
     block_id alloc_bid(bool is_internal);
+//! \endcond
 
 protected:
-    database_impl();
+    database_impl(); // = delete
+    //! \brief Construct a database_impl from this filename
+    //! \throws invalid_format if the file format is not understood
+    //! \throws runtime_error if an error occurs opening the file
+    //! \param[in] filename The filename to open
     database_impl(const std::wstring& filename);
+    //! \brief Validate the header of this file
+    //! \throws invalid_format if this header is for a database format incompatible with this object
+    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) if the CRC of this header doesn't match
     void validate_header();
 
+    //! \brief Read block data, perform validation checks
+    //! \param[in] bi The block information to read from disk
+    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \returns The validated block data (still "encrypted")
     std::vector<byte> read_block_data(const block_info& bi);
+    //! \brief Read page data, perform validation checks
+    //! \param[in] pi The page information to read from disk
+    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \returns The validated page data
     std::vector<byte> read_page_data(const page_info& pi);
 
     std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const page_info& pi, disk::nbt_leaf_page<T>& the_page);
@@ -106,6 +175,7 @@ protected:
     std::shared_ptr<nbt_page> m_nbt_root;
 };
 
+//! \cond dont_show_these_member_function_specializations
 template<>
 inline void database_impl<ulong>::validate_header()
 {
@@ -139,7 +209,7 @@ inline void database_impl<ulonglong>::validate_header()
         throw crc_fail("header dwCRCFull failure", 0, 0, crc_full, m_header.dwCRCFull);
 #endif
 }
-
+//! \endcond
 } // end namespace
 
 inline fairport::shared_db_ptr fairport::open_database(const std::wstring& filename)
@@ -537,6 +607,7 @@ inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::rea
     return std::shared_ptr<extended_block>(new extended_block(parent, bi, peblock->level, peblock->total_size, sub_size, disk::extended_block<T>::max_count, sub_page_count, std::move(child_blocks)));
 }
 
+//! \cond write_api
 template<typename T>
 inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::create_external_block(const shared_db_ptr& parent, size_t size)
 {
@@ -581,6 +652,7 @@ inline std::shared_ptr<fairport::extended_block> fairport::database_impl<T>::cre
 
     return std::shared_ptr<extended_block>(new extended_block(parent, level, size, child_max_size, disk::extended_block<T>::max_count, child_max_blocks));
 }
+//! \endcond
 
 template<typename T>
 inline std::shared_ptr<fairport::external_block> fairport::database_impl<T>::read_external_block(const shared_db_ptr& parent, const block_info& bi)
@@ -700,6 +772,7 @@ inline std::shared_ptr<fairport::subnode_nonleaf_block> fairport::database_impl<
     return std::shared_ptr<subnode_nonleaf_block>(new subnode_nonleaf_block(parent, bi, std::move(subnodes)));
 }
 
+//! \cond write_api
 template<typename T>
 inline fairport::block_id fairport::database_impl<T>::alloc_bid(bool is_internal)
 {
@@ -722,4 +795,6 @@ inline fairport::block_id fairport::database_impl<T>::alloc_bid(bool is_internal
 
     return next_bid;
 }
+//! \endcond
+
 #endif
