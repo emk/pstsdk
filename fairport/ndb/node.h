@@ -273,7 +273,7 @@ public:
     std::streamsize write(const char* pbuffer, std::streamsize n);
     //! \endcond
 
-    //! \brief Move the current position into the node
+    //! \brief Move the current position in the stream
     //! \param[in] off The offset to move the current position
     //! \param[in] way The location to move the current position from
     //! \returns The new position

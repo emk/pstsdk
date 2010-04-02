@@ -78,9 +78,12 @@ typedef bt_leaf_page<block_id, block_info> bbt_leaf_page;
 template<typename K, typename V>
 class const_btree_node_iter;
 
+//! \addtogroup ndb
+//@{
 typedef const_btree_node_iter<node_id, node_info> const_nodeinfo_iterator;
 typedef const_btree_node_iter<node_id, subnode_info> const_subnodeinfo_iterator;
 typedef const_btree_node_iter<block_id, block_info> const_blockinfo_iterator;
+//@}
 
 class block;
 class data_block;
@@ -91,8 +94,12 @@ class subnode_leaf_block;
 class subnode_nonleaf_block;
 
 class db_context;
+
+//! \addtogroup ndb
+//@{
 typedef std::shared_ptr<db_context> shared_db_ptr;
 typedef std::weak_ptr<db_context> weak_db_ptr;
+//@}
 
 //! \defgroup ndb_databaserelated Database
 //! \ingroup ndb

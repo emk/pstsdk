@@ -1,3 +1,8 @@
+//! \file
+//! \brief Table (or Table Context, or TC) implementation
+//! \author Terry Mahaffey
+//! \ingroup ltp
+
 #ifndef FAIRPORT_LTP_TABLE_H
 #define FAIRPORT_LTP_TABLE_H
 
@@ -16,20 +21,46 @@ namespace fairport
 {
 
 class table_impl;
+//! \addtogroup ltp_objectrelated
+//@{
 typedef std::shared_ptr<table_impl> table_ptr;
 typedef std::shared_ptr<const table_impl> const_table_ptr;
+//@}
 
+//! \brief Open the specified node as a table
+//! \param n The node to copy and interpret as a TC
+//! \ingroup ltp_objectrelated
 table_ptr open_table(const node& n);
+//! \brief Open the specified node as a table
+//! \param n The node to alias and interpret as a TC
+//! \ingroup ltp_objectrelated
 table_ptr open_table(const node&, alias_tag);
 
+//! \brief An abstraction of a table row
+//!
+//! A const_table_row represents a single row in a table. It models
+//! a \ref const_property_object, allowing access to the properties
+//! stored in the row.
+//! 
+//! This object is basically a thin wrapper around the table proper,
+//! it holds a reference to the table as well as the index of the 
+//! row it represents, and fowards most requests to the table.
+//! \ingroup ltp_objectrelated
 class const_table_row : public const_property_object
 {
 public:
+    //! \brief Copy construct this row
+    //! \param[in] other The row to copy from
     const_table_row(const const_table_row& other)
         : m_position(other.m_position), m_table(other.m_table) { }
+    //! \brief Construct a const_table_row object from a table and row offset
+    //! \param[in] position The offset into the table to represent
+    //! \param[in] table The table to reference
     const_table_row(ulong position, const const_table_ptr& table)
         : m_position(position), m_table(table) { }
 
+    //! \brief Get the row_id of this row
+    //! \returns The row_id of this row
     row_id get_row_id() const;
 
     // const_property_object
@@ -46,17 +77,32 @@ private:
     ulonglong get_value_8(prop_id id) const;
     std::vector<byte> get_value_variable(prop_id id) const;
 
-    ulong m_position;
-    const_table_ptr m_table;
+    ulong m_position;           //!< The row this object represents
+    const_table_ptr m_table;    //!< The table this object is a part of
 };
 
+//! \brief The iterator type exposed by the table for row iteration
+//!
+//! The iterator type is built using the boost iterator library. It is a 
+//! random access proxy iterator; which constructs a const_table_row
+//! from a position offset and table reference, allowing property access
+//! to the row.
+//! \ingroup ltp_objectrelated
 class const_table_row_iter : public boost::iterator_facade<const_table_row_iter, const_table_row, boost::random_access_traversal_tag, const_table_row>
 {
 public:
+    //! \brief Default constructor
     const_table_row_iter()
         : m_position(0) { }
+
+    //! \brief Construct an iterator from a position and table
+    //! \param[in] pos The offset into the table
+    //! \param[in] table The table
     const_table_row_iter(ulong pos, const const_table_ptr& table) 
         : m_position(pos), m_table(table)  { }
+
+private:
+    friend class boost::iterator_core_access;
 
     void increment() { ++m_position; }
     bool equal(const const_table_row_iter& other) const
@@ -67,37 +113,116 @@ public:
     void advance(int off) { m_position += off; }
     size_t distance_to(const const_table_row_iter& other) const
         { return (other.m_position - m_position); }
-private:
+
     ulong m_position;
     const_table_ptr m_table;
 };
 
+//! \brief Table implementation
+//!
+//! Similar to the \ref node and \ref heap classes, the table class is divided
+//! into an implementation class and stack based class. Child objects (in this
+//! case, table rows) can reference the implementation class and thus safely
+//! outlive the stack based class.
+//!
+//! A key difference in the table implementation, however, is that there are
+//! actually a few different types of tables. So instead of having one impl
+//! class, we have one impl base class to which everyone holds a shared pointer
+//! to, and several child classes which we instiate depending on the actual
+//! underlying table type. This is the table implementation "interface" class.
+//! \sa [MS-PST] 2.3.4
+//! \ingroup ltp_objectrelated
 class table_impl : public std::enable_shared_from_this<table_impl>
 {
 public:
     virtual ~table_impl() { }
+    //! \brief Find the offset into the table of the given row_id
+    //! \throws key_not_found<row_id> If the given row_id is not present in this table
+    //! \param[in] id The row id to lookup
+    //! \returns The offset into the table
     virtual ulong lookup_row(row_id id) const = 0;
 
+    //! \brief Get the requested table row
+    //! \param[in] row The offset into the table to construct a row for
+    //! \returns The requested row
     const_table_row operator[](ulong row) const
         { return const_table_row(row, shared_from_this()); }
+    //! \brief Get an iterator pointing to the first row
+    //! \returns The requested iterator
     const_table_row_iter begin() const
         { return const_table_row_iter(0, shared_from_this()); }
+    //! \brief Get an end iterator for this table
+    //! \returns The requested iterator
     const_table_row_iter end() const
         { return const_table_row_iter(size(), shared_from_this()); }
     
+    //! \brief Get the node backing this table
+    //! \returns The node
     virtual node& get_node() = 0;
+    //! \brief Get the node backing this table
+    //! \returns The node
     virtual const node& get_node() const = 0;
+    //! \brief Get the contents of the specified cell in the specified row
+    //! \throws key_not_found<prop_id> If the specified property does not exist on the specified row
+    //! \throws out_of_range If the specified row offset is beyond the size of this table
+    //! \param[in] row The offset into the table
+    //! \param[in] id The prop_id to find the cell value of
+    //! \returns The cell value
     virtual ulonglong get_cell_value(ulong row, prop_id id) const = 0;
+    //! \brief Get the contents of a indirect property in the specified row
+    //! \throws key_not_found<prop_id> If the specified property does not exist on the specified row
+    //! \throws out_of_range If the specified row offset is beyond the size of this table
+    //! \param[in] row The offset into the table
+    //! \param[in] id The prop_id to find the cell value of
+    //! \returns The raw bytes of the property
     virtual std::vector<byte> read_cell(ulong row, prop_id id) const = 0;
+    //! \brief Open a stream over a property in a given row
+    //! \throws key_not_found<prop_id> If the specified property does not exist on the specified row
+    //! \throws out_of_range If the specified row offset is beyond the size of this table
+    //! \param[in] row The offset into the table
+    //! \param[in] id The prop_id to find the cell value of
+    //! \returns A device which can be used to construct a stream object
     virtual hnid_stream_device open_cell_stream(ulong row, prop_id id) = 0;
+    //! \brief Get all of the properties on this table
+    //!
+    //! This returns the properties behind all of the columns which make up
+    //! this table. This doesn't imply that every property is present on every
+    //! row, however.
+    //! \returns A vector all of the column prop_ids
     virtual std::vector<prop_id> get_prop_list() const = 0;
+    //! \brief Get the type of a property
+    //! \returns The property type
     virtual prop_type get_prop_type(prop_id id) const = 0;
+    //! \brief Get the row id of a specified row
+    //! 
+    //! On disk, the first DWORD is always the row_id.
+    //! \sa [MS-PST] 2.3.4.4.1/dwRowID
+    //! \returns The row id
     virtual row_id get_row_id(ulong row) const = 0;
+    //! \brief Get the number of rows in this table
+    //! \returns The number of rows
     virtual size_t size() const = 0;
+    //! \brief Check to see if a property exists for a given row
+    //! \param[in] row The offset into the table
+    //! \param[in] id The prop_id
+    //! \returns true if the property exists
     virtual bool prop_exists(ulong row, prop_id id) const = 0;
 };
 
-// implementation of an ANSI TC (64k rows) and a unicode TC
+//! \brief Implementation of an ANSI TC (64k rows) and a unicode TC
+//!
+//! ANSI and Unicode TCs differ in the "row index" BTH. On an ANSI PST
+//! the type type is 2 bytes and in Unicode PSTs the value type is 4
+//! bytes. Since the value type is the row offset for a given row_id,
+//! that implies a 64k row limit for TCs in ANSI stores.
+//!
+//! Note that the information about the key/value size is stored in the
+//! BTH header. We use that to determine what type of table this is, rather
+//! than trying to figure out if we're opened over an ANSI or Unicode PST
+//! (which has been abstracted away from us at this point).
+//! \tparam T The size of the value type in the row index BTH - ushort for an ANSI table, ulong for a Unicode table
+//! \sa [MS-PST] 2.3.4.3.1/dwRowIndex
+//! \ingroup ltp_objectrelated
 template<typename T>
 class basic_table : public table_impl
 {
@@ -106,8 +231,7 @@ public:
         { return m_prows->get_node(); }
     const node& get_node() const
         { return m_prows->get_node(); }
-    ulong lookup_row(row_id id) const
-        { return (ulong)m_prows->lookup(id); }
+    ulong lookup_row(row_id id) const;
     ulonglong get_cell_value(ulong row, prop_id id) const;
     std::vector<byte> read_cell(ulong row, prop_id id) const;
     hnid_stream_device open_cell_stream(ulong row, prop_id id);
@@ -136,49 +260,95 @@ private:
     ushort m_offsets[disk::tc_offsets_max];
 
     // helper functions
+    //! \brief Calculate the number of bytes per row
+    //! \returns The number of bytes for a single row
     ulong cb_per_row() const { return m_offsets[disk::tc_offsets_bitmap]; }
+    //! \brief Get the offset of the CEB (cell existance bitmap)
+    //! \returns The offset into a row of the CEB
     ulong exists_bitmap_start() const { return m_offsets[disk::tc_offsets_one]; }
-    ulong rows_per_page() const { return (m_pnode_rowarray ? m_pnode_rowarray->get_page_size(1) / cb_per_row() : m_vec_rowarray.size() / cb_per_row()); }
+    //! \brief Calculate the number of rows per page (..external block)
+    //! \returns The number of rows which fit on a single external block
+    ulong rows_per_page() const { return (m_pnode_rowarray ? m_pnode_rowarray->get_page_size(0) / cb_per_row() : m_vec_rowarray.size() / cb_per_row()); }
+    //! \brief Read and interpret data from a row
+    //! \tparam Val the type to read
+    //! \param[in] row The row to read
+    //! \param[in] offset The offset into the row
     template<typename Val> Val read_raw_row(ulong row, ushort offset) const;
+    //! \brief Read the CEB for a given row
+    //! \returns The CEB
     std::vector<byte> read_exists_bitmap(ulong row) const;
 };
 
 typedef basic_table<ushort> small_table;
 typedef basic_table<ulong> large_table;
 
-// actual table object that clients instiantiate
+//! \brief The actual table object that clients reference
+//!
+//! The table object is an in memory representation of the table context (TC).
+//! Clients use the \ref open_table(const node&) free function to create table
+//! objects. 
+//!
+//! A table object's job in general is to allow access to the individual row
+//! objects, either via operator[] or the iterators. Most property access should
+//! go through the row objects. Other member functions allow for row and type
+//! lookup.
+//! \sa [MS-PST] 2.3.4
+//! \ingroup ltp_objectrelated
 class table
 {
 public:
+    //! \brief Construct a table from this node
+    //! \param[in] n The node to copy and interpret as a table
     explicit table(const node& n);
+    //! \brief Construct a table from this node
+    //! \param[in] n The node to alias and interpret as a table
     table(const node& n, alias_tag);
+    //! \brief Copy constructor
+    //! \param[in] other The table to copy
     table(const table& other);
+    //! \brief Alias constructor
+    //! \param[in] other The table to alias
     table(const table& other, alias_tag)
         : m_ptable(other.m_ptable) { }
 
+    //! \copydoc table_impl::operator[]()
     const_table_row operator[](ulong row) const
         { return (*m_ptable)[row]; }
+    //! \copydoc table_impl::begin()
     const_table_row_iter begin() const
         { return m_ptable->begin(); }
+    //! \copydoc table_impl::end()
     const_table_row_iter end() const
         { return m_ptable->end(); }
-    
+
+    //! \copydoc table_impl::get_node()    
     node& get_node() 
         { return m_ptable->get_node(); }
+    //! \copydoc table_impl::get_node() const
     const node& get_node() const
         { return m_ptable->get_node(); }
+    //! \copydoc table_impl::get_cell_value()
     ulonglong get_cell_value(ulong row, prop_id id) const
         { return m_ptable->get_cell_value(row, id); }
+    //! \copydoc table_impl::read_cell()
     std::vector<byte> read_cell(ulong row, prop_id id) const
         { return m_ptable->read_cell(row, id); }
+    //! \copydoc table_impl::open_cell_stream()
     hnid_stream_device open_cell_stream(ulong row, prop_id id)
         { return m_ptable->open_cell_stream(row, id); }
+    //! \copydoc table_impl::get_prop_list()
     std::vector<prop_id> get_prop_list() const
         { return m_ptable->get_prop_list(); }
+    //! \copydoc table_impl::get_prop_type()
     prop_type get_prop_type(prop_id id) const
         { return m_ptable->get_prop_type(id); }
+    //! \copydoc table_impl::get_row_id()
     row_id get_row_id(ulong row) const
         { return m_ptable->get_row_id(row); }
+    //! \copydoc table_impl::lookup_row()
+    ulong lookup_row(row_id id) const
+        { return m_ptable->lookup_row(id); }
+    //! \copydoc table_impl::size()
     size_t size() const
         { return m_ptable->size(); }
 private:
@@ -366,7 +536,20 @@ inline std::vector<fairport::prop_id> fairport::basic_table<T>::get_prop_list() 
 
     return props;
 }
-    
+
+template<typename T>
+inline fairport::ulong fairport::basic_table<T>::lookup_row(row_id id) const
+{ 
+    try 
+    { 
+        return (ulong)m_prows->lookup(id); 
+    } 
+    catch(key_not_found<T>& e) 
+    { 
+        throw key_not_found<row_id>(e.which()); 
+    } 
+}
+
 template<typename T>
 inline fairport::ulonglong fairport::basic_table<T>::get_cell_value(ulong row, prop_id id) const
 {

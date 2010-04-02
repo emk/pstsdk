@@ -1,3 +1,15 @@
+//! \file
+//! \brief Property access base class
+//! \author Terry Mahaffey
+//! 
+//! This file contains the base class used to access "properties" on "objects".
+//! It defines several virtual methods to access raw properties, and 
+//! child classes (specific object types) implement them. 
+//!
+//! In addition to defining a generic read_prop<T>(id) interface, it also
+//! defines a stream interface to access large properties.
+//! \ingroup ltp
+
 #ifndef FAIRPORT_LTP_OBJECT_H
 #define FAIRPORT_LTP_OBJECT_H
 
@@ -24,15 +36,33 @@
 namespace fairport
 {
 
+//! \defgroup ltp_objectrelated Property Objects
+//! \ingroup ltp
+
+//! \brief Defines a stream device which can wrap one of the two prop sources
+//!
+//! An hnid_steam_device wraps either a \ref hid_stream_device if the property
+//! being streamed is located in a heap, or a \ref node_stream_device if the
+//! property being streamed is contained in it's own subnode.
+//!
+//! It is a common feature in both types of property objects to allocate
+//! properties in the heap first, and then "roll over" to a subnode when/if
+//! the size of the property becomes too large to fit in a heap allocation.
+//! \sa [MS-PST] 2.3.3.2
+//! \ingroup ltp_objectrelated
 class hnid_stream_device : public boost::iostreams::device<boost::iostreams::input_seekable>
 {
 public:
+    //! \copydoc node_stream_device::read()
     std::streamsize read(char* pbuffer, std::streamsize n)
         { if(m_is_hid) return m_hid_device.read(pbuffer, n); else return m_node_device.read(pbuffer, n); }
+    //! \copydoc node_stream_device::seek()
     std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
         { if(m_is_hid) return m_hid_device.seek(off, way); else return m_node_device.seek(off, way); }
 
+    //! \brief Wrap a hid_stream_device
     hnid_stream_device(const hid_stream_device& hid_device) : m_hid_device(hid_device), m_is_hid(true) { }
+    //! \brief Wrap a node_stream_device
     hnid_stream_device(const node_stream_device& node_device) : m_node_device(node_device), m_is_hid(false) { }
 
 private:
@@ -43,20 +73,72 @@ private:
     std::streamsize m_pos;
 };
 
+//! \brief The actual property stream, defined using the boost iostream library
+//! and the \ref hnid_stream_device.
+//! \ingroup ltp_objectrelated
 typedef boost::iostreams::stream<hnid_stream_device> prop_stream;
 
+//! \brief Property object base class
+//!
+//! This class provides a simple interface (using templates) to access
+//! properties on an object. It defines a handful of virtual functions
+//! child classes implement to read the raw data.
+//!
+//! This class is contains all the conversion logic between the different
+//! types, implemented as template specializations, and other property
+//! logic such as multivalued property parsing.
+//! \ingroup ltp_objectrelated
 class const_property_object
 {
 public:
     virtual ~const_property_object() { }
+    //! \brief Get a list of all properties on this object
+    //! \returns A vector of all properties on this object
     virtual std::vector<prop_id> get_prop_list() const = 0;
+    //! \brief Get the property type of a given prop_id
+    //! \param id The prop_id
+    //! \throws key_not_found<prop_id> If the specified property is not present
+    //! \returns The type of the prop_id
     virtual prop_type get_prop_type(prop_id id) const = 0;
+    //! \brief Indicates the existance of a given property on this object
+    //! \param id The prop_id
+    //! \returns true if the property exists
     virtual bool prop_exists(prop_id id) const = 0;
 
+    //! \brief Read a property as a given type
+    //!
+    //! It is the callers responsibility to ensure the prop_id is of or 
+    //! convertable to the requested type.
+    //! \tparam T The type to interpret he property as
+    //! \param id The prop_id
+    //! \throws key_not_found<prop_id> If the specified property is not present
+    //! \returns The property value
     template<typename T>
     T read_prop(prop_id id) const;
+
+    //! \brief Read a property as an array of the given type
+    //!
+    //! It is the callers responsibility to ensure the prop_id is of or 
+    //! convertable to the requested type.
+    //! \tparam T The type to interpret he property as
+    //! \param id The prop_id
+    //! \throws key_not_found<prop_id> If the specified property is not present
+    //! \returns A vector of the property values
+    //! \sa [MS-PST] 2.3.3.4
     template<typename T>
     std::vector<T> read_prop_array(prop_id id) const;
+
+    //! \brief Creates a stream device over a property on this object
+    //!
+    //! The returned stream device can be used to construct a proper stream:
+    //! \code
+    //! const_property_object* po = ...;
+    //! prop_stream nstream(po->open_prop_stream(0x3001));
+    //! \endcode
+    //! Which can then be used as any iostream would be.
+    //! \param id The prop_id
+    //! \throws key_not_found<prop_id> If the specified property is not present
+    //! \returns A stream device for the requested property
     virtual hnid_stream_device open_prop_stream(prop_id id) = 0;
 
 // GCC has time_t defined as a typedef of a long, so calling
@@ -69,10 +151,15 @@ public:
 #endif
 
 protected:
+    //! \brief Implemented by child classes to fetch a 1 byte sized property
     virtual byte get_value_1(prop_id id) const = 0;
+    //! \brief Implemented by child classes to fetch a 2 byte sized property
     virtual ushort get_value_2(prop_id id) const = 0;
+    //! \brief Implemented by child classes to fetch a 4 byte sized property
     virtual ulong get_value_4(prop_id id) const = 0;
+    //! \brief Implemented by child classes to fetch a 8 byte sized property
     virtual ulonglong get_value_8(prop_id id) const = 0;
+    //! \brief Implemented by child classes to fetch a variable sized property
     virtual std::vector<byte> get_value_variable(prop_id id) const = 0;
 };
 

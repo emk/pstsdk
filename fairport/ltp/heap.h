@@ -1,6 +1,8 @@
 //! \file
 //! \brief Heap-on-Node (HN) and BTree-on-Heap (BTH) implementation
 //! \author Terry Mahaffey
+//! \ingroup ltp
+
 #ifndef FAIRPORT_LTP_HEAP_H
 #define FAIRPORT_LTP_HEAP_H
 
@@ -56,7 +58,9 @@ class hid_stream_device : public boost::iostreams::device<boost::iostreams::inpu
 {
 public:
     hid_stream_device() : m_pos(0), m_hid(0) { }
+    //! \copydoc node_stream_device::read()
     std::streamsize read(char* pbuffer, std::streamsize n);
+    //! \copydoc node_stream_device::seek()
     std::streampos seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way);
 
 private:

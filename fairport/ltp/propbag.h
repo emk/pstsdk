@@ -1,3 +1,8 @@
+//! \file
+//! \brief Property Bag (or Property Context, or PC) implementation
+//! \author Terry Mahaffey
+//! \ingroup ltp
+
 #ifndef FAIRPORT_LTP_PROPBAG_H
 #define FAIRPORT_LTP_PROPBAG_H
 
@@ -15,19 +20,46 @@
 namespace fairport
 {
 
+//! \addtogroup ltp_objectrelated
+//@{
 typedef bth_node<prop_id, disk::prop_entry> pc_bth_node;
 typedef bth_nonleaf_node<prop_id, disk::prop_entry> pc_bth_nonleaf_node;
 typedef bth_leaf_node<prop_id, disk::prop_entry> pc_bth_leaf_node;
+//@}
 
+//! \brief Property Context (PC) Implementation
+//!
+//! A Property Context is simply a BTH where the BTH is stored as the client
+//! root allocation in the heap. The BTH contains a "prop_entry", which is
+//! defines the type of the property and it's storage. 
+//!
+//! const_property_object does most of the heavy lifting in terms of 
+//! property access and interpretation.
+//! \sa [MS-PST] 2.3.3
+//! \ingroup ltp_objectrelated
 class property_bag : public const_property_object
 {
 public:
+    //! \brief Construct a property_bag from this node
+    //! \param[in] n The node to copy and interpret as a property_bag
     explicit property_bag(const node& n);
+    //! \brief Construct a property_bag from this node
+    //! \param[in] n The node to alias and interpret as a property_bag
     property_bag(const node& n, alias_tag);
+    //! \brief Construct a property_bag from this heap
+    //! \param[in] h The heap to copy and interpret as a property_bag
     explicit property_bag(const heap& h);
+    //! \brief Construct a property_bag from this heap
+    //! \param[in] h The heap to alias and interpret as a property_bag
     property_bag(const heap& h, alias_tag);
+    //! \brief Copy construct a property_bag
+    //! \param other The property bag to copy
     property_bag(const property_bag& other);
+    //! \brief Alias a property_bag
+    //! \param other The property bag to alias
     property_bag(const property_bag& other, alias_tag);
+    //! \brief Move construct a property_bag
+    //! \param other The property bag to move from
     property_bag(property_bag&& other) : m_pbth(std::move(other.m_pbth)) { }
 
     std::vector<prop_id> get_prop_list() const;
@@ -36,7 +68,11 @@ public:
     bool prop_exists(prop_id id) const;
     hnid_stream_device open_prop_stream(prop_id id);
     
+    //! \brief Get the node underlying this property_bag
+    //! \returns The node
     const node& get_node() const { return m_pbth->get_node(); }
+    //! \brief Get the node underlying this property_bag
+    //! \returns The node
     node& get_node() { return m_pbth->get_node(); }
 
 private:
