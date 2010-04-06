@@ -9,10 +9,35 @@
 #ifndef PSTSDK_UTIL_PRIMATIVES_H
 #define PSTSDK_UTIL_PRIMATIVES_H
 
+//
 // Global compiler hacks
+//
+
+// GCC
 #ifdef __GNUC__
+
+// Test with GCC 4.5 someday
 #define NO_LAMBDA
 #define NO_NULLPTR
+
+// Turn off rvalue references for versions before GCC 4.4
+#if !((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 4))
+#define NO_RVALUE_REF
+#endif
+
+#endif
+
+// MSVC
+#if defined(_MSC_VER)
+
+// Turn off all C++0x features for versions before VC10
+#if !(_MSC_VER >= 1600)
+#pragma message("C++0x features disabled - consider using VC10")
+#define NO_LAMBDA
+#define NO_NULLPTR
+#define NO_RVALUE_REF
+#endif
+
 #endif
 
 //! \brief Global Validation Settings
