@@ -19,7 +19,7 @@
 //!      - Boost.Iostreams
 //!      - Boost.Iterators
 //!      - Boost.Utility
-//! - GCC 4.4.x or Visual Studio 2010 (for C++0x features such as rvalue references)
+//! - GCC 4.4.x (with -std=c++0x) or Visual Studio 2010
 //!
 //! \section main_getting_help Additional Documentation
 //! See the Documentation on the 
