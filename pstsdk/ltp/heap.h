@@ -221,10 +221,13 @@ public:
     //! \param[in] other The heap to alias. The constructed object will share a heap_impl object with other.
     heap(const heap& other, alias_tag)
         : m_pheap(other.m_pheap) { }
+
+#ifndef NO_RVALUE_REF
     //! \brief Move constructor
     //! \param[in] other The heap to move from
     heap(heap&& other)
         : m_pheap(std::move(other.m_pheap)) { }
+#endif
 
     //! \copydoc heap_impl::size()
     size_t size(heap_id id) const

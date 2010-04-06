@@ -59,10 +59,13 @@ public:
     //! \param[in] filename The pst file to open on disk
     pst(const std::wstring& filename) 
         : m_db(open_database(filename)) { }
+
+#ifndef NO_RVALUE_REF
     //! \brief Move constructor
     //! \param[in] other The other pst file
     pst(pst&& other)
         : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)), m_map(std::move(other.m_map)) { }
+#endif
 
     // subobject discovery/enumeration
     //! \brief Get an iterator to the first folder in the PST file

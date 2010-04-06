@@ -58,9 +58,12 @@ public:
     //! \brief Alias a property_bag
     //! \param other The property bag to alias
     property_bag(const property_bag& other, alias_tag);
+
+#ifndef NO_RVALUE_REF
     //! \brief Move construct a property_bag
     //! \param other The property bag to move from
     property_bag(property_bag&& other) : m_pbth(std::move(other.m_pbth)) { }
+#endif
 
     std::vector<prop_id> get_prop_list() const;
     prop_type get_prop_type(prop_id id) const

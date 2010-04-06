@@ -71,10 +71,13 @@ public:
         : m_db(db), m_bag(n) { }
     //! \brief Copy construct a search folder object
     search_folder(const search_folder& other);
+
+#ifndef NO_RVALUE_REF
     //! \brief Move construct a search folder
     search_folder(search_folder&& other)
         : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)), m_contents_table(std::move(other.m_contents_table)) { }
-
+#endif
+    
     // subobject discovery/enumeration
     //! \brief Get an iterator to the first message in this folder
     //! \returns an iterator positioned on the first message in this folder
@@ -195,10 +198,13 @@ public:
     //! \brief Copy construct a folder object
     //! \param[in] other folder to copy
     folder(const folder& other);
+
+#ifndef NO_RVALUE_REF
     //! \brief Move construct a folder object
     //! \param[in] other folder to move from
     folder(folder&& other)
         : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)), m_contents_table(std::move(other.m_contents_table)), m_associated_contents_table(std::move(other.m_associated_contents_table)), m_hierarchy_table(std::move(other.m_hierarchy_table)) { }
+#endif
 
     // subobject discovery/enumeration
     //! \brief Get an iterator to the first folder in this folder

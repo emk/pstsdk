@@ -38,14 +38,6 @@ public:
     
     //! \brief Close the file
     ~file();
-    
-    //! \brief Move constructor
-    //! \param[in] other file object to move from
-    file(file&& other);
-
-    //! \brief Move assignment operator
-    //! \param[in] other file object to move from
-    file& operator=(file&& other);
 
     //! \brief Read from the file
     //! \throw out_of_range if the requested location or location+size is past EOF
@@ -54,12 +46,14 @@ public:
     //! \returns The amount of data read
     size_t read(std::vector<byte>& buffer, ulonglong offset) const;
 
+//! \cond write_api
     //! \brief Write to the file
     //! \throw out_of_range if the requested location or location+size is past EOF
     //! \param[in] buffer The data to write. The size of this vector is the amount of data to write.
     //! \param[in] offset The location on disk to read the data from.
     //! \returns The amount of data written
     size_t write(const std::vector<byte>& buffer, ulonglong offset);
+//! \endcond
 
 private:
     std::wstring m_filename;    //!< The filename used to open this file
@@ -126,24 +120,10 @@ inline pstsdk::file::file(const std::wstring& filename)
     if(err != 0)
         m_pfile = NULL;
 #else
-    m_pfile = fopen(std::string(filename.begin(), filename.end()).c_str(), mode);
+    m_pfile = fopen64(std::string(filename.begin(), filename.end()).c_str(), mode);
 #endif
     if(m_pfile == NULL)
         throw std::runtime_error("fopen failed");
-}
-
-inline pstsdk::file::file(file&& other)
-: m_filename(std::move(other.m_filename)), m_pfile(other.m_pfile)
-{
-    other.m_pfile = NULL;
-}
-
-inline pstsdk::file& pstsdk::file::operator=(file&& other)
-{
-    std::swap(m_pfile, other.m_pfile);
-    std::swap(m_filename, other.m_filename);
-
-    return *this;
 }
 
 inline pstsdk::file::~file()
@@ -157,7 +137,7 @@ inline size_t pstsdk::file::read(std::vector<byte>& buffer, ulonglong offset) co
 #ifdef _MSC_VER
     if(_fseeki64(m_pfile, offset, SEEK_SET) != 0)
 #else
-    if(fseek(m_pfile, offset, SEEK_SET) != 0)
+    if(fseeko64(m_pfile, offset, SEEK_SET) != 0)
 #endif
     {
         throw std::out_of_range("fseek failed");

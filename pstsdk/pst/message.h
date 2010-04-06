@@ -114,10 +114,12 @@ public:
     //! \param[in] n The node backing the message which has these attachments
     explicit attachment_transform(const node& n) 
         : m_node(n) { }
+#ifndef NO_RVALUE_REF
     //! \brief Move constructor for transform objects
     //! \param[in] other The transform object to move from
     attachment_transform(attachment_transform&& other)
         : m_node(std::move(other.m_node)) { }
+#endif
     //! \brief Perform the transform
     //! \param[in] row A row from the messages attachment table
     //! \returns An attachment object
@@ -208,9 +210,12 @@ public:
     explicit message(const node& n)
         : m_bag(n) { }
     message(const message& other);
+
+#ifndef NO_RVALUE_REF
     message(message&& other)
         : m_bag(std::move(other.m_bag)), m_attachment_table(std::move(other.m_attachment_table)), m_recipient_table(std::move(other.m_recipient_table)) { }
-     
+#endif     
+    
     // subobject discovery/enumeration
     //! \brief Get an iterator to the first message on this message
     //! \returns an iterator positioned on the first attachment on this message

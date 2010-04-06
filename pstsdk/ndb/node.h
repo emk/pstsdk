@@ -353,14 +353,16 @@ public:
     node(const node& other, alias_tag)
         : m_pimpl(other.m_pimpl) { }
 
+#ifndef NO_RVALUE_REF
     //! \brief Move constructor
     //! \param[in] other Node to move from
     node(node&& other)
         : m_pimpl(std::move(other.m_pimpl)) { }
+#endif
 
     //! \copydoc node_impl::operator=()
     node& operator=(const node& other)
-        { m_pimpl = other.m_pimpl; return *this; }
+        { *m_pimpl = *(other.m_pimpl); return *this; }
 
     //! \copydoc node_impl::get_id()
     node_id get_id() const { return m_pimpl->get_id(); }
