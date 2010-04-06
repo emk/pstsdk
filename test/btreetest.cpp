@@ -2,10 +2,10 @@
 #include <string>
 #include <cstring>
 #include <cassert>
-#include "fairport/util/btree.h"
+#include "pstsdk/util/btree.h"
 #include "test.h"
 
-using namespace fairport;
+using namespace pstsdk;
 using namespace std;
 
 class leaf : public btree_node_leaf<int, string>

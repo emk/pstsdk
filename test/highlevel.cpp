@@ -2,13 +2,13 @@
 #include <iostream>
 #include <string>
 #include "test.h"
-#include "fairport/ndb.h"
-#include "fairport/ltp.h"
+#include "pstsdk/ndb.h"
+#include "pstsdk/ltp.h"
 
 // this function works because the set of named props present in sample1.pst is known
-void test_nameid_map_samp1(fairport::shared_db_ptr pdb)
+void test_nameid_map_samp1(pstsdk::shared_db_ptr pdb)
 {
-    using namespace fairport;
+    using namespace pstsdk;
     name_id_map nm(pdb);
 
     const guid g1 = { 0x20386, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
@@ -53,11 +53,11 @@ void test_nameid_map_samp1(fairport::shared_db_ptr pdb)
     assert(not_found);
 }
 
-void test_prop_stream(fairport::const_property_object& obj, fairport::prop_id id)
+void test_prop_stream(pstsdk::const_property_object& obj, pstsdk::prop_id id)
 {
-    fairport::prop_stream stream(obj.open_prop_stream(id));
-    std::vector<fairport::byte> contents = obj.read_prop<std::vector<fairport::byte>>(id);
-    fairport::byte b;
+    pstsdk::prop_stream stream(obj.open_prop_stream(id));
+    std::vector<pstsdk::byte> contents = obj.read_prop<std::vector<pstsdk::byte>>(id);
+    pstsdk::byte b;
     size_t pos = 0;
 
     stream.unsetf(std::ios::skipws);
@@ -65,10 +65,10 @@ void test_prop_stream(fairport::const_property_object& obj, fairport::prop_id id
         assert(b == contents[pos++]);
 }
 
-void test_table(const fairport::table& tc)
+void test_table(const pstsdk::table& tc)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
 
     wcout << "Properties on this table (" << tc.size() << "): " << endl;
     std::vector<prop_id> prop_list = tc.get_prop_list();
@@ -114,10 +114,10 @@ void test_table(const fairport::table& tc)
     }
 }
 
-void test_attachment_table(const fairport::node& message, const fairport::table& tc)
+void test_attachment_table(const pstsdk::node& message, const pstsdk::table& tc)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
     for(uint i = 0; i < tc.size(); ++i)
     {
         node attach = message.lookup(tc[i].get_row_id());
@@ -152,10 +152,10 @@ void test_attachment_table(const fairport::node& message, const fairport::table&
     }
 }
 
-void iterate(fairport::shared_db_ptr pdb)
+void iterate(pstsdk::shared_db_ptr pdb)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
     shared_ptr<const nbt_page> nbt_root = pdb->read_nbt_root();
     for(const_nodeinfo_iterator iter = nbt_root->begin();
             iter != nbt_root->end();
@@ -279,7 +279,7 @@ void iterate(fairport::shared_db_ptr pdb)
 
 void test_highlevel()
 {
-    using namespace fairport;
+    using namespace pstsdk;
 
     shared_db_ptr uni = open_database(L"test_unicode.pst");
     shared_db_ptr ansi = open_database(L"test_ansi.pst");

@@ -1,12 +1,12 @@
 #include <iostream>
 #include <cassert>
-#include "fairport/disk/disk.h"
-#include "fairport/ndb.h"
+#include "pstsdk/disk/disk.h"
+#include "pstsdk/ndb.h"
 
 struct node_info
 {
-    fairport::node_id node;
-    fairport::node_id parent;
+    pstsdk::node_id node;
+    pstsdk::node_id parent;
 };
 
 const node_info node_info_uni[] = {
@@ -37,9 +37,9 @@ const node_info node_info_ansi[] = {
 
 struct block_info
 {
-    fairport::block_id block;
-    fairport::ushort size;
-    fairport::ushort refs;
+    pstsdk::block_id block;
+    pstsdk::ushort size;
+    pstsdk::ushort refs;
 };
 
 const block_info block_info_uni[] = {
@@ -69,10 +69,10 @@ const block_info block_info_ansi[] = {
     { 328, 104, 2 }, { 332, 132, 2 }
 };
 
-void process_node(const fairport::node& n)
+void process_node(const pstsdk::node& n)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
 
     for(const_subnodeinfo_iterator iter = n.subnode_info_begin();
                     iter != n.subnode_info_end();
@@ -100,9 +100,9 @@ size_t step_size_down(size_t i)
 }
 
 template<typename T>
-void test_node_impl(fairport::node& n, size_t expected)
+void test_node_impl(pstsdk::node& n, size_t expected)
 {
-    using namespace fairport;
+    using namespace pstsdk;
 
     assert(n.size() == expected);
 
@@ -126,7 +126,7 @@ void test_node_impl(fairport::node& n, size_t expected)
 }
 
 template<typename T>
-void test_node_resize(fairport::node n)
+void test_node_resize(pstsdk::node n)
 {
     // ramp up
     for(size_t i = 1000; i < 10000000; i += step_size_up(i))
@@ -144,10 +144,10 @@ void test_node_resize(fairport::node n)
 }
 
 template<typename T>
-void test_node_stream(fairport::node n)
+void test_node_stream(pstsdk::node n)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
 
     vector<byte> contents(n.size());
     byte b;
@@ -193,7 +193,7 @@ void test_node_stream(fairport::node n)
 void test_db()
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
     bool caught_invalid_format = false;
     uint node = 0;
     uint block = 0;
@@ -234,7 +234,7 @@ void test_db()
     {
         assert(iter->id == node_info_uni[node].node);
         assert(iter->parent_id == node_info_uni[node].parent);
-        fairport::node n(db_2, *iter);
+        pstsdk::node n(db_2, *iter);
         process_node(n);
     }
     test_node_resize<ulonglong>(db_2->lookup_node(nid_message_store));
@@ -259,7 +259,7 @@ void test_db()
     {
         assert(iter->id == node_info_ansi[node].node);
         assert(iter->parent_id == node_info_ansi[node].parent);
-        fairport::node n(db_3, *iter);
+        pstsdk::node n(db_3, *iter);
         process_node(n);
     }
     test_node_resize<ulong>(db_3->lookup_node(nid_message_store));

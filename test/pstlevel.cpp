@@ -5,27 +5,27 @@
 
 #include "test.h"
 
-#include "fairport/ndb/database.h"
-#include "fairport/ndb/database_iface.h"
-#include "fairport/ndb/page.h"
+#include "pstsdk/ndb/database.h"
+#include "pstsdk/ndb/database_iface.h"
+#include "pstsdk/ndb/page.h"
 
-#include "fairport/pst/message.h"
-#include "fairport/pst/folder.h"
-#include "fairport/pst/pst.h"
+#include "pstsdk/pst/message.h"
+#include "pstsdk/pst/folder.h"
+#include "pstsdk/pst/pst.h"
 
-void process_recipient(const fairport::recipient& r)
+void process_recipient(const pstsdk::recipient& r)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
 
     wcout << "\t\t" << r.get_name() << "(" << r.get_email_address() << ")\n";
 }
 
-void process_message(const fairport::message& m);
-void process_attachment(const fairport::attachment& a)
+void process_message(const pstsdk::message& m);
+void process_attachment(const pstsdk::attachment& a)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
 
     wcout << "\t\t" << a.get_filename() << endl;
 
@@ -42,10 +42,10 @@ void process_attachment(const fairport::attachment& a)
     }
 }
 
-void process_message(const fairport::message& m)
+void process_message(const pstsdk::message& m)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
 
     wcout << "Message Subject: " << m.get_subject() << endl;
     wcout << "\tAttachment Count: " << m.get_attachment_count() << endl;
@@ -64,10 +64,10 @@ void process_message(const fairport::message& m)
 }
 
 
-void process_folder(const fairport::folder& f)
+void process_folder(const pstsdk::folder& f)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
 
     wcout << "Folder (M" << f.get_message_count() << ", F" << f.get_subfolder_count() << ") : " << f.get_name() << endl;
 
@@ -76,10 +76,10 @@ void process_folder(const fairport::folder& f)
     for_each(f.sub_folder_begin(), f.sub_folder_end(), process_folder);
 }
 
-void process_pst(const fairport::pst& p)
+void process_pst(const pstsdk::pst& p)
 {
     using namespace std;
-    using namespace fairport;
+    using namespace pstsdk;
 
     wcout << "PST Name: " << p.get_name() << endl;
     folder root = p.open_root_folder();
@@ -88,7 +88,7 @@ void process_pst(const fairport::pst& p)
 
 void test_pstlevel()
 {
-    using namespace fairport;
+    using namespace pstsdk;
 
     pst uni(L"test_unicode.pst");
     pst ansi(L"test_ansi.pst");
