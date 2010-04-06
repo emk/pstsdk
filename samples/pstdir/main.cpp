@@ -2,9 +2,9 @@
 #include <algorithm>       // for_each
 #include <functional>      // bind
 
-#include "fairport/pst.h"
+#include "pstsdk/pst.h"
 
-using namespace fairport;
+using namespace pstsdk;
 using namespace std;
 using namespace std::placeholders;
 

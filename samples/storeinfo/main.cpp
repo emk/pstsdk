@@ -1,11 +1,11 @@
 #include <iostream>
 #include <vector>
 
-#include "fairport/ndb/database.h"
+#include "pstsdk/ndb/database.h"
 
-#include "fairport/ltp/propbag.h"
+#include "pstsdk/ltp/propbag.h"
 
-using namespace fairport;
+using namespace pstsdk;
 
 void wmain(int argc, wchar_t* argv[])
 {

@@ -76,8 +76,8 @@ foreach (0 ... $#ARGV) {
     print "#include \"$ARGV[$_]\"\n";
 };
 print "\n";
-print "using namespace fairport;\n";
-print "using namespace fairport::disk;\n";
+print "using namespace pstsdk;\n";
+print "using namespace pstsdk::disk;\n";
 print "\n";
 print "struct pstvalue\n";
 print "{\n";

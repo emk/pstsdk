@@ -3,14 +3,14 @@
 #include <string>
 #include <vector>
 
-#include "fairport/util/primatives.h"
+#include "pstsdk/util/primatives.h"
 
-#include "fairport/ltp/propbag.h"
+#include "pstsdk/ltp/propbag.h"
 
-#include "fairport/pst/pst.h"
+#include "pstsdk/pst/pst.h"
 
 using namespace std;
-using namespace fairport;
+using namespace pstsdk;
 
 void pretty_print(const guid& g, bool special)
 {
