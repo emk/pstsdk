@@ -1,10 +1,10 @@
 //! \defgroup util Util Layer
-#ifndef FAIRPORT_UTIL_H
-#define FAIRPORT_UTIL_H
+#ifndef PSTSDK_UTIL_H
+#define PSTSDK_UTIL_H
 
-#include "fairport/util/btree.h"
-#include "fairport/util/errors.h"
-#include "fairport/util/primatives.h"
-#include "fairport/util/util.h"
+#include "pstsdk/util/btree.h"
+#include "pstsdk/util/errors.h"
+#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/util.h"
 
 #endif

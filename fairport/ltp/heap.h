@@ -3,8 +3,8 @@
 //! \author Terry Mahaffey
 //! \ingroup ltp
 
-#ifndef FAIRPORT_LTP_HEAP_H
-#define FAIRPORT_LTP_HEAP_H
+#ifndef PSTSDK_LTP_HEAP_H
+#define PSTSDK_LTP_HEAP_H
 
 #include <vector>
 #include <algorithm>
@@ -19,18 +19,18 @@
 #pragma warning(pop)
 #endif
 
-#include "fairport/util/primatives.h"
+#include "pstsdk/util/primatives.h"
 
-#include "fairport/disk/disk.h"
+#include "pstsdk/disk/disk.h"
 
-#include "fairport/ndb/node.h"
+#include "pstsdk/ndb/node.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4250)
 #endif
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \defgroup ltp_heaprelated Heap
@@ -91,7 +91,7 @@ class heap_impl : public std::enable_shared_from_this<heap_impl>
 public:
     //! \brief Get the size of the given allocation
     //! \param[in] id The heap allocation to get the size of
-    //! \throws length_error (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page or index of the allocation as indicated by the id are out of bounds for this node
+    //! \throws length_error (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page or index of the allocation as indicated by the id are out of bounds for this node
     //! \returns The size of the allocation
     size_t size(heap_id id) const;
     
@@ -120,7 +120,7 @@ public:
     byte get_client_signature() const;
     
     //! \brief Read data out of a specified allocation at the specified offset
-    //! \throws length_error (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page, index, or size of the allocation are out of bounds
+    //! \throws length_error (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page, index, or size of the allocation are out of bounds
     //! \param[in] buffer The location to store the data. The size of the buffer indicates the amount of data to read
     //! \param[in] id The heap allocation to read from
     //! \param[in] offset The offset into id to read starting at
@@ -128,7 +128,7 @@ public:
     size_t read(std::vector<byte>& buffer, heap_id id, ulong offset) const;
     
     //! \brief Read an entire allocation
-    //! \throws length_error (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page or index of the allocation as indicated by the id are out of bounds for this node
+    //! \throws length_error (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page or index of the allocation as indicated by the id are out of bounds for this node
     //! \param[in] id The allocation to read
     //! \returns The entire allocation
     std::vector<byte> read(heap_id id) const;
@@ -290,7 +290,7 @@ class bth_node :
 {
 public:
     //! \brief Opens a BTH node from the specified heap at the given root
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If this allocation doesn't have the BTH stamp
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If this allocation doesn't have the BTH stamp
     //! \throws logic_error If the specified key/value type sizes do not match what is in the BTH header
     //! \param[in] h The heap to open out of
     //! \param[in] bth_root The allocation containing the bth header
@@ -409,10 +409,10 @@ private:
     std::vector<std::pair<K,V>> m_bth_data;
 };
 
-} // end fairport namespace
+} // end pstsdk namespace
 
 template<typename K, typename V>
-inline std::unique_ptr<fairport::bth_node<K,V>> fairport::bth_node<K,V>::open_root(const heap_ptr& h, heap_id bth_root)
+inline std::unique_ptr<pstsdk::bth_node<K,V>> pstsdk::bth_node<K,V>::open_root(const heap_ptr& h, heap_id bth_root)
 {
     disk::bth_header* pheader;
     std::vector<byte> buffer(sizeof(disk::bth_header));
@@ -420,7 +420,7 @@ inline std::unique_ptr<fairport::bth_node<K,V>> fairport::bth_node<K,V>::open_ro
 
     h->read(buffer, bth_root, 0);
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(pheader->bth_signature != disk::heap_sig_bth)
         throw sig_mismatch("bth_signature expected", 0, bth_root, pheader->bth_signature, disk::heap_sig_bth);
 
@@ -438,7 +438,7 @@ inline std::unique_ptr<fairport::bth_node<K,V>> fairport::bth_node<K,V>::open_ro
 }
 
 template<typename K, typename V>
-inline std::unique_ptr<fairport::bth_nonleaf_node<K,V>> fairport::bth_node<K,V>::open_nonleaf(const heap_ptr& h, heap_id id, ushort level)
+inline std::unique_ptr<pstsdk::bth_nonleaf_node<K,V>> pstsdk::bth_node<K,V>::open_nonleaf(const heap_ptr& h, heap_id id, ushort level)
 {
     uint num_entries = h->size(id) / sizeof(disk::bth_nonleaf_entry<K>);
     std::vector<byte> buffer(h->size(id));
@@ -458,7 +458,7 @@ inline std::unique_ptr<fairport::bth_nonleaf_node<K,V>> fairport::bth_node<K,V>:
 }
     
 template<typename K, typename V>
-inline std::unique_ptr<fairport::bth_leaf_node<K,V>> fairport::bth_node<K,V>::open_leaf(const heap_ptr& h, heap_id id)
+inline std::unique_ptr<pstsdk::bth_leaf_node<K,V>> pstsdk::bth_node<K,V>::open_leaf(const heap_ptr& h, heap_id id)
 {
     std::vector<std::pair<K, V>> entries; 
 
@@ -487,7 +487,7 @@ inline std::unique_ptr<fairport::bth_leaf_node<K,V>> fairport::bth_node<K,V>::op
 }
 
 template<typename K, typename V>
-inline fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child(uint pos)
+inline pstsdk::bth_node<K,V>* pstsdk::bth_nonleaf_node<K,V>::get_child(uint pos)
 {
     if(m_child_nodes[pos] == NULL)
     {
@@ -501,7 +501,7 @@ inline fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child(uint 
 }
 
 template<typename K, typename V>
-inline const fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child(uint pos) const
+inline const pstsdk::bth_node<K,V>* pstsdk::bth_nonleaf_node<K,V>::get_child(uint pos) const
 {
     if(m_child_nodes[pos] == NULL)
     {
@@ -514,37 +514,37 @@ inline const fairport::bth_node<K,V>* fairport::bth_nonleaf_node<K,V>::get_child
     return m_child_nodes[pos].get();
 }
 
-inline fairport::heap_impl::heap_impl(const node& n)
+inline pstsdk::heap_impl::heap_impl(const node& n)
 : m_node(n)
 {
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(first_header.signature != disk::heap_signature)
         throw sig_mismatch("invalid heap_sig", 0, n.get_id(), first_header.signature, disk::heap_signature);
 #endif
 }
 
-inline fairport::heap_impl::heap_impl(const node& n, alias_tag)
+inline pstsdk::heap_impl::heap_impl(const node& n, alias_tag)
 : m_node(n, alias_tag())
 {
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(first_header.signature != disk::heap_signature)
         throw sig_mismatch("invalid heap_sig", 0, n.get_id(), first_header.signature, disk::heap_signature);
 #endif
 }
 
-inline fairport::heap_impl::heap_impl(const node& n, byte client_sig)
+inline pstsdk::heap_impl::heap_impl(const node& n, byte client_sig)
 : m_node(n)
 {
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(first_header.signature != disk::heap_signature)
         throw sig_mismatch("invalid heap_sig", 0, n.get_id(), first_header.signature, disk::heap_signature);
 #endif
@@ -552,13 +552,13 @@ inline fairport::heap_impl::heap_impl(const node& n, byte client_sig)
         throw sig_mismatch("invalid client_sig", 0, n.get_id(), first_header.client_signature, client_sig);
 }
 
-inline fairport::heap_impl::heap_impl(const node& n, byte client_sig, alias_tag)
+inline pstsdk::heap_impl::heap_impl(const node& n, byte client_sig, alias_tag)
 : m_node(n, alias_tag())
 {
     // need to throw if the node is smaller than first_header
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(first_header.signature != disk::heap_signature)
         throw sig_mismatch("invalid heap_sig", 0, n.get_id(), first_header.signature, disk::heap_signature);
 #endif
@@ -566,23 +566,23 @@ inline fairport::heap_impl::heap_impl(const node& n, byte client_sig, alias_tag)
         throw sig_mismatch("invalid client_sig", 0, n.get_id(), first_header.client_signature, client_sig);
 }
 
-inline fairport::heap_id fairport::heap_impl::get_root_id() const
+inline pstsdk::heap_id pstsdk::heap_impl::get_root_id() const
 {
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
     return first_header.root_id;
 }
 
-inline fairport::byte fairport::heap_impl::get_client_signature() const
+inline pstsdk::byte pstsdk::heap_impl::get_client_signature() const
 {
     disk::heap_first_header first_header = m_node.read<disk::heap_first_header>(0);
     return first_header.client_signature;
 }
 
-inline size_t fairport::heap_impl::size(heap_id id) const
+inline size_t pstsdk::heap_impl::size(heap_id id) const
 {
     disk::heap_page_header header = m_node.read<disk::heap_page_header>(get_heap_page(id), 0);
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(header.page_map_offset > m_node.get_page_size(get_heap_page(id)))
         throw std::length_error("page_map_offset > node size");
 #endif
@@ -591,7 +591,7 @@ inline size_t fairport::heap_impl::size(heap_id id) const
     m_node.read(buffer, get_heap_page(id), header.page_map_offset);
     disk::heap_page_map* pmap = reinterpret_cast<disk::heap_page_map*>(&buffer[0]);
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(get_heap_index(id) > pmap->num_allocs)
         throw std::length_error("index > num_allocs");
 #endif
@@ -599,11 +599,11 @@ inline size_t fairport::heap_impl::size(heap_id id) const
     return pmap->allocs[get_heap_index(id) + 1] - pmap->allocs[get_heap_index(id)];
 }
 
-inline size_t fairport::heap_impl::read(std::vector<byte>& buffer, heap_id id, ulong offset) const
+inline size_t pstsdk::heap_impl::read(std::vector<byte>& buffer, heap_id id, ulong offset) const
 {
     size_t hid_size = size(id);
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(buffer.size() > hid_size)
         throw std::length_error("buffer.size() > size()");
 
@@ -622,12 +622,12 @@ inline size_t fairport::heap_impl::read(std::vector<byte>& buffer, heap_id id, u
     return m_node.read(buffer, get_heap_page(id), pmap->allocs[get_heap_index(id)] + offset);
 }
 
-inline fairport::hid_stream_device fairport::heap_impl::open_stream(heap_id id)
+inline pstsdk::hid_stream_device pstsdk::heap_impl::open_stream(heap_id id)
 {
     return hid_stream_device(shared_from_this(), id);
 }
 
-inline std::streamsize fairport::hid_stream_device::read(char* pbuffer, std::streamsize n)
+inline std::streamsize pstsdk::hid_stream_device::read(char* pbuffer, std::streamsize n)
 {
     if(m_hid && (static_cast<size_t>(m_pos) + n > m_pheap->size(m_hid)))
         n = m_pheap->size(m_hid) - m_pos;
@@ -645,7 +645,7 @@ inline std::streamsize fairport::hid_stream_device::read(char* pbuffer, std::str
     return read;
 }
 
-inline std::streampos fairport::hid_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
+inline std::streampos pstsdk::hid_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
 {
     if(way == std::ios_base::beg)
             m_pos = off;
@@ -662,7 +662,7 @@ inline std::streampos fairport::hid_stream_device::seek(boost::iostreams::stream
     return m_pos;
 }
 
-inline std::vector<fairport::byte> fairport::heap_impl::read(heap_id id) const
+inline std::vector<pstsdk::byte> pstsdk::heap_impl::read(heap_id id) const
 {
     std::vector<byte> result(size(id));
     read(result, id, 0);
@@ -670,7 +670,7 @@ inline std::vector<fairport::byte> fairport::heap_impl::read(heap_id id) const
 }
 
 template<typename K, typename V>
-inline std::unique_ptr<fairport::bth_node<K,V>> fairport::heap_impl::open_bth(heap_id root)
+inline std::unique_ptr<pstsdk::bth_node<K,V>> pstsdk::heap_impl::open_bth(heap_id root)
 { 
     return bth_node<K,V>::open_root(shared_from_this(), root); 
 }

@@ -7,8 +7,8 @@
 //! this file stay as small as possible.
 //! \ingroup util
 
-#ifndef FAIRPORT_UTIL_UTIL_H
-#define FAIRPORT_UTIL_UTIL_H
+#ifndef PSTSDK_UTIL_UTIL_H
+#define PSTSDK_UTIL_UTIL_H
 
 #include <cstdio>
 #include <time.h>
@@ -16,10 +16,10 @@
 #include <vector>
 #include <boost/utility.hpp>
 
-#include "fairport/util/errors.h"
-#include "fairport/util/primatives.h"
+#include "pstsdk/util/errors.h"
+#include "pstsdk/util/primatives.h"
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \brief A generic class to read and write to a file
@@ -114,9 +114,9 @@ double time_t_to_vt_date(time_t time);
 //! \ingroup util
 bool test_bit(const byte* pbytes, ulong bit);
 
-} // end fairport namespace
+} // end pstsdk namespace
 
-inline fairport::file::file(const std::wstring& filename)
+inline pstsdk::file::file(const std::wstring& filename)
 : m_filename(filename)
 {
     const char* mode = "rb";
@@ -132,13 +132,13 @@ inline fairport::file::file(const std::wstring& filename)
         throw std::runtime_error("fopen failed");
 }
 
-inline fairport::file::file(file&& other)
+inline pstsdk::file::file(file&& other)
 : m_filename(std::move(other.m_filename)), m_pfile(other.m_pfile)
 {
     other.m_pfile = NULL;
 }
 
-inline fairport::file& fairport::file::operator=(file&& other)
+inline pstsdk::file& pstsdk::file::operator=(file&& other)
 {
     std::swap(m_pfile, other.m_pfile);
     std::swap(m_filename, other.m_filename);
@@ -146,13 +146,13 @@ inline fairport::file& fairport::file::operator=(file&& other)
     return *this;
 }
 
-inline fairport::file::~file()
+inline pstsdk::file::~file()
 {
     fflush(m_pfile);
     fclose(m_pfile);
 }
 
-inline size_t fairport::file::read(std::vector<byte>& buffer, ulonglong offset) const
+inline size_t pstsdk::file::read(std::vector<byte>& buffer, ulonglong offset) const
 {
 #ifdef _MSC_VER
     if(_fseeki64(m_pfile, offset, SEEK_SET) != 0)
@@ -171,7 +171,7 @@ inline size_t fairport::file::read(std::vector<byte>& buffer, ulonglong offset) 
     return read;
 }
 
-inline size_t fairport::file::write(const std::vector<byte>& buffer, ulonglong offset)
+inline size_t pstsdk::file::write(const std::vector<byte>& buffer, ulonglong offset)
 {
 #ifdef _MSC_VER
     if(_fseeki64(m_pfile, offset, SEEK_SET) != 0)
@@ -190,31 +190,31 @@ inline size_t fairport::file::write(const std::vector<byte>& buffer, ulonglong o
     return write;
 }
 
-inline time_t fairport::filetime_to_time_t(ulonglong filetime)
+inline time_t pstsdk::filetime_to_time_t(ulonglong filetime)
 {
     ulonglong jan1970 = 116444736000000000ULL;
 
     return (filetime - jan1970) / 10000000;
 }
 
-inline fairport::ulonglong fairport::time_t_to_filetime(time_t time)
+inline pstsdk::ulonglong pstsdk::time_t_to_filetime(time_t time)
 {
     ulonglong jan1970 = 116444736000000000ULL;
 
     return (time * 10000000) + jan1970;
 }
 
-inline time_t fairport::vt_date_to_time_t(double)
+inline time_t pstsdk::vt_date_to_time_t(double)
 {
     throw not_implemented("vt_date_to_time_t");
 }
 
-inline double fairport::time_t_to_vt_date(time_t)
+inline double pstsdk::time_t_to_vt_date(time_t)
 {
     throw not_implemented("vt_date_to_time_t");
 }
 
-inline bool fairport::test_bit(const byte* pbytes, ulong bit)
+inline bool pstsdk::test_bit(const byte* pbytes, ulong bit)
 {
     return (*(pbytes + (bit >> 3)) & (0x80 >> (bit & 7))) != 0;
 }

@@ -13,22 +13,22 @@
 //! \defgroup btree BTree
 //! \ingroup util
 
-#ifndef FAIRPORT_UTIL_BTREE_H
-#define FAIRPORT_UTIL_BTREE_H
+#ifndef PSTSDK_UTIL_BTREE_H
+#define PSTSDK_UTIL_BTREE_H
 
 #include <iterator>
 #include <vector>
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "fairport/util/primatives.h"
-#include "fairport/util/errors.h"
+#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/errors.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4250)
 #endif
 
-namespace fairport
+namespace pstsdk
 {
 
 template<typename K, typename V>
@@ -260,7 +260,7 @@ private:
 } // end namespace
 
 template<typename K, typename V>
-int fairport::btree_node<K,V>::binary_search(const K& k) const
+int pstsdk::btree_node<K,V>::binary_search(const K& k) const
 {
     uint end = num_values();
     uint start = 0;
@@ -288,7 +288,7 @@ int fairport::btree_node<K,V>::binary_search(const K& k) const
 }
 
 template<typename K, typename V>
-const V& fairport::btree_node_leaf<K,V>::lookup(const K& k) const
+const V& pstsdk::btree_node_leaf<K,V>::lookup(const K& k) const
 {
     int location = this->binary_search(k);
 
@@ -302,7 +302,7 @@ const V& fairport::btree_node_leaf<K,V>::lookup(const K& k) const
 }
     
 template<typename K, typename V>
-void fairport::btree_node_leaf<K,V>::next(btree_iter_impl<K,V>& iter) const
+void pstsdk::btree_node_leaf<K,V>::next(btree_iter_impl<K,V>& iter) const
 {
     if(++iter.m_leaf_pos == this->num_values())
     {
@@ -326,7 +326,7 @@ void fairport::btree_node_leaf<K,V>::next(btree_iter_impl<K,V>& iter) const
 }
 
 template<typename K, typename V>
-void fairport::btree_node_leaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
+void pstsdk::btree_node_leaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
 {
     if(iter.m_leaf_pos == 0)
     {
@@ -354,7 +354,7 @@ void fairport::btree_node_leaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
 }
 
 template<typename K, typename V>
-const V& fairport::btree_node_nonleaf<K,V>::lookup(const K& k) const
+const V& pstsdk::btree_node_nonleaf<K,V>::lookup(const K& k) const
 {
     int location = this->binary_search(k);
 
@@ -365,21 +365,21 @@ const V& fairport::btree_node_nonleaf<K,V>::lookup(const K& k) const
 }
 
 template<typename K, typename V>
-void fairport::btree_node_nonleaf<K,V>::first(btree_iter_impl<K,V>& iter) const
+void pstsdk::btree_node_nonleaf<K,V>::first(btree_iter_impl<K,V>& iter) const
 {
     iter.m_path.push_back(std::make_pair(const_cast<btree_node_nonleaf<K,V>*>(this), 0));
     get_child(0)->first(iter);
 }
 
 template<typename K, typename V>
-void fairport::btree_node_nonleaf<K,V>::last(btree_iter_impl<K,V>& iter) const
+void pstsdk::btree_node_nonleaf<K,V>::last(btree_iter_impl<K,V>& iter) const
 {
     iter.m_path.push_back(std::make_pair(const_cast<btree_node_nonleaf<K,V>*>(this), this->num_values()-1));
     get_child(this->num_values()-1)->last(iter);
 }
 
 template<typename K, typename V>
-void fairport::btree_node_nonleaf<K,V>::next(btree_iter_impl<K,V>& iter) const
+void pstsdk::btree_node_nonleaf<K,V>::next(btree_iter_impl<K,V>& iter) const
 {
     std::pair<btree_node_nonleaf<K,V>*, uint>& me = iter.m_path.back();
 
@@ -400,7 +400,7 @@ void fairport::btree_node_nonleaf<K,V>::next(btree_iter_impl<K,V>& iter) const
 }
 
 template<typename K, typename V>
-void fairport::btree_node_nonleaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
+void pstsdk::btree_node_nonleaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
 {
     std::pair<btree_node_nonleaf<K,V>*, uint>& me = iter.m_path.back();
 
@@ -421,14 +421,14 @@ void fairport::btree_node_nonleaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
 }
 
 template<typename K, typename V>
-fairport::const_btree_node_iter<K,V>::const_btree_node_iter()
+pstsdk::const_btree_node_iter<K,V>::const_btree_node_iter()
 {
     m_impl.m_leaf_pos = 0;
     m_impl.m_leaf = nullptr;
 }
 
 template<typename K, typename V>
-fairport::const_btree_node_iter<K,V>::const_btree_node_iter(const btree_node<K,V>* root, bool last)
+pstsdk::const_btree_node_iter<K,V>::const_btree_node_iter(const btree_node<K,V>* root, bool last)
 {
     if(last)
     {

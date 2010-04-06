@@ -1,7 +1,7 @@
 //! \defgroup disk Disk Layer
-#ifndef FAIRPORT_DISK_H
-#define FAIRPORT_DISK_H
+#ifndef PSTSDK_DISK_H
+#define PSTSDK_DISK_H
 
-#include "fairport/disk/disk.h"
+#include "pstsdk/disk/disk.h"
 
 #endif

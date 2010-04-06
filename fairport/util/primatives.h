@@ -6,8 +6,8 @@
 //! \defgroup primative Primative Types
 //! \ingroup util
 
-#ifndef FAIRPORT_UTIL_PRIMATIVES_H
-#define FAIRPORT_UTIL_PRIMATIVES_H
+#ifndef PSTSDK_UTIL_PRIMATIVES_H
+#define PSTSDK_UTIL_PRIMATIVES_H
 
 // Global compiler hacks
 #ifdef __GNUC__
@@ -17,22 +17,22 @@
 
 //! \brief Global Validation Settings
 //!
-//! You may optionally define one of the following values before including any fairport header:
-//! - FAIRPORT_VALIDATION_LEVEL_NONE, no validation - except some type checks
-//! - FAIRPORT_VALIDATION_LEVEL_WEAK, involves fast checks such as signature matching, param validation, etc
-//! - FAIRPORT_VALIDATION_LEVEL_FULL, includes all weak checks plus crc validation and any other "expensive" checks
+//! You may optionally define one of the following values before including any pstsdk header:
+//! - PSTSDK_VALIDATION_LEVEL_NONE, no validation - except some type checks
+//! - PSTSDK_VALIDATION_LEVEL_WEAK, involves fast checks such as signature matching, param validation, etc
+//! - PSTSDK_VALIDATION_LEVEL_FULL, includes all weak checks plus crc validation and any other "expensive" checks
 //!
 //! Weak validation is the default.
 //! \ingroup primative
-#ifndef FAIRPORT_VALIDATION_LEVEL_NONE
-#define FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifndef PSTSDK_VALIDATION_LEVEL_NONE
+#define PSTSDK_VALIDATION_LEVEL_WEAK
 #endif
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_FULL
+#ifdef PSTSDK_VALIDATION_LEVEL_FULL
 // full validation also implies weak validation
-#define FAIRPORT_VALIDATION_LEVEL_WEAK
+#define PSTSDK_VALIDATION_LEVEL_WEAK
 #endif
-namespace fairport
+namespace pstsdk
 {
 
 /*! \addtogroup primative
@@ -47,10 +47,10 @@ typedef unsigned short ushort;
 /*! @} */
 
 //! \cond static_asserts
-static_assert(sizeof(byte) == 1, "fairport::byte unexpected size");
-static_assert(sizeof(ushort) == 2, "fairport::ushort unexpected size");
-static_assert(sizeof(uint) == 4, "fairport::uint unexpected size");
-static_assert(sizeof(ulonglong) == 8, "fairport::ulonglong unexpected size");
+static_assert(sizeof(byte) == 1, "pstsdk::byte unexpected size");
+static_assert(sizeof(ushort) == 2, "pstsdk::ushort unexpected size");
+static_assert(sizeof(uint) == 4, "pstsdk::uint unexpected size");
+static_assert(sizeof(ulonglong) == 8, "pstsdk::ulonglong unexpected size");
 //! \endcond
 
 #ifdef NO_NULLPTR
@@ -351,5 +351,5 @@ const guid ps_mapi = { 0x20328, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
 //! \ingroup primative
 const guid ps_public_strings = { 0x20329, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
 
-} // end fairport namespace
+} // end pstsdk namespace
 #endif

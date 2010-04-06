@@ -1,10 +1,10 @@
 //! \defgroup ndb NDB Layer
-#ifndef FAIRPORT_NDB_H
-#define FAIRPORT_NDB_H
+#ifndef PSTSDK_NDB_H
+#define PSTSDK_NDB_H
 
-#include "fairport/ndb/database.h"
-#include "fairport/ndb/database_iface.h"
-#include "fairport/ndb/node.h"
-#include "fairport/ndb/page.h"
+#include "pstsdk/ndb/database.h"
+#include "pstsdk/ndb/database_iface.h"
+#include "pstsdk/ndb/node.h"
+#include "pstsdk/ndb/page.h"
 
 #endif

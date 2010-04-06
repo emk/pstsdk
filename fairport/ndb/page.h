@@ -12,22 +12,22 @@
 //! always modified in place.
 //! \ingroup ndb
 
-#ifndef FAIRPORT_NDB_PAGE_H
-#define FAIRPORT_NDB_PAGE_H
+#ifndef PSTSDK_NDB_PAGE_H
+#define PSTSDK_NDB_PAGE_H
 
 #include <vector>
 
-#include "fairport/util/btree.h"
-#include "fairport/util/util.h"
+#include "pstsdk/util/btree.h"
+#include "pstsdk/util/util.h"
 
-#include "fairport/ndb/database_iface.h"
+#include "pstsdk/ndb/database_iface.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4250)
 #endif
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \defgroup ndb_pagerelated Pages

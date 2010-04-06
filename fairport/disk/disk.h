@@ -7,15 +7,15 @@
 //!
 //! \ingroup disk
 
-#ifndef FAIRPORT_DISK_DISK_H
-#define FAIRPORT_DISK_DISK_H
+#ifndef PSTSDK_DISK_DISK_H
+#define PSTSDK_DISK_DISK_H
 
 #include <cstddef>
 
-#include "fairport/util/primatives.h"
+#include "pstsdk/util/primatives.h"
 
 //! \brief Contains the definition of all in memory representations of disk structures
-namespace fairport
+namespace pstsdk
 {
 //! \brief Contains the definition of all structures as persisted to disk
 namespace disk
@@ -1531,18 +1531,18 @@ inline ushort nameid_get_guid_index(const nameid_hash_entry& n) { return (ushort
 inline bool nameid_is_string(const nameid_hash_entry& n) { return n.index & 0x1; }
 
 } // end disk namespace
-} // end fairport namespace
+} // end pstsdk namespace
 
 
 template<typename T>
-inline fairport::ushort fairport::disk::compute_signature(T id, T address)
+inline pstsdk::ushort pstsdk::disk::compute_signature(T id, T address)
 {
     T value = address ^ id;
 
     return (ushort(ushort(value >> 16) ^ ushort(value)));
 }
 
-inline fairport::ulong fairport::disk::compute_crc(const void * pdata, ulong cb)
+inline pstsdk::ulong pstsdk::disk::compute_crc(const void * pdata, ulong cb)
 {
     ulong crc = 0;
     const byte * pb = reinterpret_cast<const byte*>(pdata);
@@ -1553,7 +1553,7 @@ inline fairport::ulong fairport::disk::compute_crc(const void * pdata, ulong cb)
     return crc;
 }
 
-inline void fairport::disk::permute(void * pdata, ulong cb, bool encrypt)
+inline void pstsdk::disk::permute(void * pdata, ulong cb, bool encrypt)
 {
     byte * pb = reinterpret_cast<byte*>(pdata);
     const byte * ptable = encrypt ? table1 : table3;
@@ -1566,7 +1566,7 @@ inline void fairport::disk::permute(void * pdata, ulong cb, bool encrypt)
     }
 }
 
-inline void fairport::disk::cyclic(void * pdata, ulong cb, ulong key)
+inline void pstsdk::disk::cyclic(void * pdata, ulong cb, ulong key)
 {
     byte * pb = reinterpret_cast<byte*>(pdata);
     byte b;
@@ -1591,12 +1591,12 @@ inline void fairport::disk::cyclic(void * pdata, ulong cb, ulong key)
 }
 
 template<typename T>
-inline size_t fairport::disk::align_disk(size_t size)
+inline size_t pstsdk::disk::align_disk(size_t size)
 {
     return align_slot(size + sizeof(block_trailer<T>));
 }
 
-inline size_t fairport::disk::align_slot(size_t size)
+inline size_t pstsdk::disk::align_slot(size_t size)
 {
     return ((size + bytes_per_slot - 1) & ~(bytes_per_slot - 1));
 }

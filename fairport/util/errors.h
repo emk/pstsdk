@@ -1,18 +1,18 @@
 //! \file
-//! \brief The exceptions used by Fairport
+//! \brief The exceptions used by pstsdk
 //! \author Terry Mahaffey
 //! \ingroup util
 
 //! \defgroup exception Exceptions
 //! \ingroup util
 
-#ifndef FAIRPORT_UTIL_ERRORS_H
-#define FAIRPORT_UTIL_ERRORS_H
+#ifndef PSTSDK_UTIL_ERRORS_H
+#define PSTSDK_UTIL_ERRORS_H
 
 #include <stdexcept>
-#include "fairport/util/primatives.h"
+#include "pstsdk/util/primatives.h"
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \brief A block or node can not satisfy a resize request

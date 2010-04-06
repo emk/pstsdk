@@ -5,20 +5,20 @@
 //! Defines the message, attachment, and recipient abstractions.
 //! \ingroup pst
 
-#ifndef FAIRPORT_PST_MESSAGE_H
-#define FAIRPORT_PST_MESSAGE_H
+#ifndef PSTSDK_PST_MESSAGE_H
+#define PSTSDK_PST_MESSAGE_H
 
 #include <functional>
 #include <ostream>
 #include <boost/iterator/transform_iterator.hpp>
 
-#include "fairport/ndb/database_iface.h"
-#include "fairport/ndb/node.h"
+#include "pstsdk/ndb/database_iface.h"
+#include "pstsdk/ndb/node.h"
 
-#include "fairport/ltp/propbag.h"
-#include "fairport/ltp/table.h"
+#include "pstsdk/ltp/propbag.h"
+#include "pstsdk/ltp/table.h"
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \defgroup pst_messagerelated Message Objects
@@ -325,9 +325,9 @@ private:
     shared_db_ptr m_db;
 };
 
-} // end namespace fairport
+} // end namespace pstsdk
 
-inline std::wstring fairport::attachment::get_filename() const
+inline std::wstring pstsdk::attachment::get_filename() const
 {
     try
     {
@@ -339,7 +339,7 @@ inline std::wstring fairport::attachment::get_filename() const
     }
 }
 
-inline fairport::message fairport::attachment::open_as_message() const
+inline pstsdk::message pstsdk::attachment::open_as_message() const
 {
     if(!is_message()) 
         throw std::bad_cast();
@@ -350,7 +350,7 @@ inline fairport::message fairport::attachment::open_as_message() const
     return message(m_bag.get_node().lookup(psubo->nid));
 }
 
-inline fairport::message::message(const fairport::message& other)
+inline pstsdk::message::message(const pstsdk::message& other)
 : m_bag(other.m_bag)
 {
     if(other.m_attachment_table)
@@ -359,7 +359,7 @@ inline fairport::message::message(const fairport::message& other)
         m_recipient_table.reset(new table(*other.m_recipient_table));
 }
 
-inline const fairport::table& fairport::message::get_attachment_table() const
+inline const pstsdk::table& pstsdk::message::get_attachment_table() const
 {
     if(!m_attachment_table)
         m_attachment_table.reset(new table(m_bag.get_node().lookup(nid_attachment_table)));
@@ -367,7 +367,7 @@ inline const fairport::table& fairport::message::get_attachment_table() const
     return *m_attachment_table;
 }
 
-inline const fairport::table& fairport::message::get_recipient_table() const
+inline const pstsdk::table& pstsdk::message::get_recipient_table() const
 {
     if(!m_recipient_table)
         m_recipient_table.reset(new table(m_bag.get_node().lookup(nid_recipient_table)));
@@ -375,17 +375,17 @@ inline const fairport::table& fairport::message::get_recipient_table() const
     return *m_recipient_table;
 }
 
-inline fairport::table& fairport::message::get_attachment_table()
+inline pstsdk::table& pstsdk::message::get_attachment_table()
 {
     return const_cast<table&>(const_cast<const message*>(this)->get_attachment_table());
 }
 
-inline fairport::table& fairport::message::get_recipient_table()
+inline pstsdk::table& pstsdk::message::get_recipient_table()
 {
     return const_cast<table&>(const_cast<const message*>(this)->get_recipient_table());
 }
 
-inline size_t fairport::message::get_attachment_count() const
+inline size_t pstsdk::message::get_attachment_count() const
 {
     size_t count = 0;
     try 
@@ -397,7 +397,7 @@ inline size_t fairport::message::get_attachment_count() const
     return count;
 }
 
-inline size_t fairport::message::get_recipient_count() const
+inline size_t pstsdk::message::get_recipient_count() const
 {
     size_t count = 0;
     try
@@ -409,7 +409,7 @@ inline size_t fairport::message::get_recipient_count() const
     return count;
 }
 
-inline std::wstring fairport::message::get_subject() const
+inline std::wstring pstsdk::message::get_subject() const
 {
     std::wstring buffer = m_bag.read_prop<std::wstring>(0x37);
 

@@ -6,8 +6,8 @@
 //! Closely related is the concept of blocks, also defined here.
 //! \ingroup ndb
 
-#ifndef FAIRPORT_NDB_NODE_H
-#define FAIRPORT_NDB_NODE_H
+#ifndef PSTSDK_NDB_NODE_H
+#define PSTSDK_NDB_NODE_H
 
 #include <vector>
 #include <algorithm>
@@ -24,17 +24,17 @@
 #pragma warning(pop)
 #endif
 
-#include "fairport/util/util.h"
-#include "fairport/util/btree.h"
+#include "pstsdk/util/util.h"
+#include "pstsdk/util/btree.h"
 
-#include "fairport/ndb/database_iface.h"
+#include "pstsdk/ndb/database_iface.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4250)
 #endif
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \defgroup ndb_noderelated Node
@@ -837,14 +837,14 @@ private:
     std::vector<std::pair<node_id, subnode_info>> m_subnodes;   //!< The actual subnode information
 };
 
-} // end fairport namespace
+} // end pstsdk namespace
 
-inline fairport::node fairport::subnode_transform_info::operator()(const fairport::subnode_info& info) const
+inline pstsdk::node pstsdk::subnode_transform_info::operator()(const pstsdk::subnode_info& info) const
 { 
     return node(m_parent, info); 
 }
 
-inline fairport::block_id fairport::node_impl::get_data_id() const
+inline pstsdk::block_id pstsdk::node_impl::get_data_id() const
 { 
     if(m_pdata)
         return m_pdata->get_id();
@@ -852,7 +852,7 @@ inline fairport::block_id fairport::node_impl::get_data_id() const
     return m_original_data_id;
 }
 
-inline fairport::block_id fairport::node_impl::get_sub_id() const
+inline pstsdk::block_id pstsdk::node_impl::get_sub_id() const
 { 
     if(m_psub)
         return m_psub->get_id();
@@ -860,84 +860,84 @@ inline fairport::block_id fairport::node_impl::get_sub_id() const
     return m_original_sub_id;
 }
 
-inline size_t fairport::node_impl::size() const
+inline size_t pstsdk::node_impl::size() const
 {
     return ensure_data_block()->get_total_size();
 }
 
-inline size_t fairport::node_impl::get_page_size(uint page_num) const
+inline size_t pstsdk::node_impl::get_page_size(uint page_num) const
 {
     return ensure_data_block()->get_page(page_num)->get_total_size();
 }
     
-inline fairport::uint fairport::node_impl::get_page_count() const 
+inline pstsdk::uint pstsdk::node_impl::get_page_count() const 
 { 
     return ensure_data_block()->get_page_count(); 
 }
 
-inline size_t fairport::node_impl::read(std::vector<byte>& buffer, ulong offset) const
+inline size_t pstsdk::node_impl::read(std::vector<byte>& buffer, ulong offset) const
 { 
     return ensure_data_block()->read(buffer, offset); 
 }
 
-inline size_t fairport::node_impl::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
+inline size_t pstsdk::node_impl::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
 { 
     return ensure_data_block()->read_raw(pdest_buffer, size, offset); 
 }
 
 template<typename T> 
-inline T fairport::node_impl::read(ulong offset) const
+inline T pstsdk::node_impl::read(ulong offset) const
 {
     return ensure_data_block()->read<T>(offset); 
 }
     
-inline size_t fairport::node_impl::read(std::vector<byte>& buffer, uint page_num, ulong offset) const
+inline size_t pstsdk::node_impl::read(std::vector<byte>& buffer, uint page_num, ulong offset) const
 { 
     return ensure_data_block()->get_page(page_num)->read(buffer, offset); 
 }
 
 template<typename T> 
-inline T fairport::node_impl::read(uint page_num, ulong offset) const
+inline T pstsdk::node_impl::read(uint page_num, ulong offset) const
 {
     return ensure_data_block()->get_page(page_num)->read<T>(offset); 
 }
 
 //! \cond write_api
-inline size_t fairport::node_impl::write(const std::vector<byte>& buffer, ulong offset)
+inline size_t pstsdk::node_impl::write(const std::vector<byte>& buffer, ulong offset)
 {
     return ensure_data_block()->write(buffer, offset, m_pdata);
 }
 
-inline size_t fairport::node_impl::write_raw(const byte* pdest_buffer, size_t size, ulong offset)
+inline size_t pstsdk::node_impl::write_raw(const byte* pdest_buffer, size_t size, ulong offset)
 {
     ensure_data_block();
     return m_pdata->write_raw(pdest_buffer, size, offset, m_pdata);
 }
 
 template<typename T> 
-inline void fairport::node_impl::write(const T& obj, ulong offset)
+inline void pstsdk::node_impl::write(const T& obj, ulong offset)
 {
     return ensure_data_block()->write<T>(obj, offset, m_pdata);
 }
 
-inline size_t fairport::node_impl::write(const std::vector<byte>& buffer, uint page_num, ulong offset)
+inline size_t pstsdk::node_impl::write(const std::vector<byte>& buffer, uint page_num, ulong offset)
 {
     return ensure_data_block()->write(buffer, page_num * get_page_size(0) + offset, m_pdata);
 }
 
 template<typename T> 
-inline void fairport::node_impl::write(const T& obj, uint page_num, ulong offset)
+inline void pstsdk::node_impl::write(const T& obj, uint page_num, ulong offset)
 {
     return ensure_data_block()->write<T>(obj, page_num * get_page_size(0) + offset, m_pdata);
 }
 
-inline size_t fairport::node_impl::resize(size_t size)
+inline size_t pstsdk::node_impl::resize(size_t size)
 {
     return ensure_data_block()->resize(size, m_pdata);
 }
 //! \endcond
 
-inline fairport::data_block* fairport::node_impl::ensure_data_block() const
+inline pstsdk::data_block* pstsdk::node_impl::ensure_data_block() const
 { 
     if(!m_pdata) 
         m_pdata = m_db->read_data_block(m_original_data_id); 
@@ -945,7 +945,7 @@ inline fairport::data_block* fairport::node_impl::ensure_data_block() const
     return m_pdata.get();
 }
     
-inline fairport::subnode_block* fairport::node_impl::ensure_sub_block() const
+inline pstsdk::subnode_block* pstsdk::node_impl::ensure_sub_block() const
 { 
     if(!m_psub) 
         m_psub = m_db->read_subnode_block(m_original_sub_id); 
@@ -954,7 +954,7 @@ inline fairport::subnode_block* fairport::node_impl::ensure_sub_block() const
 }
 
 //! \cond write_api
-inline void fairport::block::touch()
+inline void pstsdk::block::touch()
 { 
     if(!m_modified)
     {
@@ -966,7 +966,7 @@ inline void fairport::block::touch()
 }
 //! \endcond
 
-inline std::streamsize fairport::node_stream_device::read(char* pbuffer, std::streamsize n)
+inline std::streamsize pstsdk::node_stream_device::read(char* pbuffer, std::streamsize n)
 {
     size_t read = m_pnode->read_raw(reinterpret_cast<byte*>(pbuffer), static_cast<size_t>(n), static_cast<size_t>(m_pos));
     m_pos += read;
@@ -978,7 +978,7 @@ inline std::streamsize fairport::node_stream_device::read(char* pbuffer, std::st
 }
 
 //! \cond write_api
-inline std::streamsize fairport::node_stream_device::write(const char* pbuffer, std::streamsize n)
+inline std::streamsize pstsdk::node_stream_device::write(const char* pbuffer, std::streamsize n)
 {
     size_t written = m_pnode->write_raw(reinterpret_cast<const byte*>(pbuffer), static_cast<size_t>(n), static_cast<size_t>(m_pos));
     m_pos += written;
@@ -986,7 +986,7 @@ inline std::streamsize fairport::node_stream_device::write(const char* pbuffer, 
 }
 //! \endcond
 
-inline std::streampos fairport::node_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
+inline std::streampos pstsdk::node_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
 {
     if(way == std::ios_base::beg)
             m_pos = off;
@@ -1003,7 +1003,7 @@ inline std::streampos fairport::node_stream_device::seek(boost::iostreams::strea
     return m_pos;
 }
 
-inline fairport::subnode_block* fairport::subnode_nonleaf_block::get_child(uint pos)
+inline pstsdk::subnode_block* pstsdk::subnode_nonleaf_block::get_child(uint pos)
 {
     if(m_child_blocks[pos] == NULL)
     {
@@ -1013,7 +1013,7 @@ inline fairport::subnode_block* fairport::subnode_nonleaf_block::get_child(uint 
     return m_child_blocks[pos].get();
 }
 
-inline const fairport::subnode_block* fairport::subnode_nonleaf_block::get_child(uint pos) const
+inline const pstsdk::subnode_block* pstsdk::subnode_nonleaf_block::get_child(uint pos) const
 {
     if(m_child_blocks[pos] == NULL)
     {
@@ -1023,7 +1023,7 @@ inline const fairport::subnode_block* fairport::subnode_nonleaf_block::get_child
     return m_child_blocks[pos].get();
 }
 
-inline size_t fairport::data_block::read(std::vector<byte>& buffer, ulong offset) const
+inline size_t pstsdk::data_block::read(std::vector<byte>& buffer, ulong offset) const
 {
     size_t read_size = buffer.size();
     
@@ -1039,7 +1039,7 @@ inline size_t fairport::data_block::read(std::vector<byte>& buffer, ulong offset
 }
 
 template<typename T> 
-inline T fairport::data_block::read(ulong offset) const
+inline T pstsdk::data_block::read(ulong offset) const
 {
     if(offset >= get_total_size())
         throw std::out_of_range("offset >= size()");
@@ -1053,7 +1053,7 @@ inline T fairport::data_block::read(ulong offset) const
 }
 
 //! \cond write_api
-inline size_t fairport::data_block::write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::data_block::write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult)
 {
     size_t write_size = buffer.size();
     
@@ -1069,7 +1069,7 @@ inline size_t fairport::data_block::write(const std::vector<byte>& buffer, ulong
 }
 
 template<typename T> 
-void fairport::data_block::write(const T& buffer, ulong offset, std::shared_ptr<data_block>& presult)
+void pstsdk::data_block::write(const T& buffer, ulong offset, std::shared_ptr<data_block>& presult)
 {
     if(offset >= get_total_size())
         throw std::out_of_range("offset >= size()");
@@ -1080,7 +1080,7 @@ void fairport::data_block::write(const T& buffer, ulong offset, std::shared_ptr<
 }
 //! \endcond
 
-inline fairport::uint fairport::extended_block::get_page_count() const
+inline pstsdk::uint pstsdk::extended_block::get_page_count() const
 {
     assert(m_child_max_total_size % m_child_max_page_count == 0);
     uint page_size = m_child_max_total_size / m_child_max_page_count;
@@ -1091,7 +1091,7 @@ inline fairport::uint fairport::extended_block::get_page_count() const
 }
 
 //! \cond write_api
-inline fairport::extended_block::extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count)
+inline pstsdk::extended_block::extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count)
 : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level)
 {
     int total_subblocks = total_size / m_child_max_total_size;
@@ -1105,7 +1105,7 @@ inline fairport::extended_block::extended_block(const shared_db_ptr& db, ushort 
 }
 //! \endcond
 
-inline fairport::data_block* fairport::extended_block::get_child_block(uint index) const
+inline pstsdk::data_block* pstsdk::extended_block::get_child_block(uint index) const
 {
     if(index >= m_child_blocks.size())
         throw std::out_of_range("index >= m_child_blocks.size()");
@@ -1126,13 +1126,13 @@ inline fairport::data_block* fairport::extended_block::get_child_block(uint inde
     return m_child_blocks[index].get();
 }
 
-inline std::shared_ptr<fairport::external_block> fairport::extended_block::get_page(uint page_num) const
+inline std::shared_ptr<pstsdk::external_block> pstsdk::extended_block::get_page(uint page_num) const
 {
     uint page = page_num / m_child_max_page_count;
     return get_child_block(page)->get_page(page_num % m_child_max_page_count);
 }
 
-inline std::shared_ptr<fairport::external_block> fairport::external_block::get_page(uint index) const
+inline std::shared_ptr<pstsdk::external_block> pstsdk::external_block::get_page(uint index) const
 {
     if(index != 0)
         throw std::out_of_range("index > 0");
@@ -1140,7 +1140,7 @@ inline std::shared_ptr<fairport::external_block> fairport::external_block::get_p
     return std::const_pointer_cast<external_block>(this->shared_from_this());
 }
 
-inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
+inline size_t pstsdk::external_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
 {
     size_t read_size = size;
 
@@ -1155,12 +1155,12 @@ inline size_t fairport::external_block::read_raw(byte* pdest_buffer, size_t size
 }
 
 //! \cond write_api
-inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::external_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
 {
-    std::shared_ptr<fairport::external_block> pblock = shared_from_this();
+    std::shared_ptr<pstsdk::external_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
     {
-        std::shared_ptr<fairport::external_block> pnewblock(new external_block(*this));
+        std::shared_ptr<pstsdk::external_block> pnewblock(new external_block(*this));
         return pnewblock->write_raw(psrc_buffer, size, offset, presult);
     }
     touch(); // mutate ourselves inplace
@@ -1181,7 +1181,7 @@ inline size_t fairport::external_block::write_raw(const byte* psrc_buffer, size_
 }
 //! \endcond
 
-inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
+inline size_t pstsdk::extended_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
 {
     assert(offset <= get_total_size());
 
@@ -1216,7 +1216,7 @@ inline size_t fairport::extended_block::read_raw(byte* pdest_buffer, size_t size
 }
 
 //! \cond write_api
-inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::extended_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
 {
     std::shared_ptr<extended_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
@@ -1260,7 +1260,7 @@ inline size_t fairport::extended_block::write_raw(const byte* psrc_buffer, size_
     return total_bytes_written;
 }
 
-inline size_t fairport::external_block::resize(size_t size, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::external_block::resize(size_t size, std::shared_ptr<data_block>& presult)
 {
     std::shared_ptr<external_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
@@ -1286,7 +1286,7 @@ inline size_t fairport::external_block::resize(size_t size, std::shared_ptr<data
     return size;
 }
 
-inline size_t fairport::extended_block::resize(size_t size, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::extended_block::resize(size_t size, std::shared_ptr<data_block>& presult)
 {
     // calculate the number of subblocks needed
     uint old_num_subblocks = m_block_info.size();
@@ -1342,19 +1342,19 @@ inline size_t fairport::extended_block::resize(size_t size, std::shared_ptr<data
 }
 //! \endcond
 
-inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_info_begin() const
+inline pstsdk::const_subnodeinfo_iterator pstsdk::node_impl::subnode_info_begin() const
 {
     const subnode_block* pblock = ensure_sub_block();
     return pblock->begin();
 }
 
-inline fairport::const_subnodeinfo_iterator fairport::node_impl::subnode_info_end() const
+inline pstsdk::const_subnodeinfo_iterator pstsdk::node_impl::subnode_info_end() const
 {
     const subnode_block* pblock = ensure_sub_block();
     return pblock->end();
 }
 
-inline fairport::node fairport::node_impl::lookup(node_id id) const
+inline pstsdk::node pstsdk::node_impl::lookup(node_id id) const
 {
     return node(std::const_pointer_cast<node_impl>(shared_from_this()), ensure_sub_block()->lookup(id));
 }

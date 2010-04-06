@@ -10,8 +10,8 @@
 //! defines a stream interface to access large properties.
 //! \ingroup ltp
 
-#ifndef FAIRPORT_LTP_OBJECT_H
-#define FAIRPORT_LTP_OBJECT_H
+#ifndef PSTSDK_LTP_OBJECT_H
+#define PSTSDK_LTP_OBJECT_H
 
 #include <type_traits>
 #include <functional>
@@ -26,14 +26,14 @@
 #pragma warning(pop)
 #endif
 
-#include "fairport/util/primatives.h"
-#include "fairport/util/errors.h"
+#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/errors.h"
 
-#include "fairport/ltp/heap.h"
+#include "pstsdk/ltp/heap.h"
 
-#include "fairport/ndb/node.h"
+#include "pstsdk/ndb/node.h"
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \defgroup ltp_objectrelated Property Objects
@@ -163,10 +163,10 @@ protected:
     virtual std::vector<byte> get_value_variable(prop_id id) const = 0;
 };
 
-} // end fairport namespace
+} // end pstsdk namespace
 
 template<typename T>
-inline T fairport::const_property_object::read_prop(prop_id id) const
+inline T pstsdk::const_property_object::read_prop(prop_id id) const
 {
 #ifdef _MSC_VER
 #pragma warning(suppress:4127)
@@ -198,7 +198,7 @@ inline T fairport::const_property_object::read_prop(prop_id id) const
 }
 
 template<typename T>
-inline std::vector<T> fairport::const_property_object::read_prop_array(prop_id id) const
+inline std::vector<T> pstsdk::const_property_object::read_prop_array(prop_id id) const
 {
 #ifdef _MSC_VER
 #pragma warning(suppress:4127)
@@ -210,7 +210,7 @@ inline std::vector<T> fairport::const_property_object::read_prop_array(prop_id i
     return std::vector<T>((T*)&buffer[0], (T*)&buffer[buffer.size()]);
 }
 
-namespace fairport 
+namespace pstsdk 
 {
 
 template<>
@@ -220,7 +220,7 @@ inline bool const_property_object::read_prop<bool>(prop_id id) const
 }
 
 template<>
-inline std::vector<bool> fairport::const_property_object::read_prop_array<bool>(prop_id id) const
+inline std::vector<bool> pstsdk::const_property_object::read_prop_array<bool>(prop_id id) const
 {
     using namespace std::placeholders;
 
@@ -285,14 +285,14 @@ template<>
 inline std::vector<std::vector<byte>> const_property_object::read_prop_array<std::vector<byte>>(prop_id id) const
 {
     std::vector<byte> buffer = get_value_variable(id);
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(buffer.size() < sizeof(ulong))
         throw std::length_error("mv prop too short");
 #endif
     disk::mv_toc* ptoc = reinterpret_cast<disk::mv_toc*>(&buffer[0]);
     std::vector<std::vector<byte>> results;
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(buffer.size() < (sizeof(ulong) + ptoc->count * sizeof(ulong)))
         throw std::length_error("mv prop too short");
 #endif
@@ -301,7 +301,7 @@ inline std::vector<std::vector<byte>> const_property_object::read_prop_array<std
     {
         ulong start = ptoc->offsets[i];
         ulong end = (i == (ptoc->count - 1)) ? buffer.size() : ptoc->offsets[i+1];
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
         if(end < start)
             throw std::length_error("inconsistent mv prop toc");
 #endif
@@ -401,6 +401,6 @@ inline std::vector<std::string> const_property_object::read_prop_array<std::stri
     return results;
 }
 
-} // end fairport namespace
+} // end pstsdk namespace
 
 #endif

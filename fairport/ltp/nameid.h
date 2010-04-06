@@ -3,19 +3,19 @@
 //! \author Terry Mahaffey
 //! \ingroup ltp
 
-#ifndef FAIRPORT_LTP_NAMEID_H
-#define FAIRPORT_LTP_NAMEID_H
+#ifndef PSTSDK_LTP_NAMEID_H
+#define PSTSDK_LTP_NAMEID_H
 
 #include <string>
 #include <algorithm>
 
-#include "fairport/util/primatives.h"
+#include "pstsdk/util/primatives.h"
 
-#include "fairport/ndb/database_iface.h"
+#include "pstsdk/ndb/database_iface.h"
 
-#include "fairport/ltp/propbag.h"
+#include "pstsdk/ltp/propbag.h"
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \defgroup ltp_namedproprelated Named Properties
@@ -161,7 +161,7 @@ private:
     mutable prop_stream m_string_stream;    //!< The string stream, [MS-PST] 2.4.7.4
 };
 
-inline fairport::named_prop fairport::name_id_map::construct(const disk::nameid& entry) const
+inline pstsdk::named_prop pstsdk::name_id_map::construct(const disk::nameid& entry) const
 {
     if(nameid_is_string(entry))
         return named_prop(read_guid(disk::nameid_get_guid_index(entry)), read_wstring(entry.string_offset));
@@ -169,7 +169,7 @@ inline fairport::named_prop fairport::name_id_map::construct(const disk::nameid&
         return named_prop(read_guid(disk::nameid_get_guid_index(entry)), entry.id);
 }
 
-inline fairport::named_prop fairport::name_id_map::construct(ulong index) const
+inline pstsdk::named_prop pstsdk::name_id_map::construct(ulong index) const
 {
     disk::nameid entry;
     m_entry_stream.seekg(index * sizeof(disk::nameid), std::ios_base::beg);
@@ -177,7 +177,7 @@ inline fairport::named_prop fairport::name_id_map::construct(ulong index) const
     return construct(entry);
 }
 
-inline fairport::guid fairport::name_id_map::read_guid(ushort guid_index) const
+inline pstsdk::guid pstsdk::name_id_map::read_guid(ushort guid_index) const
 {
     if(guid_index == 0)
         return ps_none;
@@ -192,7 +192,7 @@ inline fairport::guid fairport::name_id_map::read_guid(ushort guid_index) const
     return g;
 }
 
-inline fairport::ushort fairport::name_id_map::get_guid_index(const guid& g) const
+inline pstsdk::ushort pstsdk::name_id_map::get_guid_index(const guid& g) const
 {
     if(memcmp(&g, &ps_none, sizeof(g)) == 0)
         return 0;
@@ -216,7 +216,7 @@ inline fairport::ushort fairport::name_id_map::get_guid_index(const guid& g) con
     throw key_not_found<guid>(g);
 }
 
-inline std::wstring fairport::name_id_map::read_wstring(ulong string_offset) const
+inline std::wstring pstsdk::name_id_map::read_wstring(ulong string_offset) const
 {
     m_string_stream.seekg(string_offset, std::ios_base::beg);
 
@@ -229,7 +229,7 @@ inline std::wstring fairport::name_id_map::read_wstring(ulong string_offset) con
     return std::wstring(reinterpret_cast<wchar_t*>(&buffer[0]), size/sizeof(wchar_t));
 }
 
-inline bool fairport::name_id_map::named_prop_exists(const named_prop& p) const
+inline bool pstsdk::name_id_map::named_prop_exists(const named_prop& p) const
 {
     try 
     {
@@ -242,7 +242,7 @@ inline bool fairport::name_id_map::named_prop_exists(const named_prop& p) const
     }
 }
 
-inline bool fairport::name_id_map::prop_id_exists(prop_id id) const
+inline bool pstsdk::name_id_map::prop_id_exists(prop_id id) const
 {
     if(id >= 0x8000)
         return static_cast<size_t>((id - 0x8000)) < get_prop_count();
@@ -251,7 +251,7 @@ inline bool fairport::name_id_map::prop_id_exists(prop_id id) const
     return true;
 }
 
-inline std::vector<prop_id> fairport::name_id_map::get_prop_list() const
+inline std::vector<prop_id> pstsdk::name_id_map::get_prop_list() const
 {
     disk::nameid entry;
     std::vector<prop_id> props;
@@ -265,14 +265,14 @@ inline std::vector<prop_id> fairport::name_id_map::get_prop_list() const
     return props;
 }
 
-inline size_t fairport::name_id_map::get_prop_count() const
+inline size_t pstsdk::name_id_map::get_prop_count() const
 {
     m_entry_stream.seekg(0, std::ios_base::end);
 
     return static_cast<size_t>(m_entry_stream.tellg()) / sizeof(disk::nameid);
 }
 
-inline fairport::prop_id fairport::name_id_map::lookup(const named_prop& p) const
+inline pstsdk::prop_id pstsdk::name_id_map::lookup(const named_prop& p) const
 {
     ushort guid_index;
     
@@ -323,7 +323,7 @@ inline fairport::prop_id fairport::name_id_map::lookup(const named_prop& p) cons
     throw key_not_found<named_prop>(p);
 }
 
-inline fairport::named_prop fairport::name_id_map::lookup(prop_id id) const
+inline pstsdk::named_prop pstsdk::name_id_map::lookup(prop_id id) const
 {
     if(id < 0x8000)
         return named_prop(ps_mapi, id);
@@ -336,6 +336,6 @@ inline fairport::named_prop fairport::name_id_map::lookup(prop_id id) const
     return construct(index);
 }
 
-} // end namespace fairport
+} // end namespace pstsdk
 
 #endif

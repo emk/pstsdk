@@ -3,21 +3,21 @@
 //! \author Terry Mahaffey
 //! \ingroup ltp
 
-#ifndef FAIRPORT_LTP_PROPBAG_H
-#define FAIRPORT_LTP_PROPBAG_H
+#ifndef PSTSDK_LTP_PROPBAG_H
+#define PSTSDK_LTP_PROPBAG_H
 
 #include <vector>
 #include <algorithm>
 
-#include "fairport/util/primatives.h"
-#include "fairport/util/errors.h"
+#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/errors.h"
 
-#include "fairport/ndb/node.h"
+#include "pstsdk/ndb/node.h"
 
-#include "fairport/ltp/object.h"
-#include "fairport/ltp/heap.h"
+#include "pstsdk/ltp/object.h"
+#include "pstsdk/ltp/heap.h"
 
-namespace fairport
+namespace pstsdk
 {
 
 //! \addtogroup ltp_objectrelated
@@ -91,25 +91,25 @@ private:
     std::unique_ptr<pc_bth_node> m_pbth;
 };
 
-} // end fairport namespace
+} // end pstsdk namespace
 
-inline fairport::property_bag::property_bag(const fairport::node& n)
+inline pstsdk::property_bag::property_bag(const pstsdk::node& n)
 {
     heap h(n, disk::heap_sig_pc);
 
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
-inline fairport::property_bag::property_bag(const fairport::node& n, alias_tag)
+inline pstsdk::property_bag::property_bag(const pstsdk::node& n, alias_tag)
 {
     heap h(n, disk::heap_sig_pc, alias_tag());
 
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
-inline fairport::property_bag::property_bag(const fairport::heap& h)
+inline pstsdk::property_bag::property_bag(const pstsdk::heap& h)
 {
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(h.get_client_signature() != disk::heap_sig_pc)
         throw sig_mismatch("expected heap_sig_pc", 0, h.get_node().get_id(), h.get_client_signature(), disk::heap_sig_pc);
 #endif
@@ -119,9 +119,9 @@ inline fairport::property_bag::property_bag(const fairport::heap& h)
     m_pbth = my_heap.open_bth<prop_id, disk::prop_entry>(my_heap.get_root_id());
 }
 
-inline fairport::property_bag::property_bag(const fairport::heap& h, alias_tag)
+inline pstsdk::property_bag::property_bag(const pstsdk::heap& h, alias_tag)
 {
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(h.get_client_signature() != disk::heap_sig_pc)
         throw sig_mismatch("expected heap_sig_pc", 0, h.get_node().get_id(), h.get_client_signature(), disk::heap_sig_pc);
 #endif
@@ -131,21 +131,21 @@ inline fairport::property_bag::property_bag(const fairport::heap& h, alias_tag)
     m_pbth = my_heap.open_bth<prop_id, disk::prop_entry>(my_heap.get_root_id());
 }
 
-inline fairport::property_bag::property_bag(const property_bag& other)
+inline pstsdk::property_bag::property_bag(const property_bag& other)
 {
     heap h(other.m_pbth->get_node());
 
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
-inline fairport::property_bag::property_bag(const property_bag& other, alias_tag)
+inline pstsdk::property_bag::property_bag(const property_bag& other, alias_tag)
 {
     heap h(other.m_pbth->get_node(), alias_tag());
 
     m_pbth = h.open_bth<prop_id, disk::prop_entry>(h.get_root_id());
 }
 
-inline std::vector<fairport::prop_id> fairport::property_bag::get_prop_list() const
+inline std::vector<pstsdk::prop_id> pstsdk::property_bag::get_prop_list() const
 {
     std::vector<prop_id> proplist;
 
@@ -154,7 +154,7 @@ inline std::vector<fairport::prop_id> fairport::property_bag::get_prop_list() co
     return proplist;
 }
 
-inline void fairport::property_bag::get_prop_list_impl(std::vector<prop_id>& proplist, const pc_bth_node* pbth_node) const
+inline void pstsdk::property_bag::get_prop_list_impl(std::vector<prop_id>& proplist, const pc_bth_node* pbth_node) const
 {
     if(pbth_node->get_level() == 0)
     {
@@ -173,7 +173,7 @@ inline void fairport::property_bag::get_prop_list_impl(std::vector<prop_id>& pro
     }
 }
 
-inline bool fairport::property_bag::prop_exists(prop_id id) const
+inline bool pstsdk::property_bag::prop_exists(prop_id id) const
 {
     try
     {
@@ -188,14 +188,14 @@ inline bool fairport::property_bag::prop_exists(prop_id id) const
 }
 
 
-inline fairport::ulonglong fairport::property_bag::get_value_8(prop_id id) const
+inline pstsdk::ulonglong pstsdk::property_bag::get_value_8(prop_id id) const
 {
     std::vector<byte> buffer = get_value_variable(id);
 
     return *(ulonglong*)&buffer[0];
 }
 
-inline std::vector<fairport::byte> fairport::property_bag::get_value_variable(prop_id id) const
+inline std::vector<pstsdk::byte> pstsdk::property_bag::get_value_variable(prop_id id) const
 {
     heapnode_id h_id = (heapnode_id)get_value_4(id);
     std::vector<byte> buffer;
@@ -217,7 +217,7 @@ inline std::vector<fairport::byte> fairport::property_bag::get_value_variable(pr
     return buffer;
 }
 
-inline fairport::hnid_stream_device fairport::property_bag::open_prop_stream(prop_id id)
+inline pstsdk::hnid_stream_device pstsdk::property_bag::open_prop_stream(prop_id id)
 {
     heapnode_id h_id = (heapnode_id)get_value_4(id);
 

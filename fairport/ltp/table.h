@@ -3,21 +3,21 @@
 //! \author Terry Mahaffey
 //! \ingroup ltp
 
-#ifndef FAIRPORT_LTP_TABLE_H
-#define FAIRPORT_LTP_TABLE_H
+#ifndef PSTSDK_LTP_TABLE_H
+#define PSTSDK_LTP_TABLE_H
 
 #include <vector>
 #include <unordered_map>
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "fairport/util/primatives.h"
+#include "pstsdk/util/primatives.h"
 
-#include "fairport/ndb/node.h"
+#include "pstsdk/ndb/node.h"
 
-#include "fairport/ltp/object.h"
-#include "fairport/ltp/heap.h"
+#include "pstsdk/ltp/object.h"
+#include "pstsdk/ltp/heap.h"
 
-namespace fairport
+namespace pstsdk
 {
 
 class table_impl;
@@ -357,9 +357,9 @@ private:
     table_ptr m_ptable;
 };
 
-} // end fairport namespace
+} // end pstsdk namespace
 
-inline fairport::table_ptr fairport::open_table(const node& n)
+inline pstsdk::table_ptr pstsdk::open_table(const node& n)
 {
     if(n.get_id() == nid_all_message_search_contents)
     {
@@ -380,7 +380,7 @@ inline fairport::table_ptr fairport::open_table(const node& n)
        return table_ptr(new small_table(n));
 }
 
-inline fairport::table_ptr fairport::open_table(const node& n, alias_tag)
+inline pstsdk::table_ptr pstsdk::open_table(const node& n, alias_tag)
 {
     if(n.get_id() == nid_all_message_search_contents)
     {
@@ -401,65 +401,65 @@ inline fairport::table_ptr fairport::open_table(const node& n, alias_tag)
        return table_ptr(new small_table(n, alias_tag()));
 }
 
-inline std::vector<fairport::prop_id> fairport::const_table_row::get_prop_list() const
+inline std::vector<pstsdk::prop_id> pstsdk::const_table_row::get_prop_list() const
 { 
     return m_table->get_prop_list(); 
 }
 
-inline fairport::prop_type fairport::const_table_row::get_prop_type(prop_id id) const
+inline pstsdk::prop_type pstsdk::const_table_row::get_prop_type(prop_id id) const
 { 
     return m_table->get_prop_type(id); 
 }
 
-inline bool fairport::const_table_row::prop_exists(prop_id id) const
+inline bool pstsdk::const_table_row::prop_exists(prop_id id) const
 {
     return m_table->prop_exists(m_position, id);
 }
     
-inline fairport::row_id fairport::const_table_row::get_row_id() const
+inline pstsdk::row_id pstsdk::const_table_row::get_row_id() const
 { 
     return m_table->get_row_id(m_position); 
 }
 
-inline fairport::byte fairport::const_table_row::get_value_1(prop_id id) const
+inline pstsdk::byte pstsdk::const_table_row::get_value_1(prop_id id) const
 {
     return (byte)m_table->get_cell_value(m_position, id); 
 }
 
-inline fairport::ushort fairport::const_table_row::get_value_2(prop_id id) const
+inline pstsdk::ushort pstsdk::const_table_row::get_value_2(prop_id id) const
 {
     return (ushort)m_table->get_cell_value(m_position, id); 
 }
 
-inline fairport::ulong fairport::const_table_row::get_value_4(prop_id id) const
+inline pstsdk::ulong pstsdk::const_table_row::get_value_4(prop_id id) const
 {
     return (ulong)m_table->get_cell_value(m_position, id); 
 }
 
-inline fairport::ulonglong fairport::const_table_row::get_value_8(prop_id id) const
+inline pstsdk::ulonglong pstsdk::const_table_row::get_value_8(prop_id id) const
 {
     return m_table->get_cell_value(m_position, id); 
 }
 
-inline std::vector<fairport::byte> fairport::const_table_row::get_value_variable(prop_id id) const
+inline std::vector<pstsdk::byte> pstsdk::const_table_row::get_value_variable(prop_id id) const
 { 
     return m_table->read_cell(m_position, id); 
 }
 
-inline fairport::hnid_stream_device fairport::const_table_row::open_prop_stream(prop_id id)
+inline pstsdk::hnid_stream_device pstsdk::const_table_row::open_prop_stream(prop_id id)
 {
     return (std::const_pointer_cast<table_impl>(m_table))->open_cell_stream(m_position, id);
 }
 
 template<typename T>
-inline fairport::basic_table<T>::basic_table(const node& n)
+inline pstsdk::basic_table<T>::basic_table(const node& n)
 {
     heap h(n, disk::heap_sig_tc);
 
     std::vector<byte> table_info = h.read(h.get_root_id());
     disk::tc_header* pheader = (disk::tc_header*)&table_info[0];
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(pheader->signature != disk::heap_sig_tc)
         throw sig_mismatch("heap_sig_tc expected", 0, n.get_id(), pheader->signature, disk::heap_sig_tc);
 #endif
@@ -483,14 +483,14 @@ inline fairport::basic_table<T>::basic_table(const node& n)
 }
 
 template<typename T>
-inline fairport::basic_table<T>::basic_table(const node& n, alias_tag)
+inline pstsdk::basic_table<T>::basic_table(const node& n, alias_tag)
 {
     heap h(n, disk::heap_sig_tc, alias_tag());
 
     std::vector<byte> table_info = h.read(h.get_root_id());
     disk::tc_header* pheader = (disk::tc_header*)&table_info[0];
 
-#ifdef FAIRPORT_VALIDATION_LEVEL_WEAK
+#ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(pheader->signature != disk::heap_sig_tc)
         throw sig_mismatch("heap_sig_tc expected", 0, n.get_id(), pheader->signature, disk::heap_sig_tc);
 #endif
@@ -514,7 +514,7 @@ inline fairport::basic_table<T>::basic_table(const node& n, alias_tag)
 }
 
 template<typename T>
-inline size_t fairport::basic_table<T>::size() const
+inline size_t pstsdk::basic_table<T>::size() const
 {
     if(m_pnode_rowarray)
     {
@@ -527,7 +527,7 @@ inline size_t fairport::basic_table<T>::size() const
 }
 
 template<typename T>
-inline std::vector<fairport::prop_id> fairport::basic_table<T>::get_prop_list() const
+inline std::vector<pstsdk::prop_id> pstsdk::basic_table<T>::get_prop_list() const
 {
     std::vector<prop_id> props;
 
@@ -538,7 +538,7 @@ inline std::vector<fairport::prop_id> fairport::basic_table<T>::get_prop_list() 
 }
 
 template<typename T>
-inline fairport::ulong fairport::basic_table<T>::lookup_row(row_id id) const
+inline pstsdk::ulong pstsdk::basic_table<T>::lookup_row(row_id id) const
 { 
     try 
     { 
@@ -551,7 +551,7 @@ inline fairport::ulong fairport::basic_table<T>::lookup_row(row_id id) const
 }
 
 template<typename T>
-inline fairport::ulonglong fairport::basic_table<T>::get_cell_value(ulong row, prop_id id) const
+inline pstsdk::ulonglong pstsdk::basic_table<T>::get_cell_value(ulong row, prop_id id) const
 {
     if(!prop_exists(row, id))
         throw key_not_found<prop_id>(id);
@@ -581,7 +581,7 @@ inline fairport::ulonglong fairport::basic_table<T>::get_cell_value(ulong row, p
 }
     
 template<typename T>
-inline std::vector<fairport::byte> fairport::basic_table<T>::read_cell(ulong row, prop_id id) const
+inline std::vector<pstsdk::byte> pstsdk::basic_table<T>::read_cell(ulong row, prop_id id) const
 {
     heapnode_id hid = static_cast<heapnode_id>(get_cell_value(row, id));
     std::vector<byte> buffer;
@@ -600,7 +600,7 @@ inline std::vector<fairport::byte> fairport::basic_table<T>::read_cell(ulong row
 }
 
 template<typename T>
-inline fairport::hnid_stream_device fairport::basic_table<T>::open_cell_stream(ulong row, prop_id id)
+inline pstsdk::hnid_stream_device pstsdk::basic_table<T>::open_cell_stream(ulong row, prop_id id)
 {
     heapnode_id hid = static_cast<heapnode_id>(get_cell_value(row, id));
 
@@ -611,7 +611,7 @@ inline fairport::hnid_stream_device fairport::basic_table<T>::open_cell_stream(u
 }
 
 template<typename T>
-inline fairport::prop_type fairport::basic_table<T>::get_prop_type(prop_id id) const
+inline pstsdk::prop_type pstsdk::basic_table<T>::get_prop_type(prop_id id) const
 {
     const_column_iter iter = m_columns.find(id);
 
@@ -622,14 +622,14 @@ inline fairport::prop_type fairport::basic_table<T>::get_prop_type(prop_id id) c
 }
 
 template<typename T>
-inline fairport::row_id fairport::basic_table<T>::get_row_id(ulong row) const
+inline pstsdk::row_id pstsdk::basic_table<T>::get_row_id(ulong row) const
 {
     return read_raw_row<row_id>(row, 0);
 }
 
 template<typename T>
 template<typename Val>
-inline Val fairport::basic_table<T>::read_raw_row(ulong row, ushort offset) const
+inline Val pstsdk::basic_table<T>::read_raw_row(ulong row, ushort offset) const
 {
     if(row >= size())
         throw std::out_of_range("row >= size()");
@@ -650,7 +650,7 @@ inline Val fairport::basic_table<T>::read_raw_row(ulong row, ushort offset) cons
 }
 
 template<typename T>
-inline std::vector<fairport::byte> fairport::basic_table<T>::read_exists_bitmap(ulong row) const
+inline std::vector<pstsdk::byte> pstsdk::basic_table<T>::read_exists_bitmap(ulong row) const
 {
     std::vector<byte> exists_bitmap(cb_per_row() - exists_bitmap_start());
 
@@ -673,7 +673,7 @@ inline std::vector<fairport::byte> fairport::basic_table<T>::read_exists_bitmap(
 }
 
 template<typename T>
-inline bool fairport::basic_table<T>::prop_exists(ulong row, prop_id id) const
+inline bool pstsdk::basic_table<T>::prop_exists(ulong row, prop_id id) const
 {
     const_column_iter column = m_columns.find(id);
 
@@ -685,12 +685,12 @@ inline bool fairport::basic_table<T>::prop_exists(ulong row, prop_id id) const
     return test_bit(&exists_map[0], column->second.bit_offset);
 }
 
-inline fairport::table::table(const node& n)
+inline pstsdk::table::table(const node& n)
 {
     m_ptable = open_table(n);
 }
 
-inline fairport::table::table(const table& other)
+inline pstsdk::table::table(const table& other)
 {
     m_ptable = open_table(other.m_ptable->get_node());
 }

@@ -6,15 +6,15 @@
 //! in memory types and typedefs.
 //! \ingroup ndb
 
-#ifndef FAIRPORT_NDB_DATABASE_IFACE_H
-#define FAIRPORT_NDB_DATABASE_IFACE_H
+#ifndef PSTSDK_NDB_DATABASE_IFACE_H
+#define PSTSDK_NDB_DATABASE_IFACE_H
 
 #include <memory>
 
-#include "fairport/util/util.h"
-#include "fairport/util/primatives.h"
+#include "pstsdk/util/util.h"
+#include "pstsdk/util/primatives.h"
 
-namespace fairport
+namespace pstsdk
 {
 
 class node;
@@ -139,64 +139,64 @@ public:
     //! \name Page factory functions
     //@{
     //! \brief Get the root of the BBT of this context
-    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
-    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \throws unexpected_page (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
     //! \returns The requested page
     virtual std::shared_ptr<bbt_page> read_bbt_root() = 0;
     //! \brief Get the root of the NBT of this context
-    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
-    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \throws unexpected_page (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
     //! \returns The requested page
     virtual std::shared_ptr<nbt_page> read_nbt_root() = 0;
     //! \brief Open a BBT page
-    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
-    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \throws unexpected_page (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
     //! \returns The requested page
     virtual std::shared_ptr<bbt_page> read_bbt_page(const page_info& pi) = 0;
     //! \brief Open a NBT page
     //! \param[in] pi Information about the page to open
-    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
-    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \throws unexpected_page (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
     //! \returns The requested page
     virtual std::shared_ptr<nbt_page> read_nbt_page(const page_info& pi) = 0;
     //! \brief Open a NBT leaf page
     //! \param[in] pi Information about the page to open
-    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
-    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \throws unexpected_page (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
     //! \returns The requested page
     virtual std::shared_ptr<nbt_leaf_page> read_nbt_leaf_page(const page_info& pi) = 0;
     //! \brief Open a BBT leaf page
     //! \param[in] pi Information about the page to open
-    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
-    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \throws unexpected_page (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
     //! \returns The requested page
     virtual std::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const page_info& pi) = 0;
     //! \brief Open a NBT nonleaf page
     //! \param[in] pi Information about the page to open
-    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
-    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \throws unexpected_page (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
     //! \returns The requested page
     virtual std::shared_ptr<nbt_nonleaf_page> read_nbt_nonleaf_page(const page_info& pi) = 0;
     //! \brief Open a BBT nonleaf page
     //! \param[in] pi Information about the page to open
-    //! \throws unexpected_page (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
-    //! \throws database_corrupt (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
+    //! \throws unexpected_page (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the page appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's signature appears incorrect
+    //! \throws database_corrupt (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the page trailer's ptypeRepeat != ptype
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the page's CRC doesn't match the trailer
     //! \returns The requested page
     virtual std::shared_ptr<bbt_nonleaf_page> read_bbt_nonleaf_page(const page_info& pi) = 0;
     //@}
@@ -205,213 +205,213 @@ public:
     //@{
     //! \brief Open a block in this context
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<block> read_block(block_id bid) { return read_block(shared_from_this(), bid); }
     //! \brief Open a data_block in this context
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<data_block> read_data_block(block_id bid) { return read_data_block(shared_from_this(), bid); }
     //! \brief Open a extended_block in this context
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<extended_block> read_extended_block(block_id bid) { return read_extended_block(shared_from_this(), bid); }
     //! \brief Open a external_block in this context
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<external_block> read_external_block(block_id bid) { return read_external_block(shared_from_this(), bid); }
     //! \brief Open a subnode_block in this context
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<subnode_block> read_subnode_block(block_id bid) { return read_subnode_block(shared_from_this(), bid); }
     //! \brief Open a subnode_leaf_block in this context
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(block_id bid) { return read_subnode_leaf_block(shared_from_this(), bid); }
     //! \brief Open a subnode_nonleaf_block in this context
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(block_id bid) { return read_subnode_nonleaf_block(shared_from_this(), bid); }
     //! \brief Open a block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<block> read_block(const shared_db_ptr& parent, block_id bid) = 0;
     //! \brief Open a data_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, block_id bid) = 0;
     //! \brief Open an extended_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<extended_block> read_extended_block(const shared_db_ptr& parent, block_id bid) = 0;
     //! \brief Open a external_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<external_block> read_external_block(const shared_db_ptr& parent, block_id bid) = 0;
     //! \brief Open a subnode_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<subnode_block> read_subnode_block(const shared_db_ptr& parent, block_id bid) = 0;
     //! \brief Open a subnode_leaf_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, block_id bid) = 0;
     //! \brief Open a subnode_nonleaf_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bid The id of the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, block_id bid) = 0;
 
     //! \brief Open a block in this context
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<block> read_block(const block_info& bi) { return read_block(shared_from_this(), bi); }
     //! \brief Open a data_block in this context
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<data_block> read_data_block(const block_info& bi) { return read_data_block(shared_from_this(), bi); }
     //! \brief Open a extended_block in this context
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<extended_block> read_extended_block(const block_info& bi) { return read_extended_block(shared_from_this(), bi); }
     //! \brief Open a block in this context
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<external_block> read_external_block(const block_info& bi) { return read_external_block(shared_from_this(), bi); }
     //! \brief Open a subnode_block in this context
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<subnode_block> read_subnode_block(const block_info& bi) { return read_subnode_block(shared_from_this(), bi); }
     //! \brief Open a subnode_leaf_block in this context
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const block_info& bi) { return read_subnode_leaf_block(shared_from_this(), bi); }
     //! \brief Open a subnode_nonleaf_block in this context
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const block_info& bi) { return read_subnode_nonleaf_block(shared_from_this(), bi); }
     //! \brief Open a block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<block> read_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     //! \brief Open a data_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<data_block> read_data_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     //! \brief Open a extended_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<extended_block> read_extended_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     //! \brief Open a external_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<external_block> read_external_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     //! \brief Open a subnode_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<subnode_block> read_subnode_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     //! \brief Open a subnode_leaf_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     //! \brief Open a subnode_nonleaf_block in the specified context
     //! \param[in] parent The context to open this block in. It must be either this context or a child context of this context.
     //! \param[in] bi Information about the block to open
-    //! \throws unexpected_block (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
-    //! \throws sig_mismatch (\ref FAIRPORT_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
-    //! \throws crc_fail (\ref FAIRPORT_VALIDATION_LEVEL_WEAK "FAIRPORT_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
+    //! \throws unexpected_block (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the parameters of the block appear incorrect
+    //! \throws sig_mismatch (\ref PSTSDK_VALIDATION_LEVEL_WEAK) If the block trailer's signature appears incorrect
+    //! \throws crc_fail (\ref PSTSDK_VALIDATION_LEVEL_WEAK "PSTSDK_VALIDATION_LEVEL_FULL") If the block's CRC doesn't match the trailer
     //! \returns The requested block
     virtual std::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi) = 0;
     //@}
