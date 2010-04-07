@@ -175,14 +175,14 @@ inline size_t pstsdk::file::write(const std::vector<byte>& buffer, ulonglong off
 
 inline time_t pstsdk::filetime_to_time_t(ulonglong filetime)
 {
-    ulonglong jan1970 = 116444736000000000ULL;
+    const ulonglong jan1970 = 116444736000000000ULL;
 
     return (filetime - jan1970) / 10000000;
 }
 
 inline pstsdk::ulonglong pstsdk::time_t_to_filetime(time_t time)
 {
-    ulonglong jan1970 = 116444736000000000ULL;
+    const ulonglong jan1970 = 116444736000000000ULL;
 
     return (time * 10000000) + jan1970;
 }
