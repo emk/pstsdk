@@ -21,6 +21,10 @@
 //!      - Boost.Utility
 //! - GCC 4.4.x (with -std=c++0x) or Visual Studio 2010
 //!
+//! Partial support is offered for some older versions of Visual Studio and
+//! GCC. See the <a href="http://pstsdk.codeplex.com">CodePlex site</a> for
+//! details.
+//!
 //! \section main_getting_help Additional Documentation
 //! See the Documentation on the 
 //! <a href="http://pstsdk.codeplex.com">CodePlex site</a> for a series of 

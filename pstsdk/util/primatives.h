@@ -57,7 +57,8 @@
 #ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
 #pragma message("static_assert not supported; consider updating your compiler")
 #endif
-#define static_assert(x,y)
+#include <boost/static_assert.hpp>
+#define static_assert(x,y) BOOST_STATIC_ASSERT(x)
 #endif
 
 #ifdef USE_TR1
