@@ -120,7 +120,7 @@ inline pstsdk::file::file(const std::wstring& filename)
     if(err != 0)
         m_pfile = NULL;
 #else
-    m_pfile = fopen64(std::string(filename.begin(), filename.end()).c_str(), mode);
+    m_pfile = fopen(std::string(filename.begin(), filename.end()).c_str(), mode);
 #endif
     if(m_pfile == NULL)
         throw std::runtime_error("fopen failed");
@@ -137,7 +137,7 @@ inline size_t pstsdk::file::read(std::vector<byte>& buffer, ulonglong offset) co
 #ifdef _MSC_VER
     if(_fseeki64(m_pfile, offset, SEEK_SET) != 0)
 #else
-    if(fseeko64(m_pfile, offset, SEEK_SET) != 0)
+    if(fseek(m_pfile, offset, SEEK_SET) != 0)
 #endif
     {
         throw std::out_of_range("fseek failed");
