@@ -367,9 +367,13 @@ public:
     //! \param[in] id The id to interpret as a non-leaf BTH node
     //! \param[in] level The level of this bth_nonleaf_node (non-zero)
     //! \param[in] bth_info The info about child bth_node allocations
+#ifndef NO_RVALUE_REF
     bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, std::vector<std::pair<K, heap_id>> bth_info)
         : bth_node<K,V>(h, id, level), m_bth_info(std::move(bth_info)), m_child_nodes(m_bth_info.size()) { }
-
+#else
+    bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, const std::vector<std::pair<K, heap_id>>& bth_info)
+        : bth_node<K,V>(h, id, level), m_bth_info(bth_info), m_child_nodes(m_bth_info.size()) { }
+#endif
     // btree_node_nonleaf implementation
     const K& get_key(uint pos) const { return m_bth_info[pos].first; }
     bth_node<K,V>* get_child(uint pos);
@@ -396,8 +400,14 @@ public:
     //! \param[in] h The heap to open out of
     //! \param[in] id The id to interpret as a non-leaf BTH node
     //! \param[in] data The key/value pairs stored in this leaf
+#ifndef NO_RVALUE_REF
     bth_leaf_node(const heap_ptr& h, heap_id id, std::vector<std::pair<K,V>> data)
         : bth_node<K,V>(h, id, 0), m_bth_data(std::move(data)) { }
+#else
+    bth_leaf_node(const heap_ptr& h, heap_id id, const std::vector<std::pair<K,V>>& data)
+        : bth_node<K,V>(h, id, 0), m_bth_data(data) { }
+#endif
+
     virtual ~bth_leaf_node() { }
 
     // btree_node_leaf implementation
@@ -457,7 +467,11 @@ inline std::unique_ptr<pstsdk::bth_nonleaf_node<K,V>> pstsdk::bth_node<K,V>::ope
         child_nodes.push_back(std::make_pair(pbth_nonleaf_node->entries[i].key, pbth_nonleaf_node->entries[i].page));
     }
 
+#ifndef NO_RVALUE_REF
     return std::unique_ptr<bth_nonleaf_node<K,V>>(new bth_nonleaf_node<K,V>(h, id, level, std::move(child_nodes)));
+#else
+    return std::unique_ptr<bth_nonleaf_node<K,V>>(new bth_nonleaf_node<K,V>(h, id, level, child_nodes));
+#endif
 }
     
 template<typename K, typename V>
@@ -479,8 +493,11 @@ inline std::unique_ptr<pstsdk::bth_leaf_node<K,V>> pstsdk::bth_node<K,V>::open_l
         {
             entries.push_back(std::make_pair(pbth_leaf_node->entries[i].key, pbth_leaf_node->entries[i].value));
         }
-
+#ifndef NO_RVALUE_REF
         return std::unique_ptr<bth_leaf_node<K,V>>(new bth_leaf_node<K,V>(h, id, std::move(entries)));
+#else
+        return std::unique_ptr<bth_leaf_node<K,V>>(new bth_leaf_node<K,V>(h, id, entries));
+#endif
     }
     else
     {
@@ -650,12 +667,19 @@ inline std::streamsize pstsdk::hid_stream_device::read(char* pbuffer, std::strea
 
 inline std::streampos pstsdk::hid_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
 {
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+#pragma warning(push)
+#pragma warning(disable:4244)
+#endif
     if(way == std::ios_base::beg)
             m_pos = off;
     else if(way == std::ios_base::end)
         m_pos = m_pheap->size(m_hid) + off;
     else
         m_pos += off;
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+#pragma warning(pop)
+#endif
 
     if(m_pos < 0)
         m_pos = 0;

@@ -18,11 +18,12 @@
 
 // Test with GCC 4.5 someday
 #define NO_LAMBDA
-#define NO_NULLPTR
 
 // Turn off rvalue references for versions before GCC 4.4
-#if !((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 4))
+#if !((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 4) && __GXX_EXPERIMENTAL_CXX0X__)
 #define NO_RVALUE_REF
+#define NO_STATIC_ASSERT
+#define USE_TR1
 #endif
 
 #endif
@@ -32,12 +33,41 @@
 
 // Turn off all C++0x features for versions before VC10
 #if !(_MSC_VER >= 1600)
-#pragma message("C++0x features disabled - consider using VC10")
 #define NO_LAMBDA
-#define NO_NULLPTR
 #define NO_RVALUE_REF
+#define NO_STATIC_ASSERT
+#define USE_TR1
 #endif
 
+#endif
+
+#ifdef NO_LAMBDA
+#ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
+#pragma message("lambdas not supported; consider updating your compiler")
+#endif
+#endif
+
+#ifdef NO_RVALUE_REF
+#ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
+#pragma message("rvalue references not supported; consider updating your compiler")
+#endif
+#endif
+
+#ifdef NO_STATIC_ASSERT
+#ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
+#pragma message("static_assert not supported; consider updating your compiler")
+#endif
+#define static_assert(x,y)
+#endif
+
+#ifdef USE_TR1
+#ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
+#pragma message("falling back on TR1 types; consider updating your compiler")
+#endif
+// highly illegal
+namespace std { using namespace tr1; }
+// huge hack
+#define unique_ptr shared_ptr
 #endif
 
 //! \brief Global Validation Settings
@@ -57,6 +87,7 @@
 // full validation also implies weak validation
 #define PSTSDK_VALIDATION_LEVEL_WEAK
 #endif
+
 namespace pstsdk
 {
 
@@ -77,21 +108,6 @@ static_assert(sizeof(ushort) == 2, "pstsdk::ushort unexpected size");
 static_assert(sizeof(uint) == 4, "pstsdk::uint unexpected size");
 static_assert(sizeof(ulonglong) == 8, "pstsdk::ulonglong unexpected size");
 //! \endcond
-
-#ifdef NO_NULLPTR
-const class
-{
-public:
-    template<class T>
-    operator T*() const
-        { return 0; }
-    template<class C, class T>
-    operator T C::*() const
-        { return 0; }
-private:
-    void operator&() const; // = delete;
-} nullptr = {};
-#endif
 
 /*! \addtogroup primative
  * @{

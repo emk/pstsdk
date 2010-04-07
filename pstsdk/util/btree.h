@@ -211,6 +211,7 @@ struct btree_iter_impl
     uint m_leaf_pos;                //!< The current position on that leaf
 
     std::vector<std::pair<btree_node_nonleaf<K,V>*, uint>> m_path; //!< The "path" to this leaf, starting at the root of the btree
+    typedef typename std::vector<std::pair<btree_node_nonleaf<K,V>*, uint>>::iterator path_iter;
 };
 
 //! \brief The actual iterator type used by the btree_node class hierarchy
@@ -308,8 +309,8 @@ void pstsdk::btree_node_leaf<K,V>::next(btree_iter_impl<K,V>& iter) const
     {
         if(iter.m_path.size() > 0)
         {
-            for(auto piter = iter.m_path.cbegin();
-                piter != iter.m_path.cend(); 
+            for(btree_iter_impl<K,V>::path_iter piter = iter.m_path.begin();
+                piter != iter.m_path.end(); 
                 ++piter)
             {
                 if((*piter).second + 1 < (*piter).first->num_values())
@@ -332,8 +333,8 @@ void pstsdk::btree_node_leaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
     {
         if(iter.m_path.size() > 0)
         {
-            for(auto piter = iter.m_path.cbegin();
-                piter != iter.m_path.cend();
+            for(btree_iter_impl<K,V>::path_iter piter = iter.m_path.begin();
+                piter != iter.m_path.end();
                 ++piter)
             {
                 // we're done with this leaf
@@ -424,7 +425,7 @@ template<typename K, typename V>
 pstsdk::const_btree_node_iter<K,V>::const_btree_node_iter()
 {
     m_impl.m_leaf_pos = 0;
-    m_impl.m_leaf = nullptr;
+    m_impl.m_leaf = NULL;
 }
 
 template<typename K, typename V>

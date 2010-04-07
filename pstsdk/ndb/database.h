@@ -383,7 +383,11 @@ inline std::shared_ptr<pstsdk::nbt_leaf_page> pstsdk::database_impl<T>::read_nbt
         nodes.push_back(std::make_pair(ni.id, ni));
     }
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(shared_from_this(), pi, std::move(nodes)));
+#else
+    return std::shared_ptr<nbt_leaf_page>(new nbt_leaf_page(shared_from_this(), pi, nodes));
+#endif
 }
 
 template<typename T>
@@ -419,7 +423,11 @@ inline std::shared_ptr<pstsdk::bbt_leaf_page> pstsdk::database_impl<T>::read_bbt
         blocks.push_back(std::make_pair(bi.id, bi));
     }
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(shared_from_this(), pi, std::move(blocks)));
+#else
+    return std::shared_ptr<bbt_leaf_page>(new bbt_leaf_page(shared_from_this(), pi, blocks));
+#endif
 }
 
 template<typename T>
@@ -451,7 +459,11 @@ inline std::shared_ptr<pstsdk::bt_nonleaf_page<K,V>> pstsdk::database_impl<T>::r
         nodes.push_back(std::make_pair(static_cast<K>(the_page.entries[i].key), subpi));
     }
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<bt_nonleaf_page<K,V>>(new bt_nonleaf_page<K,V>(shared_from_this(), pi, the_page.level, std::move(nodes)));
+#else
+    return std::shared_ptr<bt_nonleaf_page<K,V>>(new bt_nonleaf_page<K,V>(shared_from_this(), pi, the_page.level, nodes));
+#endif
 }
 
 template<typename T>
@@ -604,7 +616,11 @@ inline std::shared_ptr<pstsdk::extended_block> pstsdk::database_impl<T>::read_ex
 #endif
     uint sub_page_count = peblock->level == 1 ? 1 : disk::extended_block<T>::max_count;
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<extended_block>(new extended_block(parent, bi, peblock->level, peblock->total_size, sub_size, disk::extended_block<T>::max_count, sub_page_count, std::move(child_blocks)));
+#else
+    return std::shared_ptr<extended_block>(new extended_block(parent, bi, peblock->level, peblock->total_size, sub_size, disk::extended_block<T>::max_count, sub_page_count, child_blocks));
+#endif
 }
 
 //! \cond write_api
@@ -620,7 +636,11 @@ inline std::shared_ptr<pstsdk::extended_block> pstsdk::database_impl<T>::create_
     std::vector<std::shared_ptr<data_block>> child_blocks;
     child_blocks.push_back(pchild_block);
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<extended_block>(new extended_block(parent, 1, pchild_block->get_total_size(), disk::external_block<T>::max_size, disk::extended_block<T>::max_count, 1, std::move(child_blocks)));
+#else
+    return std::shared_ptr<extended_block>(new extended_block(parent, 1, pchild_block->get_total_size(), disk::external_block<T>::max_size, disk::extended_block<T>::max_count, 1, child_blocks));
+#endif
 }
 
 template<typename T>
@@ -631,7 +651,11 @@ inline std::shared_ptr<pstsdk::extended_block> pstsdk::database_impl<T>::create_
 
     assert(pchild_block->get_level() == 1);
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<extended_block>(new extended_block(parent, 2, pchild_block->get_total_size(), disk::extended_block<T>::max_size, disk::extended_block<T>::max_count, disk::extended_block<T>::max_count, std::move(child_blocks)));
+#else
+    return std::shared_ptr<extended_block>(new extended_block(parent, 2, pchild_block->get_total_size(), disk::extended_block<T>::max_size, disk::extended_block<T>::max_count, disk::extended_block<T>::max_count, child_blocks));
+#endif
 }
 
 template<typename T>
@@ -676,7 +700,11 @@ inline std::shared_ptr<pstsdk::external_block> pstsdk::database_impl<T>::read_ex
         disk::cyclic(&buffer[0], bi.size, (ulong)bi.id);
     }
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<external_block>(new external_block(parent, bi, disk::external_block<T>::max_size, std::move(buffer)));
+#else
+    return std::shared_ptr<external_block>(new external_block(parent, bi, disk::external_block<T>::max_size, buffer));
+#endif
 }
 
 template<typename T>
@@ -756,7 +784,11 @@ inline std::shared_ptr<pstsdk::subnode_leaf_block> pstsdk::database_impl<T>::rea
         subnodes.push_back(std::make_pair(sub_block.entry[i].nid, ni));
     }
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<subnode_leaf_block>(new subnode_leaf_block(parent, bi, std::move(subnodes)));
+#else
+    return std::shared_ptr<subnode_leaf_block>(new subnode_leaf_block(parent, bi, subnodes));
+#endif
 }
 
 template<typename T>
@@ -769,7 +801,11 @@ inline std::shared_ptr<pstsdk::subnode_nonleaf_block> pstsdk::database_impl<T>::
         subnodes.push_back(std::make_pair(sub_block.entry[i].nid_key, sub_block.entry[i].sub_block_bid));
     }
 
+#ifndef NO_RVALUE_REF
     return std::shared_ptr<subnode_nonleaf_block>(new subnode_nonleaf_block(parent, bi, std::move(subnodes)));
+#else
+    return std::shared_ptr<subnode_nonleaf_block>(new subnode_nonleaf_block(parent, bi, subnodes));
+#endif
 }
 
 //! \cond write_api

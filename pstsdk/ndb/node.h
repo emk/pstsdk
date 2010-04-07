@@ -637,15 +637,27 @@ public:
     //! \param[in] page_max_count The maximum number of external blocks that can be contained in this block
     //! \param[in] child_page_max_count The maximum number of external blocks that can be contained in a child block
     //! \param[in] bi The \ref block_info for all child blocks
+#ifndef NO_RVALUE_REF
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<block_id> bi)
         : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(std::move(bi))
         { m_child_blocks.resize(m_block_info.size()); }
+#else
+    extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<block_id>& bi)
+        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi)
+        { m_child_blocks.resize(m_block_info.size()); }
+#endif
 
 //! \cond write_api
     // new block constructors
+#ifndef NO_RVALUE_REF
     extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<std::shared_ptr<data_block>> child_blocks)
         : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(std::move(child_blocks))
         { m_block_info.resize(m_child_blocks.size()); touch(); }
+#else
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<std::shared_ptr<data_block>>& child_blocks)
+        : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(child_blocks)
+        { m_block_info.resize(m_child_blocks.size()); touch(); }
+#endif
     extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count);
 //! \endcond
 
@@ -702,8 +714,13 @@ public:
     //! \param[in] info Information about this block
     //! \param[in] max_size The maximum possible size of this block
     //! \param[in] buffer The actual external data (decoded)
+#ifndef NO_RVALUE_REF
     external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, std::vector<byte> buffer)
         : data_block(db, info, info.size), m_max_size(max_size), m_buffer(std::move(buffer)) { }
+#else
+    external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, const std::vector<byte>& buffer)
+        : data_block(db, info, info.size), m_max_size(max_size), m_buffer(buffer) { }
+#endif
 
 //! \cond write_api
     // new block constructors
@@ -792,8 +809,13 @@ public:
     //! \param[in] db The database context
     //! \param[in] info Information about this block
     //! \param[in] subblocks Information about the child blocks
+#ifndef NO_RVALUE_REF
     subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>> subblocks)
         : subnode_block(db, info, 1), m_subnode_info(std::move(subblocks)) { }
+#else
+    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, block_id>>& subblocks)
+        : subnode_block(db, info, 1), m_subnode_info(subblocks) { }
+#endif
 
     // btree_node_nonleaf implementation
     const node_id& get_key(uint pos) const
@@ -824,8 +846,13 @@ public:
     //! \param[in] db The database context
     //! \param[in] info Information about this block
     //! \param[in] subnodes Information about the subnodes
+#ifndef NO_RVALUE_REF
     subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info>> subnodes)
         : subnode_block(db, info, 0), m_subnodes(std::move(subnodes)) { }
+#else
+    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, subnode_info>>& subnodes)
+        : subnode_block(db, info, 0), m_subnodes(subnodes) { }
+#endif
 
     // btree_node_leaf implementation
     const subnode_info& get_value(uint pos) const 
@@ -990,12 +1017,19 @@ inline std::streamsize pstsdk::node_stream_device::write(const char* pbuffer, st
 
 inline std::streampos pstsdk::node_stream_device::seek(boost::iostreams::stream_offset off, std::ios_base::seekdir way)
 {
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+#pragma warning(push)
+#pragma warning(disable:4244)
+#endif
     if(way == std::ios_base::beg)
             m_pos = off;
     else if(way == std::ios_base::end)
         m_pos = m_pnode->size() + off;
     else
         m_pos += off;
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+#pragma warning(pop)
+#endif
 
     if(m_pos < 0)
         m_pos = 0;
@@ -1177,7 +1211,11 @@ inline size_t pstsdk::external_block::write_raw(const byte* psrc_buffer, size_t 
     memcpy(&m_buffer[0]+offset, psrc_buffer, write_size);
 
     // assign out param
+#ifndef NO_RVALUE_REF
     presult = std::move(pblock);
+#else
+    presult = pblock;
+#endif
 
     return write_size;
 }
@@ -1257,7 +1295,11 @@ inline size_t pstsdk::extended_block::write_raw(const byte* psrc_buffer, size_t 
     }
 
     // assign out param
+#ifndef NO_RVALUE_REF
     presult = std::move(pblock);
+#else
+    presult = pblock;
+#endif
 
     return total_bytes_written;
 }
@@ -1283,7 +1325,11 @@ inline size_t pstsdk::external_block::resize(size_t size, std::shared_ptr<data_b
     }
 
     // assign out param
+#ifndef NO_RVALUE_REF
     presult = std::move(pblock);
+#else
+    presult = pblock;
+#endif
 
     return size;
 }
@@ -1338,7 +1384,11 @@ inline size_t pstsdk::extended_block::resize(size_t size, std::shared_ptr<data_b
     
     // assign out param
     m_total_size = size;
+#ifndef NO_RVALUE_REF
     presult = std::move(pblock);
+#else
+    presult = pblock;
+#endif
 
     return size;
 }

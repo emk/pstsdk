@@ -127,8 +127,13 @@ public:
     //! \param[in] pi Information about this page
     //! \param[in] level Distance from leaf
     //! \param[in] subpi Information about the child pages
+#ifndef NO_RVALUE_REF
     bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, std::vector<std::pair<K, page_info>> subpi)
         : bt_page<K,V>(db, pi, level), m_page_info(std::move(subpi)), m_child_pages(m_page_info.size()) { }
+#else
+    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, const std::vector<std::pair<K, page_info>>& subpi)
+        : bt_page<K,V>(db, pi, level), m_page_info(subpi), m_child_pages(m_page_info.size()) { }
+#endif
 
     // btree_node_nonleaf implementation
     const K& get_key(uint pos) const { return m_page_info[pos].first; }
@@ -156,8 +161,13 @@ public:
     //! \param[in] db The database context
     //! \param[in] pi Information about this page
     //! \param[in] data The key/value pairs on this leaf page
+#ifndef NO_RVALUE_REF
     bt_leaf_page(const shared_db_ptr& db, const page_info& pi, std::vector<std::pair<K,V>> data)
         : bt_page<K,V>(db, pi, 0), m_page_data(std::move(data)) { }
+#else
+    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, const std::vector<std::pair<K,V>>& data)
+        : bt_page<K,V>(db, pi, 0), m_page_data(data) { }
+#endif
 
     // btree_node_leaf implementation
     const V& get_value(uint pos) const

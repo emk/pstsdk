@@ -85,9 +85,14 @@ private:
     attachment& operator=(const attachment&); // = delete
     friend class message;
     friend class attachment_transform;
-    attachment(property_bag attachment)
-        : m_bag(std::move(attachment)) { }
 
+#ifndef NO_RVALUE_REF
+    explicit attachment(property_bag attachment)
+        : m_bag(std::move(attachment)) { }
+#else
+    explicit attachment(const property_bag& attachment)
+        : m_bag(attachment) { }
+#endif
     property_bag m_bag;
 };
 
