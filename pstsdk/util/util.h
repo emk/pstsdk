@@ -47,6 +47,7 @@ public:
     size_t read(std::vector<byte>& buffer, ulonglong offset) const;
 
 //! \cond write_api
+
     //! \brief Write to the file
     //! \throw out_of_range if the requested location or location+size is past EOF
     //! \param[in] buffer The data to write. The size of this vector is the amount of data to write.
@@ -151,6 +152,7 @@ inline size_t pstsdk::file::read(std::vector<byte>& buffer, ulonglong offset) co
     return read;
 }
 
+//! \cond write_api
 inline size_t pstsdk::file::write(const std::vector<byte>& buffer, ulonglong offset)
 {
 #ifdef _MSC_VER
@@ -169,6 +171,7 @@ inline size_t pstsdk::file::write(const std::vector<byte>& buffer, ulonglong off
 
     return write;
 }
+//! \endcond
 
 inline time_t pstsdk::filetime_to_time_t(ulonglong filetime)
 {
