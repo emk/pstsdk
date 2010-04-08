@@ -3,7 +3,7 @@
 //! \author Terry Mahaffey
 //! \ingroup util
 
-//! \defgroup primitive primitive Types
+//! \defgroup primitive Primitive Types
 //! \ingroup util
 
 #ifndef PSTSDK_UTIL_PRIMITIVES_H
