@@ -17,7 +17,7 @@
 #include <boost/utility.hpp>
 
 #include "pstsdk/util/errors.h"
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 
 namespace pstsdk
 {

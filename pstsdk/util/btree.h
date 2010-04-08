@@ -20,7 +20,7 @@
 #include <vector>
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 #include "pstsdk/util/errors.h"
 
 #ifdef _MSC_VER

@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 
 #include "pstsdk/ndb/node.h"
 

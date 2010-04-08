@@ -19,7 +19,7 @@
 #pragma warning(pop)
 #endif
 
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 
 #include "pstsdk/disk/disk.h"
 

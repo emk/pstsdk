@@ -9,7 +9,7 @@
 #include <string>
 #include <algorithm>
 
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 
 #include "pstsdk/ndb/database_iface.h"
 

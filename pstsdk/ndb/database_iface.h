@@ -2,7 +2,7 @@
 //! \brief Database interface
 //! \author Terry Mahaffey
 //!
-//! Contains the db_context interface as well as some broadly used primative 
+//! Contains the db_context interface as well as some broadly used primitive 
 //! in memory types and typedefs.
 //! \ingroup ndb
 
@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "pstsdk/util/util.h"
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 
 namespace pstsdk
 {

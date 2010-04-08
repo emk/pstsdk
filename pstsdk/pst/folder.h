@@ -16,7 +16,7 @@
 #include <boost/iterator/filter_iterator.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 #include "pstsdk/util/errors.h"
 
 #include "pstsdk/ndb/database_iface.h"

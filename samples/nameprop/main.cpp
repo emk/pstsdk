@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 
 #include "pstsdk/ltp/propbag.h"
 

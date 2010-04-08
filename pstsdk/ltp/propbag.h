@@ -9,7 +9,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 #include "pstsdk/util/errors.h"
 
 #include "pstsdk/ndb/node.h"

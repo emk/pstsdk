@@ -10,7 +10,7 @@
 #define PSTSDK_UTIL_ERRORS_H
 
 #include <stdexcept>
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 
 namespace pstsdk
 {

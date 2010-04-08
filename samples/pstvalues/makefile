@@ -40,8 +40,8 @@ pstvalues.exe: $(OBJS) values.h
 
 main.cpp: values.h
 
-values.h: ..\..\util\primatives.h ..\..\disk\disk.h
-	perl values.pl ..\..\util\primatives.h ..\..\disk\disk.h > values.h
+values.h: ..\..\util\primitives.h ..\..\disk\disk.h
+	perl values.pl ..\..\util\primitives.h ..\..\disk\disk.h > values.h
 
 clean:
 	$(DELCMD) values.h *.obj *.o pstvalues.exe *.pdb *.ilk

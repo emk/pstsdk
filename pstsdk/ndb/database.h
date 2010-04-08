@@ -13,7 +13,7 @@
 
 #include "pstsdk/util/btree.h"
 #include "pstsdk/util/errors.h"
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 #include "pstsdk/util/util.h"
 
 #include "pstsdk/disk/disk.h"

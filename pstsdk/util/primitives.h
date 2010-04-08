@@ -1,13 +1,13 @@
 //! \file
-//! \brief Primative structures defined by MS-PST and MAPI
+//! \brief Primitive structures defined by MS-PST and MAPI
 //! \author Terry Mahaffey
 //! \ingroup util
 
-//! \defgroup primative Primative Types
+//! \defgroup primitive primitive Types
 //! \ingroup util
 
-#ifndef PSTSDK_UTIL_PRIMATIVES_H
-#define PSTSDK_UTIL_PRIMATIVES_H
+#ifndef PSTSDK_UTIL_PRIMITIVES_H
+#define PSTSDK_UTIL_PRIMITIVES_H
 
 //
 // Global compiler hacks
@@ -79,7 +79,7 @@ namespace std { using namespace tr1; }
 //! - PSTSDK_VALIDATION_LEVEL_FULL, includes all weak checks plus crc validation and any other "expensive" checks
 //!
 //! Weak validation is the default.
-//! \ingroup primative
+//! \ingroup primitive
 #ifndef PSTSDK_VALIDATION_LEVEL_NONE
 #define PSTSDK_VALIDATION_LEVEL_WEAK
 #endif
@@ -92,7 +92,7 @@ namespace std { using namespace tr1; }
 namespace pstsdk
 {
 
-/*! \addtogroup primative
+/*! \addtogroup primitive
  * @{
  */
 typedef unsigned int uint;
@@ -110,7 +110,7 @@ static_assert(sizeof(uint) == 4, "pstsdk::uint unexpected size");
 static_assert(sizeof(ulonglong) == 8, "pstsdk::ulonglong unexpected size");
 //! \endcond
 
-/*! \addtogroup primative
+/*! \addtogroup primitive
  * @{
  */
 typedef ulong node_id;
@@ -136,7 +136,7 @@ typedef ulong row_id;
 //! In either case both objects refer to the same physical item on disk - the
 //! alias tag only affects the in memory behavior.
 //!
-//! \ingroup primative
+//! \ingroup primitive
 struct alias_tag { };
 
 //
@@ -145,7 +145,7 @@ struct alias_tag { };
 
 //! \brief Different node types found in a PST file
 //! \sa [MS-PST] 2.2.2.1/nidType
-//! \ingroup primative
+//! \ingroup primitive
 enum nid_type
 {
     nid_type_none = 0x00,
@@ -181,21 +181,21 @@ enum nid_type
 
 //! \brief The portion of a node_id reserved for the type
 //! \sa [MS-PST] 2.2.2.1/nidType
-//! \ingroup primative
+//! \ingroup primitive
 const ulong nid_type_mask = 0x1FL;
 
 //! \brief Construct a node_id (NID) from a node type and index
 //! \sa [MS-PST] 2.2.2.1
-//! \ingroup primative
+//! \ingroup primitive
 #define make_nid(nid_type,nid_index) (((nid_type)&nid_type_mask)|((nid_index) << 5))
 
 //! \brief Construct a folders node_id for an OST file
-//! \ingroup primative
+//! \ingroup primitive
 #define make_prv_pub_nid(nid_index) (make_nid(nid_type_folder, nid_index_prv_pub_base + (nid_index)))
 
 //! \brief The predefined nodes in a PST/OST file
 //! \sa [MS-PST] 2.4.1
-//! \ingroup primative
+//! \ingroup primitive
 enum predefined_nid
 {
     nid_message_store = make_nid(nid_type_internal, 0x1),   //!< The property bag for this file
@@ -249,7 +249,7 @@ enum predefined_nid
 //! \param[in] id The node id
 //! \returns The node type
 //! \sa [MS-PST] 2.2.2.1/nidType
-//! \ingroup primative
+//! \ingroup primitive
 inline nid_type get_nid_type(node_id id)
     { return (nid_type)(id & nid_type_mask); }
 
@@ -257,7 +257,7 @@ inline nid_type get_nid_type(node_id id)
 //! \param[in] id The node id
 //! \returns The node index
 //! \sa [MS-PST] 2.2.2.1/nidIndex
-//! \ingroup primative
+//! \ingroup primitive
 inline ulong get_nid_index(node_id id)
     { return id >> 5; }
 
@@ -269,7 +269,7 @@ inline ulong get_nid_index(node_id id)
 //! \param[in] id The heap id
 //! \returns The heap page
 //! \sa [MS-PST] 2.3.1.1/hidBlockIndex
-//! \ingroup primative
+//! \ingroup primitive
 inline ulong get_heap_page(heap_id id)
     { return (id >> 16); } 
 
@@ -277,7 +277,7 @@ inline ulong get_heap_page(heap_id id)
 //! \param[in] id The heap id
 //! \returns The index
 //! \sa [MS-PST] 2.3.1.1/hidIndex
-//! \ingroup primative
+//! \ingroup primitive
 inline ulong get_heap_index(heap_id id)
     { return (((id >> 5) - 1) & 0x7FF); }
 
@@ -290,7 +290,7 @@ inline ulong get_heap_index(heap_id id)
 //! \param[in] id The heapnode_id
 //! \returns true if this is a heap_id
 //! \sa [MS-PST] 2.3.3.2
-//! \ingroup primative
+//! \ingroup primitive
 inline bool is_heap_id(heapnode_id id)
     { return (get_nid_type(id) == nid_type_none); }
 
@@ -299,7 +299,7 @@ inline bool is_heap_id(heapnode_id id)
 //! \param[in] id The heapnode_id
 //! \returns true if this is a node_id of a subnode
 //! \sa [MS-PST] 2.3.3.2
-//! \ingroup primative
+//! \ingroup primitive
 inline bool is_subnode_id(heapnode_id id)
     { return (get_nid_type(id) != nid_type_none); }
 
@@ -309,7 +309,7 @@ inline bool is_subnode_id(heapnode_id id)
 
 //! \brief The different property types as defined by MAPI
 //! \sa [MS-OXCDATA] 2.12.1
-//! \ingroup primative
+//! \ingroup primitive
 enum prop_type
 {
     prop_type_unspecified = 0,
@@ -348,7 +348,7 @@ enum prop_type
 //
 
 //! \brief The different recipient types as defined by MAPI
-//! \ingroup primative
+//! \ingroup primitive
 enum recipient_type
 {
     mapi_to = 1,
@@ -362,7 +362,7 @@ enum recipient_type
 
 //! \brief A sentinel byte which indicates the message subject contains a prefix
 //! \sa [MS-PST] 2.5.3.1.1.1
-//! \ingroup primative
+//! \ingroup primitive
 const byte message_subject_prefix_lead_byte = 0x01;
 
 //
@@ -370,7 +370,7 @@ const byte message_subject_prefix_lead_byte = 0x01;
 //
 
 //! \brief A Win32 GUID structure
-//! \ingroup primative
+//! \ingroup primitive
 struct guid
 {
     ulong data1;
@@ -380,17 +380,17 @@ struct guid
 };
 
 //! \brief The NULL guid
-//! \ingroup primative
+//! \ingroup primitive
 const guid ps_none = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 //! \brief The PS_MAPI guid
 //! \sa [MS-OXPROPS] 1.3.2
-//! \ingroup primative
+//! \ingroup primitive
 const guid ps_mapi = { 0x20328, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
 
 //! \brief The PS_PUBLIC_STRINGS guid
 //! \sa [MS-OXPROPS] 1.3.2
-//! \ingroup primative
+//! \ingroup primitive
 const guid ps_public_strings = { 0x20329, 0, 0, { 0xc0, 0, 0, 0, 0, 0, 0, 0x46 } };
 
 } // end pstsdk namespace

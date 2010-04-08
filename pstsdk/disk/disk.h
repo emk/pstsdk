@@ -12,7 +12,7 @@
 
 #include <cstddef>
 
-#include "pstsdk/util/primatives.h"
+#include "pstsdk/util/primitives.h"
 
 //! \brief Contains the definition of all in memory representations of disk structures
 namespace pstsdk
