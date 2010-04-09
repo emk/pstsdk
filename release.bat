@@ -1,6 +1,7 @@
+@echo off
 :: This batch file generates a release for the PST File Format SDK. It must
 :: be run from the root of the trunk/branch you want to generate a release 
-:: for, or unexpected things will happen. "svn up" will be called.
+:: for. "svn up" will be called.
 ::
 :: To use it, type "release x_y_z" where x, y, and z form the version number
 ::
@@ -10,45 +11,68 @@
 :: doxygen must be in your path
 
 ::
+:: Check preconditions
+::
+
+if not exist Doxyfile goto Usage
+if %1!==! goto Usage
+goto Start
+:Usage
+echo Release.bat - Generate a release for PST File Format SDK.
+echo.
+echo This tool must be run from the root of a branch/trunk.
+echo.
+echo This tool requires that 7zip, sfk, svn, and doxygen are all in the
+echo current PATH.
+echo.
+echo Release.bat will generate a release directory as well as the two release
+echo zip files (doc and nodoc) as a sibling of the branch/trunk directory.
+echo.
+echo Usage: release 1_2_3 
+echo        Creates a release for version 1.2.3
+goto Done
+:Start
+::
 :: Update everyone, regenerate documentation
 ::
 
 svn up
 doxygen Doxyfile
-cd ..
 
 ::
 :: Export to target dir
 ::
 
-svn export fairport pstsdk_%1
+svn export . ..\pstsdk_%1
 
 ::
 :: Remove unwanted files
 ::
 
-del pstsdk_%1\Doxyfile
-del pstsdk_%1\release.bat
-del /q pstsdk_%1\doc\*.pdf
-del pstsdk_%1\pstsdk\ndb\context.h
+del ..\pstsdk_%1\Doxyfile
+del ..\pstsdk_%1\release.bat
+del /q ..\pstsdk_%1\doc\*.pdf
+del ..\pstsdk_%1\pstsdk\ndb\context.h
 
 ::
 :: Convert everything to windows line endings
 ::
 
-sfk addcr .h .cpp .txt
+sfk addcr ..\pstsdk_%1 .h .cpp .txt
 
 ::
 :: Create release files
 ::
 
 :: nodoc zip
-7za a pstsdk_%1_nodoc.zip pstsdk_%1 -r
+7za a ..\pstsdk_%1_nodoc.zip ..\pstsdk_%1 -r
 
 :: copy over docs
-copy fairport\doc\*.pdf pstsdk_%1\doc
-mkdir pstsdk_%1\doc\html
-copy fairport\doc\html pstsdk_%1\doc\html
+copy doc\*.pdf ..\pstsdk_%1\doc
+mkdir ..\pstsdk_%1\doc\html
+copy doc\html ..\pstsdk_%1\doc\html
 
 :: doc zip
-7za a pstsdk_%1.zip pstsdk_%1 -r
+7za a ..\pstsdk_%1.zip ..\pstsdk_%1 -r
+
+:Done
