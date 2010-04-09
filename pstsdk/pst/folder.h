@@ -72,7 +72,7 @@ public:
     //! \brief Copy construct a search folder object
     search_folder(const search_folder& other);
 
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     //! \brief Move construct a search folder
     search_folder(search_folder&& other)
         : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)), m_contents_table(std::move(other.m_contents_table)) { }
@@ -199,7 +199,7 @@ public:
     //! \param[in] other folder to copy
     folder(const folder& other);
 
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     //! \brief Move construct a folder object
     //! \param[in] other folder to move from
     folder(folder&& other)
@@ -357,7 +357,7 @@ inline pstsdk::table& pstsdk::search_folder::get_contents_table()
 }
 
 
-#ifdef NO_LAMBDA
+#ifdef BOOST_NO_LAMBDAS
 namespace compiler_workarounds
 {
 
@@ -373,7 +373,7 @@ struct folder_name_equal : public std::unary_function<bool, const pstsdk::folder
 
 inline pstsdk::folder pstsdk::folder::open_sub_folder(const std::wstring& name)
 {
-#ifdef NO_LAMBDA
+#ifdef BOOST_NO_LAMBDAS
     folder_iterator iter = std::find_if(sub_folder_begin(), sub_folder_end(), compiler_workarounds::folder_name_equal(name));
 #else
     folder_iterator iter = std::find_if(sub_folder_begin(), sub_folder_end(), [&name](const folder& f) {

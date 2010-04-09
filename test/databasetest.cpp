@@ -193,6 +193,7 @@ void test_node_stream(pstsdk::node n)
 void test_db()
 {
     using namespace std;
+    using namespace std::tr1;
     using namespace pstsdk;
     bool caught_invalid_format = false;
     uint node = 0;

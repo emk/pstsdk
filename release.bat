@@ -66,6 +66,7 @@ sfk addcr ..\pstsdk_%1 .h .cpp .txt
 
 :: nodoc zip
 7za a ..\pstsdk_%1_nodoc.zip ..\pstsdk_%1 -r
+7za a ..\pstsdk_%1_nodoc.7z ..\pstsdk_%1 -r
 
 :: copy over docs
 copy doc\*.pdf ..\pstsdk_%1\doc
@@ -74,5 +75,6 @@ copy doc\html ..\pstsdk_%1\doc\html
 
 :: doc zip
 7za a ..\pstsdk_%1.zip ..\pstsdk_%1 -r
+7za a ..\pstsdk_%1.7z ..\pstsdk_%1 -r
 
 :Done

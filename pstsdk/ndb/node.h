@@ -59,7 +59,7 @@ namespace pstsdk
 //! \ref node and its \ref node_impl class generally have a one to one mapping,
 //! this isn't true only if someone opens an \ref alias_tag "alias" for a node.
 //! \ingroup ndb_noderelated
-class node_impl : public std::enable_shared_from_this<node_impl>
+class node_impl : public std::tr1::enable_shared_from_this<node_impl>
 {
 public:
     //! \brief Constructor for top level nodes
@@ -75,7 +75,7 @@ public:
     //! This constructor is specific to nodes defined in other nodes
     //! \param[in] container_node The parent or containing node
     //! \param[in] info Information about this node
-    node_impl(const std::shared_ptr<node_impl>& container_node, const subnode_info& info)
+    node_impl(const std::tr1::shared_ptr<node_impl>& container_node, const subnode_info& info)
         : m_id(info.id), m_original_data_id(info.data_bid), m_original_sub_id(info.sub_bid), m_original_parent_id(0), m_parent_id(0), m_pcontainer_node(container_node), m_db(container_node->m_db) { }
 
     //! \brief Set one node equal to another
@@ -113,11 +113,11 @@ public:
 
     //! \brief Returns the data block associated with this node
     //! \returns A shared pointer to the data block
-    std::shared_ptr<data_block> get_data_block() const
+    std::tr1::shared_ptr<data_block> get_data_block() const
         { ensure_data_block(); return m_pdata; }
     //! \brief Returns the subnode block associated with this node
     //! \returns A shared pointer to the subnode block
-    std::shared_ptr<subnode_block> get_subnode_block() const 
+    std::tr1::shared_ptr<subnode_block> get_subnode_block() const 
         { ensure_sub_block(); return m_psub; }
     
     //! \brief Read data from this node
@@ -217,11 +217,11 @@ private:
     block_id m_original_sub_id;     //!< The original block_id of the subnode block of this node
     node_id m_original_parent_id;   //!< The original node_id of the parent node of this node
 
-    mutable std::shared_ptr<data_block> m_pdata;    //!< The data block
-    mutable std::shared_ptr<subnode_block> m_psub;  //!< The subnode block
+    mutable std::tr1::shared_ptr<data_block> m_pdata;    //!< The data block
+    mutable std::tr1::shared_ptr<subnode_block> m_psub;  //!< The subnode block
     node_id m_parent_id;                            //!< The parent node_id to this node
 
-    std::shared_ptr<node_impl> m_pcontainer_node;   //!< The container node, of which we're a subnode, if applicable
+    std::tr1::shared_ptr<node_impl> m_pcontainer_node;   //!< The container node, of which we're a subnode, if applicable
 
     shared_db_ptr m_db; //!< The database context pointer
 };
@@ -239,7 +239,7 @@ class subnode_transform_info : public std::unary_function<subnode_info, node>
 public:
     //! \brief Initialize this functor with the container node involved
     //! \param[in] parent The containing node
-    subnode_transform_info(const std::shared_ptr<node_impl>& parent)
+    subnode_transform_info(const std::tr1::shared_ptr<node_impl>& parent)
         : m_parent(parent) { }
 
     //! \brief Given a subnode_info, construct a subnode
@@ -248,7 +248,7 @@ public:
     node operator()(const subnode_info& info) const;
 
 private:
-    std::shared_ptr<node_impl> m_parent; //!< The container node
+    std::tr1::shared_ptr<node_impl> m_parent; //!< The container node
 };
 
 //! \brief Defines a stream device for a node for use by boost iostream
@@ -282,10 +282,10 @@ public:
 private:
     friend class node;
     //! \brief Construct the device from a node
-    node_stream_device(std::shared_ptr<node_impl>& _node) : m_pos(0), m_pnode(_node) { }
+    node_stream_device(std::tr1::shared_ptr<node_impl>& _node) : m_pos(0), m_pnode(_node) { }
 
     std::streamsize m_pos;              //!< The stream's current position
-    std::shared_ptr<node_impl> m_pnode; //!< The node this stream is over
+    std::tr1::shared_ptr<node_impl> m_pnode; //!< The node this stream is over
 };
 
 //! \brief The actual node stream, defined using the boost iostream library
@@ -334,8 +334,8 @@ public:
     //! \param[in] info Information about this node
     node(const node& container_node, const subnode_info& info)
         : m_pimpl(new node_impl(container_node.m_pimpl, info)) { }
-    //! \copydoc node_impl::node_impl(const std::shared_ptr<node_impl>&,const subnode_info&)
-    node(const std::shared_ptr<node_impl>& container_node, const subnode_info& info)
+    //! \copydoc node_impl::node_impl(const std::tr1::shared_ptr<node_impl>&,const subnode_info&)
+    node(const std::tr1::shared_ptr<node_impl>& container_node, const subnode_info& info)
         : m_pimpl(new node_impl(container_node, info)) { }
 
     //! \brief Copy construct this node
@@ -353,7 +353,7 @@ public:
     node(const node& other, alias_tag)
         : m_pimpl(other.m_pimpl) { }
 
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     //! \brief Move constructor
     //! \param[in] other Node to move from
     node(node&& other)
@@ -377,10 +377,10 @@ public:
     bool is_subnode() { return m_pimpl->is_subnode(); } 
 
     //! \copydoc node_impl::get_data_block()
-    std::shared_ptr<data_block> get_data_block() const
+    std::tr1::shared_ptr<data_block> get_data_block() const
         { return m_pimpl->get_data_block(); }
     //! \copydoc node_impl::get_subnode_block()
-    std::shared_ptr<subnode_block> get_subnode_block() const 
+    std::tr1::shared_ptr<subnode_block> get_subnode_block() const 
         { return m_pimpl->get_subnode_block(); } 
    
     //! \copydoc node_impl::read(std::vector<byte>&,ulong) const
@@ -462,7 +462,7 @@ public:
         { return m_pimpl->lookup(id); }
 
 private:
-    std::shared_ptr<node_impl> m_pimpl; //!< Pointer to the node implementation
+    std::tr1::shared_ptr<node_impl> m_pimpl; //!< Pointer to the node implementation
 };
 
 //! \defgroup ndb_blockrelated Blocks
@@ -583,9 +583,9 @@ public:
     virtual size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const = 0;
 
 //! \cond write_api
-    size_t write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult);
-    template<typename T> void write(const T& buffer, ulong offset, std::shared_ptr<data_block>& presult);
-    virtual size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult) = 0;
+    size_t write(const std::vector<byte>& buffer, ulong offset, std::tr1::shared_ptr<data_block>& presult);
+    template<typename T> void write(const T& buffer, ulong offset, std::tr1::shared_ptr<data_block>& presult);
+    virtual size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::tr1::shared_ptr<data_block>& presult) = 0;
 //! \endcond
 
     //! \brief Get the number of physical pages in this data_block
@@ -598,13 +598,13 @@ public:
     //! \throws out_of_range If page_num >= get_page_count()
     //! \param[in] page_num The ordinal of the external_block to get, zero based
     //! \returns The requested external_block
-    virtual std::shared_ptr<external_block> get_page(uint page_num) const = 0;
+    virtual std::tr1::shared_ptr<external_block> get_page(uint page_num) const = 0;
 
     //! \brief Get the total logical size of this block
     //! \returns The total logical size of this block
     size_t get_total_size() const { return m_total_size; }
 //! \cond write_api
-    virtual size_t resize(size_t size, std::shared_ptr<data_block>& presult) = 0;
+    virtual size_t resize(size_t size, std::tr1::shared_ptr<data_block>& presult) = 0;
 //! \endcond
 
 protected:
@@ -625,7 +625,7 @@ protected:
 //! \ingroup ndb_blockrelated
 class extended_block : 
     public data_block, 
-    public std::enable_shared_from_this<extended_block>
+    public std::tr1::enable_shared_from_this<extended_block>
 {
 public:
     //! \brief Construct an extended_block from disk
@@ -637,7 +637,7 @@ public:
     //! \param[in] page_max_count The maximum number of external blocks that can be contained in this block
     //! \param[in] child_page_max_count The maximum number of external blocks that can be contained in a child block
     //! \param[in] bi The \ref block_info for all child blocks
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<block_id> bi)
         : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(std::move(bi))
         { m_child_blocks.resize(m_block_info.size()); }
@@ -649,12 +649,12 @@ public:
 
 //! \cond write_api
     // new block constructors
-#ifndef NO_RVALUE_REF
-    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<std::shared_ptr<data_block>> child_blocks)
+#ifndef BOOST_NO_RVALUE_REFERENCES
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<std::tr1::shared_ptr<data_block>> child_blocks)
         : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(std::move(child_blocks))
         { m_block_info.resize(m_child_blocks.size()); touch(); }
 #else
-    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<std::shared_ptr<data_block>>& child_blocks)
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<std::tr1::shared_ptr<data_block>>& child_blocks)
         : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(child_blocks)
         { m_block_info.resize(m_child_blocks.size()); touch(); }
 #endif
@@ -663,14 +663,14 @@ public:
 
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
 //! \cond write_api
-    size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
+    size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::tr1::shared_ptr<data_block>& presult);
 //! \endcond
     
     uint get_page_count() const;
-    std::shared_ptr<external_block> get_page(uint page_num) const;
+    std::tr1::shared_ptr<external_block> get_page(uint page_num) const;
     
 //! \cond write_api
-    size_t resize(size_t size, std::shared_ptr<data_block>& presult);
+    size_t resize(size_t size, std::tr1::shared_ptr<data_block>& presult);
 //! \endcond
     
     //! \brief Get the "level" of this extended_block
@@ -694,7 +694,7 @@ private:
 
     const ushort m_level;                   //!< The level of this block
     std::vector<block_id> m_block_info;     //!< block_ids of the child blocks in this tree
-    mutable std::vector<std::shared_ptr<data_block>> m_child_blocks; //!< Cached child blocks
+    mutable std::vector<std::tr1::shared_ptr<data_block>> m_child_blocks; //!< Cached child blocks
 };
 
 //! \brief Contains actual data
@@ -706,7 +706,7 @@ private:
 //! \ingroup ndb_blockrelated
 class external_block : 
     public data_block, 
-    public std::enable_shared_from_this<external_block>
+    public std::tr1::enable_shared_from_this<external_block>
 {
 public:
     //! \brief Construct an external_block from disk
@@ -714,7 +714,7 @@ public:
     //! \param[in] info Information about this block
     //! \param[in] max_size The maximum possible size of this block
     //! \param[in] buffer The actual external data (decoded)
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     external_block(const shared_db_ptr& db, const block_info& info, size_t max_size, std::vector<byte> buffer)
         : data_block(db, info, info.size), m_max_size(max_size), m_buffer(std::move(buffer)) { }
 #else
@@ -731,14 +731,14 @@ public:
 
     size_t read_raw(byte* pdest_buffer, size_t size, ulong offset) const;
 //! \cond write_api
-    size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult);
+    size_t write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::tr1::shared_ptr<data_block>& presult);
 //! \endcond
 
     uint get_page_count() const { return 1; }
-    std::shared_ptr<external_block> get_page(uint page_num) const;
+    std::tr1::shared_ptr<external_block> get_page(uint page_num) const;
 
 //! \cond write_api
-    size_t resize(size_t size, std::shared_ptr<data_block>& presult);
+    size_t resize(size_t size, std::tr1::shared_ptr<data_block>& presult);
 //! \endcond
 
     bool is_internal() const { return false; }
@@ -802,14 +802,14 @@ protected:
 class subnode_nonleaf_block : 
     public subnode_block, 
     public btree_node_nonleaf<node_id, subnode_info>, 
-    public std::enable_shared_from_this<subnode_nonleaf_block>
+    public std::tr1::enable_shared_from_this<subnode_nonleaf_block>
 {
 public:
     //! \brief Construct a subnode_nonleaf_block from disk
     //! \param[in] db The database context
     //! \param[in] info Information about this block
     //! \param[in] subblocks Information about the child blocks
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>> subblocks)
         : subnode_block(db, info, 1), m_subnode_info(std::move(subblocks)) { }
 #else
@@ -826,7 +826,7 @@ public:
     
 private:
     std::vector<std::pair<node_id, block_id>> m_subnode_info;           //!< Info about the sub-blocks
-    mutable std::vector<std::shared_ptr<subnode_block>> m_child_blocks; //!< Cached sub-blocks (leafs)
+    mutable std::vector<std::tr1::shared_ptr<subnode_block>> m_child_blocks; //!< Cached sub-blocks (leafs)
 };
 
 //! \brief Contains the actual subnode information
@@ -839,14 +839,14 @@ private:
 class subnode_leaf_block : 
     public subnode_block, 
     public btree_node_leaf<node_id, subnode_info>, 
-    public std::enable_shared_from_this<subnode_leaf_block>
+    public std::tr1::enable_shared_from_this<subnode_leaf_block>
 {
 public:
     //! \brief Construct a subnode_leaf_block from disk
     //! \param[in] db The database context
     //! \param[in] info Information about this block
     //! \param[in] subnodes Information about the subnodes
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info>> subnodes)
         : subnode_block(db, info, 0), m_subnodes(std::move(subnodes)) { }
 #else
@@ -1089,7 +1089,7 @@ inline T pstsdk::data_block::read(ulong offset) const
 }
 
 //! \cond write_api
-inline size_t pstsdk::data_block::write(const std::vector<byte>& buffer, ulong offset, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::data_block::write(const std::vector<byte>& buffer, ulong offset, std::tr1::shared_ptr<data_block>& presult)
 {
     size_t write_size = buffer.size();
     
@@ -1105,7 +1105,7 @@ inline size_t pstsdk::data_block::write(const std::vector<byte>& buffer, ulong o
 }
 
 template<typename T> 
-void pstsdk::data_block::write(const T& buffer, ulong offset, std::shared_ptr<data_block>& presult)
+void pstsdk::data_block::write(const T& buffer, ulong offset, std::tr1::shared_ptr<data_block>& presult)
 {
     if(offset >= get_total_size())
         throw std::out_of_range("offset >= size()");
@@ -1162,18 +1162,18 @@ inline pstsdk::data_block* pstsdk::extended_block::get_child_block(uint index) c
     return m_child_blocks[index].get();
 }
 
-inline std::shared_ptr<pstsdk::external_block> pstsdk::extended_block::get_page(uint page_num) const
+inline std::tr1::shared_ptr<pstsdk::external_block> pstsdk::extended_block::get_page(uint page_num) const
 {
     uint page = page_num / m_child_max_page_count;
     return get_child_block(page)->get_page(page_num % m_child_max_page_count);
 }
 
-inline std::shared_ptr<pstsdk::external_block> pstsdk::external_block::get_page(uint index) const
+inline std::tr1::shared_ptr<pstsdk::external_block> pstsdk::external_block::get_page(uint index) const
 {
     if(index != 0)
         throw std::out_of_range("index > 0");
 
-    return std::const_pointer_cast<external_block>(this->shared_from_this());
+    return std::tr1::const_pointer_cast<external_block>(this->shared_from_this());
 }
 
 inline size_t pstsdk::external_block::read_raw(byte* pdest_buffer, size_t size, ulong offset) const
@@ -1191,12 +1191,12 @@ inline size_t pstsdk::external_block::read_raw(byte* pdest_buffer, size_t size, 
 }
 
 //! \cond write_api
-inline size_t pstsdk::external_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::external_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::tr1::shared_ptr<data_block>& presult)
 {
-    std::shared_ptr<pstsdk::external_block> pblock = shared_from_this();
+    std::tr1::shared_ptr<pstsdk::external_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
     {
-        std::shared_ptr<pstsdk::external_block> pnewblock(new external_block(*this));
+        std::tr1::shared_ptr<pstsdk::external_block> pnewblock(new external_block(*this));
         return pnewblock->write_raw(psrc_buffer, size, offset, presult);
     }
     touch(); // mutate ourselves inplace
@@ -1211,7 +1211,7 @@ inline size_t pstsdk::external_block::write_raw(const byte* psrc_buffer, size_t 
     memcpy(&m_buffer[0]+offset, psrc_buffer, write_size);
 
     // assign out param
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     presult = std::move(pblock);
 #else
     presult = pblock;
@@ -1256,12 +1256,12 @@ inline size_t pstsdk::extended_block::read_raw(byte* pdest_buffer, size_t size, 
 }
 
 //! \cond write_api
-inline size_t pstsdk::extended_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::extended_block::write_raw(const byte* psrc_buffer, size_t size, ulong offset, std::tr1::shared_ptr<data_block>& presult)
 {
-    std::shared_ptr<extended_block> pblock = shared_from_this();
+    std::tr1::shared_ptr<extended_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
     {
-        std::shared_ptr<extended_block> pnewblock(new extended_block(*this));
+        std::tr1::shared_ptr<extended_block> pnewblock(new extended_block(*this));
         return pnewblock->write_raw(psrc_buffer, size, offset, presult);
     }
     touch(); // mutate ourselves inplace
@@ -1295,7 +1295,7 @@ inline size_t pstsdk::extended_block::write_raw(const byte* psrc_buffer, size_t 
     }
 
     // assign out param
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     presult = std::move(pblock);
 #else
     presult = pblock;
@@ -1304,12 +1304,12 @@ inline size_t pstsdk::extended_block::write_raw(const byte* psrc_buffer, size_t 
     return total_bytes_written;
 }
 
-inline size_t pstsdk::external_block::resize(size_t size, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::external_block::resize(size_t size, std::tr1::shared_ptr<data_block>& presult)
 {
-    std::shared_ptr<external_block> pblock = shared_from_this();
+    std::tr1::shared_ptr<external_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
     {
-        std::shared_ptr<external_block> pnewblock(new external_block(*this));
+        std::tr1::shared_ptr<external_block> pnewblock(new external_block(*this));
         return pnewblock->resize(size, presult);
     }
     touch(); // mutate ourselves inplace
@@ -1320,12 +1320,12 @@ inline size_t pstsdk::external_block::resize(size_t size, std::shared_ptr<data_b
     if(size > get_max_size())
     {
         // we need to create an extended_block with us as the first entry
-        std::shared_ptr<extended_block> pnewxblock = get_db_ptr()->create_extended_block(pblock);
+        std::tr1::shared_ptr<extended_block> pnewxblock = get_db_ptr()->create_extended_block(pblock);
         return pnewxblock->resize(size, presult);
     }
 
     // assign out param
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     presult = std::move(pblock);
 #else
     presult = pblock;
@@ -1334,7 +1334,7 @@ inline size_t pstsdk::external_block::resize(size_t size, std::shared_ptr<data_b
     return size;
 }
 
-inline size_t pstsdk::extended_block::resize(size_t size, std::shared_ptr<data_block>& presult)
+inline size_t pstsdk::extended_block::resize(size_t size, std::tr1::shared_ptr<data_block>& presult)
 {
     // calculate the number of subblocks needed
     uint old_num_subblocks = m_block_info.size();
@@ -1351,10 +1351,10 @@ inline size_t pstsdk::extended_block::resize(size_t size, std::shared_ptr<data_b
     if(num_subblocks < 2)
         return get_child_block(0)->resize(size, presult);
 
-    std::shared_ptr<extended_block> pblock = shared_from_this();
+    std::tr1::shared_ptr<extended_block> pblock = shared_from_this();
     if(pblock.use_count() > 2) // one for me, one for the caller
     {
-        std::shared_ptr<extended_block> pnewblock(new extended_block(*this));
+        std::tr1::shared_ptr<extended_block> pnewblock(new extended_block(*this));
         return pnewblock->resize(size, presult);
     }
     touch(); // mutate ourselves inplace
@@ -1378,13 +1378,13 @@ inline size_t pstsdk::extended_block::resize(size_t size, std::shared_ptr<data_b
             throw can_not_resize("size > max_size");
 
         // we need to create a level 2 extended_block with us as the first entry
-        std::shared_ptr<extended_block> pnewxblock = get_db_ptr()->create_extended_block(pblock);
+        std::tr1::shared_ptr<extended_block> pnewxblock = get_db_ptr()->create_extended_block(pblock);
         return pnewxblock->resize(size, presult);
     }
     
     // assign out param
     m_total_size = size;
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     presult = std::move(pblock);
 #else
     presult = pblock;
@@ -1408,7 +1408,7 @@ inline pstsdk::const_subnodeinfo_iterator pstsdk::node_impl::subnode_info_end() 
 
 inline pstsdk::node pstsdk::node_impl::lookup(node_id id) const
 {
-    return node(std::const_pointer_cast<node_impl>(shared_from_this()), ensure_sub_block()->lookup(id));
+    return node(std::tr1::const_pointer_cast<node_impl>(shared_from_this()), ensure_sub_block()->lookup(id));
 }
 
 #ifdef _MSC_VER

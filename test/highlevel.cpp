@@ -155,6 +155,7 @@ void test_attachment_table(const pstsdk::node& message, const pstsdk::table& tc)
 void iterate(pstsdk::shared_db_ptr pdb)
 {
     using namespace std;
+    using namespace std::tr1;
     using namespace pstsdk;
     shared_ptr<const nbt_page> nbt_root = pdb->read_nbt_root();
     for(const_nodeinfo_iterator iter = nbt_root->begin();

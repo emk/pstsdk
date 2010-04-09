@@ -86,7 +86,7 @@ private:
     friend class message;
     friend class attachment_transform;
 
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     explicit attachment(property_bag attachment)
         : m_bag(std::move(attachment)) { }
 #else
@@ -119,7 +119,7 @@ public:
     //! \param[in] n The node backing the message which has these attachments
     explicit attachment_transform(const node& n) 
         : m_node(n) { }
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     //! \brief Move constructor for transform objects
     //! \param[in] other The transform object to move from
     attachment_transform(attachment_transform&& other)
@@ -216,7 +216,7 @@ public:
         : m_bag(n) { }
     message(const message& other);
 
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     message(message&& other)
         : m_bag(std::move(other.m_bag)), m_attachment_table(std::move(other.m_attachment_table)), m_recipient_table(std::move(other.m_recipient_table)) { }
 #endif     

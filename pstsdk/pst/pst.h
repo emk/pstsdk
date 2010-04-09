@@ -60,7 +60,7 @@ public:
     pst(const std::wstring& filename) 
         : m_db(open_database(filename)) { }
 
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     //! \brief Move constructor
     //! \param[in] other The other pst file
     pst(pst&& other)
@@ -179,7 +179,7 @@ inline pstsdk::name_id_map& pstsdk::pst::get_name_id_map()
 
 inline pstsdk::folder pstsdk::pst::open_folder(const std::wstring& name) const
 {
-#ifdef NO_LAMBDA
+#ifdef BOOST_NO_LAMBDAS
     folder_iterator iter = std::find_if(folder_begin(), folder_end(), compiler_workarounds::folder_name_equal(name));
 #else
     folder_iterator iter = std::find_if(folder_begin(), folder_end(), [&name](const folder& f) {

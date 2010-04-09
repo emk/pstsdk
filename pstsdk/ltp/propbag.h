@@ -59,7 +59,7 @@ public:
     //! \param other The property bag to alias
     property_bag(const property_bag& other, alias_tag);
 
-#ifndef NO_RVALUE_REF
+#ifndef BOOST_NO_RVALUE_REFERENCES
     //! \brief Move construct a property_bag
     //! \param other The property bag to move from
     property_bag(property_bag&& other) : m_pbth(std::move(other.m_pbth)) { }

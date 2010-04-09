@@ -6,6 +6,8 @@
 //! \defgroup primitive Primitive Types
 //! \ingroup util
 
+#include <boost/config.hpp>
+
 #ifndef PSTSDK_UTIL_PRIMITIVES_H
 #define PSTSDK_UTIL_PRIMITIVES_H
 
@@ -13,62 +15,27 @@
 // Global compiler hacks
 //
 
-// GCC
-#ifdef __GNUC__
-
-// Test with GCC 4.5 someday
-#define NO_LAMBDA
-
-// Turn off rvalue references for versions before GCC 4.4
-#if !((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 4) && __GXX_EXPERIMENTAL_CXX0X__)
-#define NO_RVALUE_REF
-#define NO_STATIC_ASSERT
-#define USE_TR1
-#endif
-
-#endif
-
-// MSVC
-#if defined(_MSC_VER)
-
-// Turn off all C++0x features for versions before VC10
-#if !(_MSC_VER >= 1600)
-#define NO_LAMBDA
-#define NO_RVALUE_REF
-#define NO_STATIC_ASSERT
-#define USE_TR1
-#endif
-
-#endif
-
-#ifdef NO_LAMBDA
+#ifdef BOOST_NO_LAMBDAS
 #ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
-#pragma message("lambdas not supported; consider updating your compiler")
+#pragma message("C++0x lambdas not supported; consider updating your compiler")
 #endif
 #endif
 
-#ifdef NO_RVALUE_REF
+#ifdef BOOST_NO_RVALUE_REFERENCES
 #ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
-#pragma message("rvalue references not supported; consider updating your compiler")
+#pragma message("C++0x rvalue references not supported; consider updating your compiler")
 #endif
+// I'll assume a compiler supports unique_ptr iff it supports rvalue references
+// huge hack
+#define unique_ptr tr1::shared_ptr
 #endif
 
-#ifdef NO_STATIC_ASSERT
+#ifdef BOOST_NO_STATIC_ASSERT
 #ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
 #pragma message("static_assert not supported; consider updating your compiler")
 #endif
 #include <boost/static_assert.hpp>
 #define static_assert(x,y) BOOST_STATIC_ASSERT(x)
-#endif
-
-#ifdef USE_TR1
-#ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
-#pragma message("falling back on TR1 types; consider updating your compiler")
-#endif
-// highly illegal
-namespace std { using namespace tr1; }
-// huge hack
-#define unique_ptr shared_ptr
 #endif
 
 //! \brief Global Validation Settings
