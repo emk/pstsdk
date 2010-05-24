@@ -423,7 +423,7 @@ inline std::wstring pstsdk::message::get_subject() const
 {
     std::wstring buffer = m_bag.read_prop<std::wstring>(0x37);
 
-    if(buffer[0] == message_subject_prefix_lead_byte)
+    if(buffer.size() && buffer[0] == message_subject_prefix_lead_byte)
     {
         // Skip the second chracter as well
         return buffer.substr(2);
