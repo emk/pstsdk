@@ -518,7 +518,7 @@ inline size_t pstsdk::basic_table<T>::size() const
 {
     if(m_pnode_rowarray)
     {
-        return m_pnode_rowarray->get_page_count()-1 * rows_per_page() + m_pnode_rowarray->get_page_size(m_pnode_rowarray->get_page_count()-1) / cb_per_row();
+        return (m_pnode_rowarray->get_page_count()-1) * rows_per_page() + m_pnode_rowarray->get_page_size(m_pnode_rowarray->get_page_count()-1) / cb_per_row();
     }
     else 
     {
