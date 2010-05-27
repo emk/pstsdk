@@ -802,7 +802,7 @@ struct bt_page
 //! \sa [MS-PST] 2.2.2.7.7.1
 //! \ingroup disk_pagerelated
 template<typename T>
-struct nbt_nonleaf_page : public bt_page<T, bt_entry<T>>
+struct nbt_nonleaf_page : public bt_page<T, bt_entry<T> >
 {
 };
 //! \cond static_asserts
@@ -818,7 +818,7 @@ static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_pag
 //! \sa [MS-PST] 2.2.2.7.7.1
 //! \ingroup disk_pagerelated
 template<typename T>
-struct bbt_nonleaf_page : public bt_page<T, bt_entry<T>>
+struct bbt_nonleaf_page : public bt_page<T, bt_entry<T> >
 {
 };
 //! \cond static_asserts
@@ -834,7 +834,7 @@ static_assert(sizeof(bbt_nonleaf_page<ulonglong>) == page_size, "bbt_nonleaf_pag
 //! \sa [MS-PST] 2.2.2.7.7.1
 //! \ingroup disk_pagerelated
 template<typename T>
-struct nbt_leaf_page : public bt_page<T, nbt_leaf_entry<T>>
+struct nbt_leaf_page : public bt_page<T, nbt_leaf_entry<T> >
 {
 };
 //! \cond static_asserts
@@ -850,7 +850,7 @@ static_assert(sizeof(nbt_leaf_page<ulonglong>) == page_size, "nbt_leaf_page<ulon
 //! \sa [MS-PST] 2.2.2.7.7.1
 //! \ingroup disk_pagerelated
 template<typename T>
-struct bbt_leaf_page : public bt_page<T, bbt_leaf_entry<T>>
+struct bbt_leaf_page : public bt_page<T, bbt_leaf_entry<T> >
 {
 };
 //! \cond static_asserts
@@ -1102,7 +1102,7 @@ struct sub_block
 //! \sa [MS-PST] 2.2.2.8.3.3.2.2
 //! \ingroup disk_blockrelated
 template<typename T>
-struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>>
+struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T> >
 {
 };
 
@@ -1114,7 +1114,7 @@ struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T>>
 //! \sa [MS-PST] 2.2.2.8.3.3.1.2
 //! \ingroup disk_blockrelated
 template<typename T>
-struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T>>
+struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T> >
 {
 };
 
@@ -1303,7 +1303,7 @@ struct bth_node
 //! \sa [MS-PST] 2.3.2.3
 //! \ingroup disk_bthrelated
 template<typename K, typename V>
-struct bth_leaf_node : bth_node<bth_leaf_entry<K,V>>
+struct bth_leaf_node : bth_node<bth_leaf_entry<K,V> >
 {
 };
 
@@ -1315,7 +1315,7 @@ struct bth_leaf_node : bth_node<bth_leaf_entry<K,V>>
 //! \sa [MS-PST] 2.3.2.2
 //! \ingroup disk_bthrelated
 template<typename K>
-struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K>>
+struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K> >
 {
 };
 

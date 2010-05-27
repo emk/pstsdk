@@ -650,11 +650,11 @@ public:
 //! \cond write_api
     // new block constructors
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<std::tr1::shared_ptr<data_block>> child_blocks)
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<std::tr1::shared_ptr<data_block> > child_blocks)
         : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(std::move(child_blocks))
         { m_block_info.resize(m_child_blocks.size()); touch(); }
 #else
-    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<std::tr1::shared_ptr<data_block>>& child_blocks)
+    extended_block(const shared_db_ptr& db, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<std::tr1::shared_ptr<data_block> >& child_blocks)
         : data_block(db, block_info(), total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_child_blocks(child_blocks)
         { m_block_info.resize(m_child_blocks.size()); touch(); }
 #endif
@@ -694,7 +694,7 @@ private:
 
     const ushort m_level;                   //!< The level of this block
     std::vector<block_id> m_block_info;     //!< block_ids of the child blocks in this tree
-    mutable std::vector<std::tr1::shared_ptr<data_block>> m_child_blocks; //!< Cached child blocks
+    mutable std::vector<std::tr1::shared_ptr<data_block> > m_child_blocks; //!< Cached child blocks
 };
 
 //! \brief Contains actual data
@@ -810,10 +810,10 @@ public:
     //! \param[in] info Information about this block
     //! \param[in] subblocks Information about the child blocks
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id>> subblocks)
+    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id> > subblocks)
         : subnode_block(db, info, 1), m_subnode_info(std::move(subblocks)) { }
 #else
-    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, block_id>>& subblocks)
+    subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, block_id> >& subblocks)
         : subnode_block(db, info, 1), m_subnode_info(subblocks) { }
 #endif
 
@@ -825,8 +825,8 @@ public:
     uint num_values() const { return m_subnode_info.size(); }
     
 private:
-    std::vector<std::pair<node_id, block_id>> m_subnode_info;           //!< Info about the sub-blocks
-    mutable std::vector<std::tr1::shared_ptr<subnode_block>> m_child_blocks; //!< Cached sub-blocks (leafs)
+    std::vector<std::pair<node_id, block_id> > m_subnode_info;           //!< Info about the sub-blocks
+    mutable std::vector<std::tr1::shared_ptr<subnode_block> > m_child_blocks; //!< Cached sub-blocks (leafs)
 };
 
 //! \brief Contains the actual subnode information
@@ -847,10 +847,10 @@ public:
     //! \param[in] info Information about this block
     //! \param[in] subnodes Information about the subnodes
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info>> subnodes)
+    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, subnode_info> > subnodes)
         : subnode_block(db, info, 0), m_subnodes(std::move(subnodes)) { }
 #else
-    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, subnode_info>>& subnodes)
+    subnode_leaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, subnode_info> >& subnodes)
         : subnode_block(db, info, 0), m_subnodes(subnodes) { }
 #endif
 
@@ -863,7 +863,7 @@ public:
         { return m_subnodes.size(); }
 
 private:
-    std::vector<std::pair<node_id, subnode_info>> m_subnodes;   //!< The actual subnode information
+    std::vector<std::pair<node_id, subnode_info> > m_subnodes;   //!< The actual subnode information
 };
 
 } // end pstsdk namespace

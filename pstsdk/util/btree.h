@@ -210,8 +210,8 @@ struct btree_iter_impl
     btree_node_leaf<K,V>* m_leaf;   //!< The current leaf btree node this iterator is pointing to
     uint m_leaf_pos;                //!< The current position on that leaf
 
-    std::vector<std::pair<btree_node_nonleaf<K,V>*, uint>> m_path; //!< The "path" to this leaf, starting at the root of the btree
-    typedef typename std::vector<std::pair<btree_node_nonleaf<K,V>*, uint>>::iterator path_iter;
+    std::vector<std::pair<btree_node_nonleaf<K,V>*, uint> > m_path; //!< The "path" to this leaf, starting at the root of the btree
+    typedef typename std::vector<std::pair<btree_node_nonleaf<K,V>*, uint> >::iterator path_iter;
 };
 
 //! \brief The actual iterator type used by the btree_node class hierarchy
@@ -309,7 +309,7 @@ void pstsdk::btree_node_leaf<K,V>::next(btree_iter_impl<K,V>& iter) const
     {
         if(iter.m_path.size() > 0)
         {
-            for(btree_iter_impl<K,V>::path_iter piter = iter.m_path.begin();
+            for(typename btree_iter_impl<K,V>::path_iter piter = iter.m_path.begin();
                 piter != iter.m_path.end(); 
                 ++piter)
             {
@@ -333,7 +333,7 @@ void pstsdk::btree_node_leaf<K,V>::prev(btree_iter_impl<K,V>& iter) const
     {
         if(iter.m_path.size() > 0)
         {
-            for(btree_iter_impl<K,V>::path_iter piter = iter.m_path.begin();
+            for(typename btree_iter_impl<K,V>::path_iter piter = iter.m_path.begin();
                 piter != iter.m_path.end();
                 ++piter)
             {

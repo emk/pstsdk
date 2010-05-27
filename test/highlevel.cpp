@@ -56,7 +56,7 @@ void test_nameid_map_samp1(pstsdk::shared_db_ptr pdb)
 void test_prop_stream(pstsdk::const_property_object& obj, pstsdk::prop_id id)
 {
     pstsdk::prop_stream stream(obj.open_prop_stream(id));
-    std::vector<pstsdk::byte> contents = obj.read_prop<std::vector<pstsdk::byte>>(id);
+    std::vector<pstsdk::byte> contents = obj.read_prop<std::vector<pstsdk::byte> >(id);
     pstsdk::byte b;
     size_t pos = 0;
 
@@ -72,18 +72,18 @@ void test_table(const pstsdk::table& tc)
 
     wcout << "Properties on this table (" << tc.size() << "): " << endl;
     std::vector<prop_id> prop_list = tc.get_prop_list();
-    for(uint i = 0; i < prop_list.size(); ++i)
+    for(pstsdk::uint i = 0; i < prop_list.size(); ++i)
         wcout << hex << prop_list[i] << " ";
     wcout << endl;
 
-    for(uint i = 0; i < tc.size(); ++i)
+    for(pstsdk::uint i = 0; i < tc.size(); ++i)
     {
         wcout << "RowID: " << tc[i].get_row_id() << endl;
         wstring display_name;
         wstring subject;
 
-         std::vector<ushort> proplist(tc[i].get_prop_list());
-        for(uint j = 0; j < proplist.size(); ++j)
+         std::vector<pstsdk::ushort> proplist(tc[i].get_prop_list());
+        for(pstsdk::uint j = 0; j < proplist.size(); ++j)
         {
             try {
                 if(tc[i].get_prop_type(proplist[j]) == prop_type_wstring)
@@ -118,14 +118,14 @@ void test_attachment_table(const pstsdk::node& message, const pstsdk::table& tc)
 {
     using namespace std;
     using namespace pstsdk;
-    for(uint i = 0; i < tc.size(); ++i)
+    for(pstsdk::uint i = 0; i < tc.size(); ++i)
     {
         node attach = message.lookup(tc[i].get_row_id());
         
         wcout << "Attachment " << i << endl;
         property_bag pc(attach);
-            std::vector<ushort> proplist(pc.get_prop_list());
-            for(uint i = 0; i < proplist.size(); ++i)
+            std::vector<pstsdk::ushort> proplist(pc.get_prop_list());
+            for(pstsdk::uint i = 0; i < proplist.size(); ++i)
             {
                 if(pc.get_prop_type(proplist[i]) == prop_type_wstring)
                 {
@@ -157,7 +157,7 @@ void iterate(pstsdk::shared_db_ptr pdb)
     using namespace std;
     using namespace std::tr1;
     using namespace pstsdk;
-    shared_ptr<const nbt_page> nbt_root = pdb->read_nbt_root();
+    std::tr1::shared_ptr<const nbt_page> nbt_root = pdb->read_nbt_root();
     for(const_nodeinfo_iterator iter = nbt_root->begin();
             iter != nbt_root->end();
             ++iter)
@@ -169,10 +169,10 @@ void iterate(pstsdk::shared_db_ptr pdb)
         try
         {
             property_bag bag(n);
-            std::vector<ushort> proplist(bag.get_prop_list());
+            std::vector<pstsdk::ushort> proplist(bag.get_prop_list());
 
             // look for mv props
-            for(uint i = 0; i < proplist.size(); ++i)
+            for(pstsdk::uint i = 0; i < proplist.size(); ++i)
             {
                 switch(bag.get_prop_type(proplist[i]))
                 {
@@ -194,7 +194,7 @@ void iterate(pstsdk::shared_db_ptr pdb)
                     break;
                 case prop_type_mv_binary:
                     {
-                    vector<vector<byte>> bins = bag.read_prop_array<vector<byte>>(proplist[i]);
+                    vector<vector<byte> > bins = bag.read_prop_array<vector<byte> >(proplist[i]);
                     cout << "prop_type_mv_wstring" << endl;
                     }
                     break;
@@ -212,8 +212,8 @@ void iterate(pstsdk::shared_db_ptr pdb)
         {
             
             property_bag pc(n);
-            std::vector<ushort> proplist(pc.get_prop_list());
-            for(uint i = 0; i < proplist.size(); ++i)
+            std::vector<pstsdk::ushort> proplist(pc.get_prop_list());
+            for(pstsdk::uint i = 0; i < proplist.size(); ++i)
             {
                 if(pc.get_prop_type(proplist[i]) == prop_type_wstring)
                 {
@@ -248,10 +248,10 @@ void iterate(pstsdk::shared_db_ptr pdb)
             }
 
         }
-        
+
         try{
             heap h(n);
-            std::unique_ptr<bth_node<ushort, disk::prop_entry>> bth = h.open_bth<ushort, disk::prop_entry>(h.get_root_id());
+            std::tr1::shared_ptr<bth_node<pstsdk::ushort, disk::prop_entry> > bth = h.open_bth<pstsdk::ushort, disk::prop_entry>(h.get_root_id());
          }
         catch(exception&)
         {

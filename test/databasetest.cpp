@@ -108,18 +108,18 @@ void test_node_impl(pstsdk::node& n, size_t expected)
 
     if(expected > 0)
     {
-        uint expected_page_count = expected / disk::external_block<T>::max_size;
+        pstsdk::uint expected_page_count = expected / disk::external_block<T>::max_size;
         if(expected % disk::external_block<T>::max_size != 0)
             expected_page_count++;
 
-        uint actual_page_count = n.get_page_count();
+        pstsdk::uint actual_page_count = n.get_page_count();
         assert(expected_page_count == actual_page_count);
 
-        uint test_value = 0xdeadbeef;
+        pstsdk::uint test_value = 0xdeadbeef;
         size_t offset = expected-sizeof(test_value);
         n.write(test_value, offset);
 
-        uint read_test_value = n.read<uint>(offset);
+        pstsdk::uint read_test_value = n.read<pstsdk::uint>(offset);
 
         assert(test_value == read_test_value);
     }
@@ -196,8 +196,8 @@ void test_db()
     using namespace std::tr1;
     using namespace pstsdk;
     bool caught_invalid_format = false;
-    uint node = 0;
-    uint block = 0;
+    pstsdk::uint node = 0;
+    pstsdk::uint block = 0;
 
     try
     {
@@ -228,7 +228,7 @@ void test_db()
     shared_db_ptr db_3 = open_database(L"test_ansi.pst");
 
     node = 0;
-    shared_ptr<const nbt_page> nbt_root = db_2->read_nbt_root();
+    std::tr1::shared_ptr<const nbt_page> nbt_root = db_2->read_nbt_root();
     for(const_nodeinfo_iterator iter = nbt_root->begin();
                     iter != nbt_root->end();
                     ++iter, ++node)
@@ -242,7 +242,7 @@ void test_db()
     test_node_stream<ulonglong>(db_2->lookup_node(nid_message_store));
 
     block = 0;
-    shared_ptr<const bbt_page> bbt_root = db_2->read_bbt_root();
+    std::tr1::shared_ptr<const bbt_page> bbt_root = db_2->read_bbt_root();
     for(const_blockinfo_iterator iter = bbt_root->begin();
                     iter != bbt_root->end();
                     ++iter, ++block)
@@ -253,7 +253,7 @@ void test_db()
     }
   
     node = 0;
-    shared_ptr<const nbt_page> nbt_root2 = db_3->read_nbt_root();
+    std::tr1::shared_ptr<const nbt_page> nbt_root2 = db_3->read_nbt_root();
     for(const_nodeinfo_iterator iter = nbt_root2->begin();
                     iter != nbt_root2->end();
                     ++iter, ++node)
@@ -263,11 +263,11 @@ void test_db()
         pstsdk::node n(db_3, *iter);
         process_node(n);
     }
-    test_node_resize<ulong>(db_3->lookup_node(nid_message_store));
-    test_node_stream<ulong>(db_2->lookup_node(nid_message_store));
+    test_node_resize<pstsdk::ulong>(db_3->lookup_node(nid_message_store));
+    test_node_stream<pstsdk::ulong>(db_2->lookup_node(nid_message_store));
 
     block = 0;
-    shared_ptr<const bbt_page> bbt_root2 = db_3->read_bbt_root();
+    std::tr1::shared_ptr<const bbt_page> bbt_root2 = db_3->read_bbt_root();
     for(const_blockinfo_iterator iter = bbt_root2->begin();
                     iter != bbt_root2->end();
                     ++iter, ++block)

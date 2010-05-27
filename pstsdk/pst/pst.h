@@ -71,20 +71,20 @@ public:
     //! \brief Get an iterator to the first folder in the PST file
     //! \returns an iterator positioned on the first folder in this PST file
     folder_iterator folder_begin() const
-        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder>>(m_db->read_nbt_root()->begin(), m_db->read_nbt_root()->end()), folder_transform_info(m_db) ); }
+        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder> >(m_db->read_nbt_root()->begin(), m_db->read_nbt_root()->end()), folder_transform_info(m_db) ); }
     //! \brief Get the end folder iterator
     //! \returns an iterator at the end position
     folder_iterator folder_end() const
-        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder>>(m_db->read_nbt_root()->end(), m_db->read_nbt_root()->end()), folder_transform_info(m_db) ); }
+        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder> >(m_db->read_nbt_root()->end(), m_db->read_nbt_root()->end()), folder_transform_info(m_db) ); }
 
     //! \brief Get an iterator to the first message in the PST file
     //! \returns an iterator positioned on the first message in this PST file
     message_iterator message_begin() const
-        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_message>>(m_db->read_nbt_root()->begin(), m_db->read_nbt_root()->end()), message_transform_info(m_db) ); }
+        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_message> >(m_db->read_nbt_root()->begin(), m_db->read_nbt_root()->end()), message_transform_info(m_db) ); }
     //! \brief Get the end message iterator
     //! \returns an iterator at the end position
     message_iterator message_end() const
-        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_message>>(m_db->read_nbt_root()->end(), m_db->read_nbt_root()->end()), message_transform_info(m_db) ); }
+        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_message> >(m_db->read_nbt_root()->end(), m_db->read_nbt_root()->end()), message_transform_info(m_db) ); }
 
     //! \brief Opens the root folder of this file
     //! \note This is specific to PST files, as an OST file has a different root folder
@@ -145,8 +145,8 @@ public:
 
 private:
     shared_db_ptr m_db;                             //!< The official shared_db_ptr used by this store
-    mutable std::unique_ptr<property_bag> m_bag;    //!< The official property bag of this store object
-    mutable std::unique_ptr<name_id_map> m_map;     //!< The official named property map of this store object
+    mutable std::tr1::shared_ptr<property_bag> m_bag;    //!< The official property bag of this store object
+    mutable std::tr1::shared_ptr<name_id_map> m_map;     //!< The official named property map of this store object
 };
 
 } // end pstsdk namespace
@@ -179,14 +179,8 @@ inline pstsdk::name_id_map& pstsdk::pst::get_name_id_map()
 
 inline pstsdk::folder pstsdk::pst::open_folder(const std::wstring& name) const
 {
-#ifdef BOOST_NO_LAMBDAS
     folder_iterator iter = std::find_if(folder_begin(), folder_end(), compiler_workarounds::folder_name_equal(name));
-#else
-    folder_iterator iter = std::find_if(folder_begin(), folder_end(), [&name](const folder& f) {
-        return f.get_name() == name;
-    });
-#endif
-    
+
     if(iter != folder_end())
         return *iter;
 

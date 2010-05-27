@@ -19,6 +19,10 @@
 #pragma warning(pop)
 #endif
 
+#if __GNUC__
+#include <tr1/memory>
+#endif
+
 #include "pstsdk/util/primitives.h"
 
 #include "pstsdk/disk/disk.h"
@@ -157,7 +161,7 @@ public:
     //! \param[in] root The root allocation of this BTH
     //! \returns The BTH object
     template<typename K, typename V>
-    std::unique_ptr<bth_node<K,V>> open_bth(heap_id root);
+    std::tr1::shared_ptr<bth_node<K,V> > open_bth(heap_id root);
 
     friend class heap;
 
@@ -257,7 +261,7 @@ public:
     
     //! \copydoc heap_impl::open_bth()
     template<typename K, typename V>
-    std::unique_ptr<bth_node<K,V>> open_bth(heap_id root)
+    std::tr1::shared_ptr<bth_node<K,V> > open_bth(heap_id root)
         { return m_pheap->open_bth<K,V>(root); }
 
 private:
@@ -297,16 +301,16 @@ public:
     //! \throws logic_error If the specified key/value type sizes do not match what is in the BTH header
     //! \param[in] h The heap to open out of
     //! \param[in] bth_root The allocation containing the bth header
-    static std::unique_ptr<bth_node<K,V>> open_root(const heap_ptr& h, heap_id bth_root);
+    static std::tr1::shared_ptr<bth_node<K,V> > open_root(const heap_ptr& h, heap_id bth_root);
     //! \brief Open a non-leaf BTH node
     //! \param[in] h The heap to open out of
     //! \param[in] id The id to interpret as a non-leaf BTH node
     //! \param[in] level The level of this non-leaf node (must be non-zero)
-    static std::unique_ptr<bth_nonleaf_node<K,V>> open_nonleaf(const heap_ptr& h, heap_id id, ushort level);
+    static std::tr1::shared_ptr<bth_nonleaf_node<K,V> > open_nonleaf(const heap_ptr& h, heap_id id, ushort level);
     //! \brief Open a leaf BTH node
     //! \param[in] h The heap to open out of
     //! \param[in] id The id to interpret as a leaf BTH node   
-    static std::unique_ptr<bth_leaf_node<K,V>> open_leaf(const heap_ptr& h, heap_id id);
+    static std::tr1::shared_ptr<bth_leaf_node<K,V> > open_leaf(const heap_ptr& h, heap_id id);
 
     //! \brief Construct a bth_node object
     //! \param[in] h The heap to open out of
@@ -368,10 +372,10 @@ public:
     //! \param[in] level The level of this bth_nonleaf_node (non-zero)
     //! \param[in] bth_info The info about child bth_node allocations
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, std::vector<std::pair<K, heap_id>> bth_info)
+    bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, std::vector<std::pair<K, heap_id> > bth_info)
         : bth_node<K,V>(h, id, level), m_bth_info(std::move(bth_info)), m_child_nodes(m_bth_info.size()) { }
 #else
-    bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, const std::vector<std::pair<K, heap_id>>& bth_info)
+    bth_nonleaf_node(const heap_ptr& h, heap_id id, ushort level, const std::vector<std::pair<K, heap_id> >& bth_info)
         : bth_node<K,V>(h, id, level), m_bth_info(bth_info), m_child_nodes(m_bth_info.size()) { }
 #endif
     // btree_node_nonleaf implementation
@@ -381,8 +385,8 @@ public:
     uint num_values() const { return m_child_nodes.size(); }
 
 private:
-    std::vector<std::pair<K, heap_id>> m_bth_info;
-    mutable std::vector<std::tr1::shared_ptr<bth_node<K,V>>> m_child_nodes;
+    std::vector<std::pair<K, heap_id> > m_bth_info;
+    mutable std::vector<std::tr1::shared_ptr<bth_node<K,V> > > m_child_nodes;
 };
 
 //! \brief Contains the actual key value pairs of the BTH
@@ -401,10 +405,10 @@ public:
     //! \param[in] id The id to interpret as a non-leaf BTH node
     //! \param[in] data The key/value pairs stored in this leaf
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    bth_leaf_node(const heap_ptr& h, heap_id id, std::vector<std::pair<K,V>> data)
+    bth_leaf_node(const heap_ptr& h, heap_id id, std::vector<std::pair<K,V> > data)
         : bth_node<K,V>(h, id, 0), m_bth_data(std::move(data)) { }
 #else
-    bth_leaf_node(const heap_ptr& h, heap_id id, const std::vector<std::pair<K,V>>& data)
+    bth_leaf_node(const heap_ptr& h, heap_id id, const std::vector<std::pair<K,V> >& data)
         : bth_node<K,V>(h, id, 0), m_bth_data(data) { }
 #endif
 
@@ -419,13 +423,13 @@ public:
         { return m_bth_data.size(); }
 
 private:
-    std::vector<std::pair<K,V>> m_bth_data;
+    std::vector<std::pair<K,V> > m_bth_data;
 };
 
 } // end pstsdk namespace
 
 template<typename K, typename V>
-inline std::unique_ptr<pstsdk::bth_node<K,V>> pstsdk::bth_node<K,V>::open_root(const heap_ptr& h, heap_id bth_root)
+inline std::tr1::shared_ptr<pstsdk::bth_node<K,V> > pstsdk::bth_node<K,V>::open_root(const heap_ptr& h, heap_id bth_root)
 {
     disk::bth_header* pheader;
     std::vector<byte> buffer(sizeof(disk::bth_header));
@@ -451,12 +455,12 @@ inline std::unique_ptr<pstsdk::bth_node<K,V>> pstsdk::bth_node<K,V>::open_root(c
 }
 
 template<typename K, typename V>
-inline std::unique_ptr<pstsdk::bth_nonleaf_node<K,V>> pstsdk::bth_node<K,V>::open_nonleaf(const heap_ptr& h, heap_id id, ushort level)
+inline std::tr1::shared_ptr<pstsdk::bth_nonleaf_node<K,V> > pstsdk::bth_node<K,V>::open_nonleaf(const heap_ptr& h, heap_id id, ushort level)
 {
     uint num_entries = h->size(id) / sizeof(disk::bth_nonleaf_entry<K>);
     std::vector<byte> buffer(h->size(id));
     disk::bth_nonleaf_node<K>* pbth_nonleaf_node = (disk::bth_nonleaf_node<K>*)&buffer[0];
-    std::vector<std::pair<K, heap_id>> child_nodes;
+    std::vector<std::pair<K, heap_id> > child_nodes;
 
     h->read(buffer, id, 0);
 
@@ -468,16 +472,16 @@ inline std::unique_ptr<pstsdk::bth_nonleaf_node<K,V>> pstsdk::bth_node<K,V>::ope
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    return std::unique_ptr<bth_nonleaf_node<K,V>>(new bth_nonleaf_node<K,V>(h, id, level, std::move(child_nodes)));
+    return std::tr1::shared_ptr<bth_nonleaf_node<K,V> >(new bth_nonleaf_node<K,V>(h, id, level, std::move(child_nodes)));
 #else
-    return std::unique_ptr<bth_nonleaf_node<K,V>>(new bth_nonleaf_node<K,V>(h, id, level, child_nodes));
+    return std::tr1::shared_ptr<bth_nonleaf_node<K,V> >(new bth_nonleaf_node<K,V>(h, id, level, child_nodes));
 #endif
 }
     
 template<typename K, typename V>
-inline std::unique_ptr<pstsdk::bth_leaf_node<K,V>> pstsdk::bth_node<K,V>::open_leaf(const heap_ptr& h, heap_id id)
+inline std::tr1::shared_ptr<pstsdk::bth_leaf_node<K,V> > pstsdk::bth_node<K,V>::open_leaf(const heap_ptr& h, heap_id id)
 {
-    std::vector<std::pair<K, V>> entries; 
+    std::vector<std::pair<K, V> > entries; 
 
     if(id)
     {
@@ -494,15 +498,15 @@ inline std::unique_ptr<pstsdk::bth_leaf_node<K,V>> pstsdk::bth_node<K,V>::open_l
             entries.push_back(std::make_pair(pbth_leaf_node->entries[i].key, pbth_leaf_node->entries[i].value));
         }
 #ifndef BOOST_NO_RVALUE_REFERENCES
-        return std::unique_ptr<bth_leaf_node<K,V>>(new bth_leaf_node<K,V>(h, id, std::move(entries)));
+        return std::tr1::shared_ptr<bth_leaf_node<K,V> >(new bth_leaf_node<K,V>(h, id, std::move(entries)));
 #else
-        return std::unique_ptr<bth_leaf_node<K,V>>(new bth_leaf_node<K,V>(h, id, entries));
+        return std::tr1::shared_ptr<bth_leaf_node<K,V> >(new bth_leaf_node<K,V>(h, id, entries));
 #endif
     }
     else
     {
         // id == 0 means an empty tree
-        return std::unique_ptr<bth_leaf_node<K,V>>(new bth_leaf_node<K,V>(h, id, entries));
+        return std::tr1::shared_ptr<bth_leaf_node<K,V> >(new bth_leaf_node<K,V>(h, id, entries));
     }
 }
 
@@ -697,7 +701,7 @@ inline std::vector<pstsdk::byte> pstsdk::heap_impl::read(heap_id id) const
 }
 
 template<typename K, typename V>
-inline std::unique_ptr<pstsdk::bth_node<K,V>> pstsdk::heap_impl::open_bth(heap_id root)
+inline std::tr1::shared_ptr<pstsdk::bth_node<K,V> > pstsdk::heap_impl::open_bth(heap_id root)
 { 
     return bth_node<K,V>::open_root(shared_from_this(), root); 
 }

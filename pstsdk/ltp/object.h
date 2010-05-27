@@ -13,8 +13,13 @@
 #ifndef PSTSDK_LTP_OBJECT_H
 #define PSTSDK_LTP_OBJECT_H
 
-#include <type_traits>
 #include <functional>
+#ifdef __GNUC__
+#include <tr1/type_traits>
+#include <tr1/functional>
+#else
+#include <type_traits>
+#endif
 #include <algorithm>
 #include <boost/iostreams/concepts.hpp>
 #ifdef _MSC_VER
@@ -276,13 +281,13 @@ inline std::vector<time_t> const_property_object::read_prop_array<time_t>(prop_i
 }
 
 template<>
-inline std::vector<byte> const_property_object::read_prop<std::vector<byte>>(prop_id id) const
+inline std::vector<byte> const_property_object::read_prop<std::vector<byte> >(prop_id id) const
 {
     return get_value_variable(id); 
 }
 
 template<>
-inline std::vector<std::vector<byte>> const_property_object::read_prop_array<std::vector<byte>>(prop_id id) const
+inline std::vector<std::vector<byte> > const_property_object::read_prop_array<std::vector<byte> >(prop_id id) const
 {
     std::vector<byte> buffer = get_value_variable(id);
 #ifdef PSTSDK_VALIDATION_LEVEL_WEAK
@@ -290,7 +295,7 @@ inline std::vector<std::vector<byte>> const_property_object::read_prop_array<std
         throw std::length_error("mv prop too short");
 #endif
     disk::mv_toc* ptoc = reinterpret_cast<disk::mv_toc*>(&buffer[0]);
-    std::vector<std::vector<byte>> results;
+    std::vector<std::vector<byte> > results;
 
 #ifdef PSTSDK_VALIDATION_LEVEL_WEAK
     if(buffer.size() < (sizeof(ulong) + ptoc->count * sizeof(ulong)))
@@ -333,7 +338,7 @@ inline std::wstring const_property_object::read_prop<std::wstring>(prop_id id) c
 template<>
 inline std::vector<std::wstring> const_property_object::read_prop_array<std::wstring>(prop_id id) const
 {
-    std::vector<std::vector<byte>> buffer = read_prop_array<std::vector<byte>>(id);
+    std::vector<std::vector<byte> > buffer = read_prop_array<std::vector<byte> >(id);
     std::vector<std::wstring> results;
 
     for(size_t i = 0; i < buffer.size(); ++i)
@@ -378,7 +383,7 @@ inline std::string const_property_object::read_prop<std::string>(prop_id id) con
 template<>
 inline std::vector<std::string> const_property_object::read_prop_array<std::string>(prop_id id) const
 {
-    std::vector<std::vector<byte>> buffer = read_prop_array<std::vector<byte>>(id);
+    std::vector<std::vector<byte> > buffer = read_prop_array<std::vector<byte> >(id);
     std::vector<std::string> results;
 
     for(size_t i = 0; i < buffer.size(); ++i)

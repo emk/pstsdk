@@ -10,6 +10,9 @@
 #define PSTSDK_NDB_DATABASE_IFACE_H
 
 #include <memory>
+#ifdef __GNUC__
+#include <tr1/memory>
+#endif
 
 #include "pstsdk/util/util.h"
 #include "pstsdk/util/primitives.h"

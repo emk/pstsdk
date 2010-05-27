@@ -119,7 +119,7 @@ public:
 private:
     shared_db_ptr m_db;
     property_bag m_bag;
-    mutable std::unique_ptr<table> m_contents_table;
+    mutable std::tr1::shared_ptr<table> m_contents_table;
 };
 
 //! \brief Defines a transform from a row of a hierarchy table to a search_folder
@@ -210,20 +210,20 @@ public:
     //! \brief Get an iterator to the first folder in this folder
     //! \returns an iterator positioned on the first folder in this folder
     folder_iterator sub_folder_begin() const
-        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder>>(get_hierarchy_table().begin(), get_hierarchy_table().end()), folder_transform_row(m_db)); }
+        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder> >(get_hierarchy_table().begin(), get_hierarchy_table().end()), folder_transform_row(m_db)); }
     //! \brief Get the end folder iterator
     //! \returns an iterator at the end position
     folder_iterator sub_folder_end() const
-        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder>>(get_hierarchy_table().end(), get_hierarchy_table().end()), folder_transform_row(m_db)); }
+        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_folder> >(get_hierarchy_table().end(), get_hierarchy_table().end()), folder_transform_row(m_db)); }
 
     //! \brief Get an iterator to the first search folder in this folder
     //! \returns an iterator positioned on the first search folder in this folder
     search_folder_iterator sub_search_folder_begin() const
-        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_search_folder>>(get_hierarchy_table().begin(), get_hierarchy_table().end()), search_folder_transform_row(m_db)); }
+        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_search_folder> >(get_hierarchy_table().begin(), get_hierarchy_table().end()), search_folder_transform_row(m_db)); }
     //! \brief Get the end search folder iterator
     //! \returns an iterator at the end position
     search_folder_iterator sub_search_folder_end() const
-        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_search_folder>>(get_hierarchy_table().begin(), get_hierarchy_table().end()), search_folder_transform_row(m_db)); }
+        { return boost::make_transform_iterator(boost::make_filter_iterator<is_nid_type<nid_type_search_folder> >(get_hierarchy_table().begin(), get_hierarchy_table().end()), search_folder_transform_row(m_db)); }
 
     //! \brief Open a specific subfolder in this folder, not recursive
     //! \param[in] name The name of the folder to open
@@ -292,9 +292,9 @@ public:
 private:
     shared_db_ptr m_db;
     property_bag m_bag;
-    mutable std::unique_ptr<table> m_contents_table;
-    mutable std::unique_ptr<table> m_associated_contents_table;
-    mutable std::unique_ptr<table> m_hierarchy_table;
+    mutable std::tr1::shared_ptr<table> m_contents_table;
+    mutable std::tr1::shared_ptr<table> m_associated_contents_table;
+    mutable std::tr1::shared_ptr<table> m_hierarchy_table;
 };
 
 //! \brief Defines a transform from a node_info to a folder
@@ -357,7 +357,6 @@ inline pstsdk::table& pstsdk::search_folder::get_contents_table()
 }
 
 
-#ifdef BOOST_NO_LAMBDAS
 namespace compiler_workarounds
 {
 
@@ -369,17 +368,10 @@ struct folder_name_equal : public std::unary_function<bool, const pstsdk::folder
 };
 
 } // end namespace compiler_workarounds
-#endif
 
 inline pstsdk::folder pstsdk::folder::open_sub_folder(const std::wstring& name)
 {
-#ifdef BOOST_NO_LAMBDAS
     folder_iterator iter = std::find_if(sub_folder_begin(), sub_folder_end(), compiler_workarounds::folder_name_equal(name));
-#else
-    folder_iterator iter = std::find_if(sub_folder_begin(), sub_folder_end(), [&name](const folder& f) {
-        return f.get_name() == name;
-    });
-#endif
 
     if(iter != sub_folder_end())
         return *iter;

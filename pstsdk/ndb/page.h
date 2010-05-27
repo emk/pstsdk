@@ -119,7 +119,7 @@ template<typename K, typename V>
 class bt_nonleaf_page : 
     public bt_page<K,V>, 
     public btree_node_nonleaf<K,V>, 
-    public std::tr1::enable_shared_from_this<bt_nonleaf_page<K,V>>
+    public std::tr1::enable_shared_from_this<bt_nonleaf_page<K,V> >
 {
 public:
     //! \brief Construct a bt_nonleaf_page from disk
@@ -128,10 +128,10 @@ public:
     //! \param[in] level Distance from leaf
     //! \param[in] subpi Information about the child pages
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, std::vector<std::pair<K, page_info>> subpi)
+    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, std::vector<std::pair<K, page_info> > subpi)
         : bt_page<K,V>(db, pi, level), m_page_info(std::move(subpi)), m_child_pages(m_page_info.size()) { }
 #else
-    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, const std::vector<std::pair<K, page_info>>& subpi)
+    bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, const std::vector<std::pair<K, page_info> >& subpi)
         : bt_page<K,V>(db, pi, level), m_page_info(subpi), m_child_pages(m_page_info.size()) { }
 #endif
 
@@ -142,8 +142,8 @@ public:
     uint num_values() const { return m_child_pages.size(); }
 
 private:
-    std::vector<std::pair<K, page_info>> m_page_info;   //!< Information about the child pages
-    mutable std::vector<std::tr1::shared_ptr<bt_page<K,V>>> m_child_pages; //!< Cached child pages
+    std::vector<std::pair<K, page_info> > m_page_info;   //!< Information about the child pages
+    mutable std::vector<std::tr1::shared_ptr<bt_page<K,V> > > m_child_pages; //!< Cached child pages
 };
 
 //! \brief Contains the actual key value pairs of the btree
@@ -154,7 +154,7 @@ template<typename K, typename V>
 class bt_leaf_page : 
     public bt_page<K,V>, 
     public btree_node_leaf<K,V>, 
-    public std::tr1::enable_shared_from_this<bt_leaf_page<K,V>>
+    public std::tr1::enable_shared_from_this<bt_leaf_page<K,V> >
 {
 public:
     //! \brief Construct a leaf page from disk
@@ -162,10 +162,10 @@ public:
     //! \param[in] pi Information about this page
     //! \param[in] data The key/value pairs on this leaf page
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, std::vector<std::pair<K,V>> data)
+    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, std::vector<std::pair<K,V> > data)
         : bt_page<K,V>(db, pi, 0), m_page_data(std::move(data)) { }
 #else
-    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, const std::vector<std::pair<K,V>>& data)
+    bt_leaf_page(const shared_db_ptr& db, const page_info& pi, const std::vector<std::pair<K,V> >& data)
         : bt_page<K,V>(db, pi, 0), m_page_data(data) { }
 #endif
 
@@ -178,7 +178,7 @@ public:
         { return m_page_data.size(); }
 
 private:
-    std::vector<std::pair<K,V>> m_page_data; //!< The key/value pairs on this leaf page
+    std::vector<std::pair<K,V> > m_page_data; //!< The key/value pairs on this leaf page
 };
 //! \cond dont_show_these_member_function_specializations
 template<>

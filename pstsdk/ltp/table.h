@@ -7,7 +7,11 @@
 #define PSTSDK_LTP_TABLE_H
 
 #include <vector>
-#include <unordered_map>
+#if __GNUC__
+# include <tr1/unordered_map>
+#else
+# include <unordered_map>
+#endif
 #include <boost/iterator/iterator_facade.hpp>
 
 #include "pstsdk/util/primitives.h"
@@ -247,11 +251,11 @@ private:
     basic_table(const node& n);
     basic_table(const node& n, alias_tag);
 
-    std::unique_ptr<bth_node<row_id, T>> m_prows;
+    std::tr1::shared_ptr<bth_node<row_id, T> > m_prows;
 
     // only one of the following two items is valid
     std::vector<byte> m_vec_rowarray;
-    std::unique_ptr<node> m_pnode_rowarray;
+    std::tr1::shared_ptr<node> m_pnode_rowarray;
 
     std::tr1::unordered_map<prop_id, disk::column_description> m_columns; 
     typedef std::tr1::unordered_map<prop_id, disk::column_description>::iterator column_iter;

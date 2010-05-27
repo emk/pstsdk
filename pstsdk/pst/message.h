@@ -44,7 +44,7 @@ public:
     //! is too large for your tastes.
     //! \returns A vector of bytes
     std::vector<byte> get_bytes() const
-        { return m_bag.read_prop<std::vector<byte>>(0x3701); }
+        { return m_bag.read_prop<std::vector<byte> >(0x3701); }
     //! \brief Open a stream of the attachment data
     //! 
     //! The returned stream device can be used to construct a proper stream:
@@ -307,8 +307,8 @@ private:
     message& operator=(const message&); // = delete
 
     property_bag m_bag;
-    mutable std::unique_ptr<table> m_attachment_table;
-    mutable std::unique_ptr<table> m_recipient_table;
+    mutable std::tr1::shared_ptr<table> m_attachment_table;
+    mutable std::tr1::shared_ptr<table> m_recipient_table;
 };
 
 class message_transform_row : public std::unary_function<const_table_row, message>

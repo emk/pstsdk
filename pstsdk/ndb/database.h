@@ -160,7 +160,7 @@ protected:
     std::tr1::shared_ptr<bbt_leaf_page> read_bbt_leaf_page(const page_info& pi, disk::bbt_leaf_page<T>& the_page);
 
     template<typename K, typename V>
-    std::tr1::shared_ptr<bt_nonleaf_page<K,V>> read_bt_nonleaf_page(const page_info& pi, disk::bt_page<T, disk::bt_entry<T>>& the_page);
+    std::tr1::shared_ptr<bt_nonleaf_page<K,V> > read_bt_nonleaf_page(const page_info& pi, disk::bt_page<T, disk::bt_entry<T> >& the_page);
 
     std::tr1::shared_ptr<subnode_leaf_block> read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_leaf_block<T>& sub_block);
     std::tr1::shared_ptr<subnode_nonleaf_block> read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_nonleaf_block<T>& sub_block);
@@ -371,7 +371,7 @@ template<typename T>
 inline std::tr1::shared_ptr<pstsdk::nbt_leaf_page> pstsdk::database_impl<T>::read_nbt_leaf_page(const page_info& pi, disk::nbt_leaf_page<T>& the_page)
 {
     node_info ni;
-    std::vector<std::pair<node_id, node_info>> nodes;
+    std::vector<std::pair<node_id, node_info> > nodes;
 
     for(int i = 0; i < the_page.num_entries; ++i)
     {
@@ -411,7 +411,7 @@ template<typename T>
 inline std::tr1::shared_ptr<pstsdk::bbt_leaf_page> pstsdk::database_impl<T>::read_bbt_leaf_page(const page_info& pi, disk::bbt_leaf_page<T>& the_page)
 {
     block_info bi;
-    std::vector<std::pair<block_id, block_info>> blocks;
+    std::vector<std::pair<block_id, block_info> > blocks;
     
     for(int i = 0; i < the_page.num_entries; ++i)
     {
@@ -449,9 +449,9 @@ inline std::tr1::shared_ptr<pstsdk::nbt_nonleaf_page> pstsdk::database_impl<T>::
 
 template<typename T>
 template<typename K, typename V>
-inline std::tr1::shared_ptr<pstsdk::bt_nonleaf_page<K,V>> pstsdk::database_impl<T>::read_bt_nonleaf_page(const page_info& pi, pstsdk::disk::bt_page<T, disk::bt_entry<T>>& the_page)
+inline std::tr1::shared_ptr<pstsdk::bt_nonleaf_page<K,V> > pstsdk::database_impl<T>::read_bt_nonleaf_page(const page_info& pi, pstsdk::disk::bt_page<T, disk::bt_entry<T> >& the_page)
 {
-    std::vector<std::pair<K, page_info>> nodes;
+    std::vector<std::pair<K, page_info> > nodes;
     
     for(int i = 0; i < the_page.num_entries; ++i)
     {
@@ -460,9 +460,9 @@ inline std::tr1::shared_ptr<pstsdk::bt_nonleaf_page<K,V>> pstsdk::database_impl<
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    return std::tr1::shared_ptr<bt_nonleaf_page<K,V>>(new bt_nonleaf_page<K,V>(shared_from_this(), pi, the_page.level, std::move(nodes)));
+    return std::tr1::shared_ptr<bt_nonleaf_page<K,V> >(new bt_nonleaf_page<K,V>(shared_from_this(), pi, the_page.level, std::move(nodes)));
 #else
-    return std::tr1::shared_ptr<bt_nonleaf_page<K,V>>(new bt_nonleaf_page<K,V>(shared_from_this(), pi, the_page.level, nodes));
+    return std::tr1::shared_ptr<bt_nonleaf_page<K,V> >(new bt_nonleaf_page<K,V>(shared_from_this(), pi, the_page.level, nodes));
 #endif
 }
 
@@ -633,7 +633,7 @@ inline std::tr1::shared_ptr<pstsdk::external_block> pstsdk::database_impl<T>::cr
 template<typename T>
 inline std::tr1::shared_ptr<pstsdk::extended_block> pstsdk::database_impl<T>::create_extended_block(const shared_db_ptr& parent, std::tr1::shared_ptr<external_block>& pchild_block)
 {
-    std::vector<std::tr1::shared_ptr<data_block>> child_blocks;
+    std::vector<std::tr1::shared_ptr<data_block> > child_blocks;
     child_blocks.push_back(pchild_block);
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
@@ -646,7 +646,7 @@ inline std::tr1::shared_ptr<pstsdk::extended_block> pstsdk::database_impl<T>::cr
 template<typename T>
 inline std::tr1::shared_ptr<pstsdk::extended_block> pstsdk::database_impl<T>::create_extended_block(const shared_db_ptr& parent, std::tr1::shared_ptr<extended_block>& pchild_block)
 {
-    std::vector<std::tr1::shared_ptr<data_block>> child_blocks;
+    std::vector<std::tr1::shared_ptr<data_block> > child_blocks;
     child_blocks.push_back(pchild_block);
 
     assert(pchild_block->get_level() == 1);
@@ -712,7 +712,7 @@ inline std::tr1::shared_ptr<pstsdk::subnode_block> pstsdk::database_impl<T>::rea
 {
     if(bi.id == 0)
     {
-        return std::tr1::shared_ptr<subnode_block>(new subnode_leaf_block(parent, bi, std::vector<std::pair<node_id, subnode_info>>()));
+        return std::tr1::shared_ptr<subnode_block>(new subnode_leaf_block(parent, bi, std::vector<std::pair<node_id, subnode_info> >()));
     }
     
     std::vector<byte> buffer = read_block_data(bi);
@@ -773,7 +773,7 @@ template<typename T>
 inline std::tr1::shared_ptr<pstsdk::subnode_leaf_block> pstsdk::database_impl<T>::read_subnode_leaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_leaf_block<T>& sub_block)
 {
     subnode_info ni;
-    std::vector<std::pair<node_id, subnode_info>> subnodes;
+    std::vector<std::pair<node_id, subnode_info> > subnodes;
 
     for(int i = 0; i < sub_block.count; ++i)
     {
@@ -794,7 +794,7 @@ inline std::tr1::shared_ptr<pstsdk::subnode_leaf_block> pstsdk::database_impl<T>
 template<typename T>
 inline std::tr1::shared_ptr<pstsdk::subnode_nonleaf_block> pstsdk::database_impl<T>::read_subnode_nonleaf_block(const shared_db_ptr& parent, const block_info& bi, disk::sub_nonleaf_block<T>& sub_block)
 {
-    std::vector<std::pair<node_id, block_id>> subnodes;
+    std::vector<std::pair<node_id, block_id> > subnodes;
 
     for(int i = 0; i < sub_block.count; ++i)
     {

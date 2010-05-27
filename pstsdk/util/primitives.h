@@ -11,29 +11,19 @@
 #ifndef PSTSDK_UTIL_PRIMITIVES_H
 #define PSTSDK_UTIL_PRIMITIVES_H
 
+#include <boost/cstdint.hpp>
+
 //
 // Global compiler hacks
 //
-
-#ifdef BOOST_NO_LAMBDAS
-#ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
-#pragma message("C++0x lambdas not supported; consider updating your compiler")
-#endif
-#endif
 
 #ifdef BOOST_NO_RVALUE_REFERENCES
 #ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
 #pragma message("C++0x rvalue references not supported; consider updating your compiler")
 #endif
-// I'll assume a compiler supports unique_ptr iff it supports rvalue references
-// huge hack
-#define unique_ptr tr1::shared_ptr
 #endif
 
 #ifdef BOOST_NO_STATIC_ASSERT
-#ifndef SUPPRESS_CPLUSPLUS0X_MESSAGES
-#pragma message("static_assert not supported; consider updating your compiler")
-#endif
 #include <boost/static_assert.hpp>
 #define static_assert(x,y) BOOST_STATIC_ASSERT(x)
 #endif
@@ -62,12 +52,12 @@ namespace pstsdk
 /*! \addtogroup primitive
  * @{
  */
-typedef unsigned int uint;
-typedef unsigned long ulong;
-typedef unsigned long long ulonglong;
-typedef long long longlong;
-typedef unsigned char byte;
-typedef unsigned short ushort;
+typedef boost::uint32_t uint;
+typedef boost::uint32_t ulong;
+typedef boost::uint64_t ulonglong;
+typedef boost::int64_t longlong;
+typedef boost::uint8_t byte;
+typedef boost::uint16_t ushort;
 /*! @} */
 
 //! \cond static_asserts
