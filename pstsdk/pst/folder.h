@@ -86,7 +86,7 @@ public:
     //! \brief Get the end message iterator
     //! \returns an iterator at the end position
     message_iterator message_end() const
-        { return boost::make_transform_iterator(get_contents_table().begin(), message_transform_row(m_db)); }
+        { return boost::make_transform_iterator(get_contents_table().end(), message_transform_row(m_db)); }
 
     // property access
     //! \brief Get the display name of this folder
