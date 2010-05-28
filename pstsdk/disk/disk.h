@@ -900,6 +900,11 @@ size_t align_disk(size_t size);
 //! \ingroup disk_blockrelated
 size_t align_slot(size_t size);
 
+//! \brief The attached bit indicates a block is referenced in memory
+//! This is an implementation detail, and this bit should be ignored.
+//! \sa [MS-PST] 2.2.2.2/r
+const uint block_id_attached_bit = 0x1;
+
 //! \brief The internal bit indicates a block is an \ref extended_block or a \ref subnode_block
 //! \ingroup disk_blockrelated
 //! \sa [MS-PST] 2.2.2.2/i

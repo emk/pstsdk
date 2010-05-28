@@ -552,7 +552,7 @@ inline pstsdk::block_info pstsdk::database_impl<T>::lookup_block_info(block_id b
     }
     else
     {
-        return read_bbt_root()->lookup(bid);
+        return read_bbt_root()->lookup(bid & (~(block_id(disk::block_id_attached_bit))));
     }
 }
 
