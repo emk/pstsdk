@@ -72,6 +72,8 @@ sfk addcr ..\pstsdk_%1 .h .cpp .txt
 copy doc\*.pdf ..\pstsdk_%1\doc
 mkdir ..\pstsdk_%1\doc\html
 copy doc\html ..\pstsdk_%1\doc\html
+mkdir ..\pstsdk_%1\doc\html\search
+copy doc\html\search ..\pstsdk_%1\doc\html\search
 
 :: doc zip
 7za a ..\pstsdk_%1.zip ..\pstsdk_%1 -r
