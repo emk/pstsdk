@@ -6,11 +6,10 @@
 //! \defgroup primitive Primitive Types
 //! \ingroup util
 
-#include <boost/config.hpp>
-
 #ifndef PSTSDK_UTIL_PRIMITIVES_H
 #define PSTSDK_UTIL_PRIMITIVES_H
 
+#include <boost/config.hpp>
 #include <boost/cstdint.hpp>
 
 //
