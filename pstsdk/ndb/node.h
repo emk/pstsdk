@@ -639,12 +639,10 @@ public:
     //! \param[in] bi The \ref block_info for all child blocks
 #ifndef BOOST_NO_RVALUE_REFERENCES
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, std::vector<block_id> bi)
-        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(std::move(bi))
-        { m_child_blocks.resize(m_block_info.size()); }
+        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(std::move(bi)), m_child_blocks(m_block_info.size()) { }
 #else
     extended_block(const shared_db_ptr& db, const block_info& info, ushort level, size_t total_size, size_t child_max_total_size, ulong page_max_count, ulong child_page_max_count, const std::vector<block_id>& bi)
-        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi)
-        { m_child_blocks.resize(m_block_info.size()); }
+        : data_block(db, info, total_size), m_child_max_total_size(child_max_total_size), m_child_max_page_count(child_page_max_count), m_max_page_count(page_max_count), m_level(level), m_block_info(bi), m_child_blocks(m_block_info.size()) { }
 #endif
 
 //! \cond write_api
@@ -811,10 +809,10 @@ public:
     //! \param[in] subblocks Information about the child blocks
 #ifndef BOOST_NO_RVALUE_REFERENCES
     subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, std::vector<std::pair<node_id, block_id> > subblocks)
-        : subnode_block(db, info, 1), m_subnode_info(std::move(subblocks)) { }
+        : subnode_block(db, info, 1), m_subnode_info(std::move(subblocks)), m_child_blocks(m_subnode_info.size()) { }
 #else
     subnode_nonleaf_block(const shared_db_ptr& db, const block_info& info, const std::vector<std::pair<node_id, block_id> >& subblocks)
-        : subnode_block(db, info, 1), m_subnode_info(subblocks) { }
+        : subnode_block(db, info, 1), m_subnode_info(subblocks), m_child_blocks(m_subnode_info.size()) { }
 #endif
 
     // btree_node_nonleaf implementation
