@@ -590,6 +590,9 @@ inline std::vector<pstsdk::byte> pstsdk::basic_table<T>::read_cell(ulong row, pr
     heapnode_id hid = static_cast<heapnode_id>(get_cell_value(row, id));
     std::vector<byte> buffer;
 
+    if(hid == 0)
+        return buffer;
+
     if(is_subnode_id(hid))
     {
         node sub(get_node().lookup(hid));
