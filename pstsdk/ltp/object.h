@@ -181,24 +181,28 @@ inline T pstsdk::const_property_object::read_prop(prop_id id) const
 
     if(sizeof(T) == sizeof(ulonglong))
     {
-        return (T)get_value_8(id);
+        ulonglong t = get_value_8(id);
+        return *(reinterpret_cast<T*>(&t));
     }
     else if(sizeof(T) == sizeof(ulong))
     {
-        return (T)get_value_4(id);
+        ulong t = get_value_4(id);
+        return *(reinterpret_cast<T*>(&t));
     }
     else if(sizeof(T) == sizeof(ushort))
     {
-        return (T)get_value_2(id);
+        ushort t = get_value_2(id);
+        return *(reinterpret_cast<T*>(&t));
     }
     else if(sizeof(T) == sizeof(byte))
     {
-        return (T)get_value_1(id);
+        byte t = get_value_1(id);
+        return *(reinterpret_cast<T*>(&t));
     }
-    else 
+    else
     {
-        std::vector<byte> buffer = get_value_variable(id); 
-        return *(T*)&buffer[0];
+        std::vector<byte> buffer = get_value_variable(id);
+        return *(reinterpret_cast<T*>(&buffer[0]));
     }
 }
 
@@ -212,10 +216,10 @@ inline std::vector<T> pstsdk::const_property_object::read_prop_array(prop_id id)
         throw std::invalid_argument("T must be a POD or one of the specialized classes");
 
     std::vector<byte> buffer = get_value_variable(id); 
-    return std::vector<T>((T*)&buffer[0], (T*)&buffer[buffer.size()]);
+    return std::vector<T>(reinterpret_cast<T*>(&buffer[0]), reinterpret_cast<T*>(&buffer[0] + buffer.size()));
 }
 
-namespace pstsdk 
+namespace pstsdk
 {
 
 template<>
