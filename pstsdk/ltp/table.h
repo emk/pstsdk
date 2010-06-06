@@ -325,7 +325,7 @@ public:
     const_table_row_iter end() const
         { return m_ptable->end(); }
 
-    //! \copydoc table_impl::get_node()    
+    //! \copydoc table_impl::get_node()
     node& get_node() 
         { return m_ptable->get_node(); }
     //! \copydoc table_impl::get_node() const
@@ -406,23 +406,32 @@ inline pstsdk::table_ptr pstsdk::open_table(const node& n, alias_tag)
 }
 
 inline std::vector<pstsdk::prop_id> pstsdk::const_table_row::get_prop_list() const
-{ 
-    return m_table->get_prop_list(); 
+{
+    std::vector<prop_id> columns = m_table->get_prop_list();
+    std::vector<prop_id> props;
+
+    for(size_t i = 0; i < columns.size(); ++i)
+    {
+        if(prop_exists(columns[i]))
+            props.push_back(columns[i]);
+    }
+
+    return props;
 }
 
 inline pstsdk::prop_type pstsdk::const_table_row::get_prop_type(prop_id id) const
-{ 
-    return m_table->get_prop_type(id); 
+{
+    return m_table->get_prop_type(id);
 }
 
 inline bool pstsdk::const_table_row::prop_exists(prop_id id) const
 {
     return m_table->prop_exists(m_position, id);
 }
-    
+
 inline pstsdk::row_id pstsdk::const_table_row::get_row_id() const
-{ 
-    return m_table->get_row_id(m_position); 
+{
+    return m_table->get_row_id(m_position);
 }
 
 inline pstsdk::byte pstsdk::const_table_row::get_value_1(prop_id id) const
@@ -589,9 +598,6 @@ inline std::vector<pstsdk::byte> pstsdk::basic_table<T>::read_cell(ulong row, pr
 {
     heapnode_id hid = static_cast<heapnode_id>(get_cell_value(row, id));
     std::vector<byte> buffer;
-
-    if(hid == 0)
-        return buffer;
 
     if(is_subnode_id(hid))
     {

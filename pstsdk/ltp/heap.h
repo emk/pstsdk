@@ -604,6 +604,9 @@ inline pstsdk::byte pstsdk::heap_impl::get_client_signature() const
 
 inline size_t pstsdk::heap_impl::size(heap_id id) const
 {
+    if(id == 0)
+        return 0;
+
     disk::heap_page_header header = m_node.read<disk::heap_page_header>(get_heap_page(id), 0);
 
 #ifdef PSTSDK_VALIDATION_LEVEL_WEAK
@@ -637,6 +640,9 @@ inline size_t pstsdk::heap_impl::read(std::vector<byte>& buffer, heap_id id, ulo
     if(offset + buffer.size() > hid_size)
         throw std::length_error("size + offset > size()");
 #endif
+
+    if(hid_size == 0)
+        return 0;
 
     disk::heap_page_header header = m_node.read<disk::heap_page_header>(get_heap_page(id), 0);
     std::vector<byte> map_buffer(m_node.get_page_size(get_heap_page(id)) - header.page_map_offset);
@@ -676,7 +682,7 @@ inline std::streampos pstsdk::hid_stream_device::seek(boost::iostreams::stream_o
 #pragma warning(disable:4244)
 #endif
     if(way == std::ios_base::beg)
-            m_pos = off;
+        m_pos = off;
     else if(way == std::ios_base::end)
         m_pos = m_pheap->size(m_hid) + off;
     else

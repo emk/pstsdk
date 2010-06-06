@@ -203,9 +203,6 @@ inline std::vector<pstsdk::byte> pstsdk::property_bag::get_value_variable(prop_i
     heapnode_id h_id = (heapnode_id)get_value_4(id);
     std::vector<byte> buffer;
 
-    if(h_id == 0)
-        return buffer;
-
     if(is_subnode_id(h_id))
     {
         node sub(m_pbth->get_node().lookup(h_id));
