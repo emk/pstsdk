@@ -121,6 +121,11 @@ struct root
     byte bARVec;                //!< Indicates which AddRef vector is used
     ushort cARVec;              //!< Number of elements in the AddRef vector
 };
+//! \cond static_asserts
+static_assert(sizeof(root<ulong>) == 40, "root<ulong> incorrect size");
+static_assert(sizeof(root<ulonglong>) == 80, "root<ulonglong> incorrect size");
+static_assert(offsetof(root<ulonglong>, ibFileEof) == 8, "root<ulonglong> ibFileEof at incorrect offset");
+//! \endcond
 
 //! \brief High/Low magic number
 //!
@@ -182,6 +187,12 @@ struct header<ulonglong>
     byte bLockSemaphore;               //!< Implementation specific
     byte rgbLock[header_lock_entries]; //!< Implementation specific
 };
+//! \cond static_asserts
+static_assert(sizeof(header<ulonglong>) == 568, "header<ulonglong> incorrect size");
+static_assert(offsetof(header<ulonglong>, rgnid) == 44, "header<ulonglong> rgnid at incorrect offset");
+static_assert(offsetof(header<ulonglong>, rgbFM) == 256, "header<ulonglong> rgbFM at incorrect offset");
+static_assert(offsetof(header<ulonglong>, dwCRCFull) == 524, "header<ulonglong> dwCRCFull at incorrect offset");
+//! \endcond
 
 //! \brief The ANSI header structure
 //!
@@ -225,6 +236,11 @@ struct header<ulong>
     byte bLockSemaphore;
     byte rgbLock[header_lock_entries];
 };
+//! \cond static_asserts
+static_assert(sizeof(header<ulong>) == 512, "header<ulong> incorrect size");
+static_assert(offsetof(header<ulong>, rgnid) == 36, "header<ulong> rgnid at incorrect offset");
+static_assert(offsetof(header<ulong>, rgbFM) == 204, "header<ulong> rgbFM at incorrect offset");
+//! \endcond
 
 //! \cond empty
 template<typename T>
@@ -808,6 +824,8 @@ struct nbt_nonleaf_page : public bt_page<T, bt_entry<T> >
 //! \cond static_asserts
 static_assert(sizeof(nbt_nonleaf_page<ulong>) == page_size, "nbt_nonleaf_page<ulong> incorrect size");
 static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_page<ulonglong> incorrect size");
+static_assert(offsetof(nbt_nonleaf_page<ulong>, num_entries) == 496, "nbt_nonleaf_page<ulong> num_entries at incorrect offset");
+static_assert(offsetof(nbt_nonleaf_page<ulonglong>, num_entries) == 488, "nbt_nonleaf_page<ulonglong> num_entries at incorrect offset");
 //! \endcond
 
 //! \brief BBT non-leaf page

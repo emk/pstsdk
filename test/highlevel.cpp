@@ -103,6 +103,11 @@ void test_table(const pstsdk::table& tc)
                     const_table_row row = tc[i];
                     test_prop_stream(row, proplist[j]);
                 }
+                else if(tc[i].get_prop_type(proplist[j]) == prop_type_guid)
+                {
+                    guid g = tc[i].read_prop<guid>(proplist[j]);
+                    g;
+                }
                 else
                 {
                     wcout << "\t" << hex << proplist[j] << "(" << dec << tc[i].get_prop_type(proplist[j]) << ")" << endl;

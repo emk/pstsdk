@@ -93,8 +93,6 @@ void test_disk()
     file uni(L"test_unicode.pst");
     file ansi(L"test_ansi.pst");
 
-    assert(offsetof(disk::header<pstsdk::ulonglong>, dwCRCFull) == 524);
-
     test_disk_structures<pstsdk::ulonglong>(uni);
     test_disk_structures<pstsdk::ulong>(ansi);
 }
