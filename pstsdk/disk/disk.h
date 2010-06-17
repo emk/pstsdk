@@ -34,6 +34,10 @@ struct block_reference
     block_id_disk bid; //!< The id of the referenced object
     location ib;       //!< The location on disk (index byte) of the referenced object
 };
+//! \cond static_asserts
+static_assert(sizeof(block_reference<ulong>) == 8, "block_reference<ulong> incorrect size");
+static_assert(sizeof(block_reference<ulonglong>) == 16, "block_reference<ulonglong> incorrect size");
+//! \endcond
 
 //
 // header
@@ -124,7 +128,16 @@ struct root
 //! \cond static_asserts
 static_assert(sizeof(root<ulong>) == 40, "root<ulong> incorrect size");
 static_assert(sizeof(root<ulonglong>) == 80, "root<ulonglong> incorrect size");
+static_assert(offsetof(root<ulonglong>, cOrphans) == 0, "root<ulonglong> cOrphans at incorrect offset");
 static_assert(offsetof(root<ulonglong>, ibFileEof) == 8, "root<ulonglong> ibFileEof at incorrect offset");
+static_assert(offsetof(root<ulonglong>, ibAMapLast) == 16, "root<ulonglong> ibAMapLast at incorrect offset");
+static_assert(offsetof(root<ulonglong>, cbAMapFree) == 24, "root<ulonglong> cbAMapFree at incorrect offset");
+static_assert(offsetof(root<ulonglong>, cbPMapFree) == 32, "root<ulonglong> cbPMapFree at incorrect offset");
+static_assert(offsetof(root<ulonglong>, brefNBT) == 40, "root<ulonglong> brefNBT at incorrect offset");
+static_assert(offsetof(root<ulonglong>, brefBBT) == 56, "root<ulonglong> brefBBT at incorrect offset");
+static_assert(offsetof(root<ulonglong>, fAMapValid) == 72, "root<ulonglong> fAMapValid at incorrect offset");
+static_assert(offsetof(root<ulonglong>, bARVec) == 73, "root<ulonglong> bARVec at incorrect offset");
+static_assert(offsetof(root<ulonglong>, cARVec) == 74, "root<ulonglong> cARVec at incorrect offset");
 //! \endcond
 
 //! \brief High/Low magic number
@@ -190,6 +203,7 @@ struct header<ulonglong>
 //! \cond static_asserts
 static_assert(sizeof(header<ulonglong>) == 568, "header<ulonglong> incorrect size");
 static_assert(offsetof(header<ulonglong>, rgnid) == 44, "header<ulonglong> rgnid at incorrect offset");
+static_assert(offsetof(header<ulonglong>, root_info) == 176, "header<ulonglong> root_info at incorrect offset");
 static_assert(offsetof(header<ulonglong>, rgbFM) == 256, "header<ulonglong> rgbFM at incorrect offset");
 static_assert(offsetof(header<ulonglong>, dwCRCFull) == 524, "header<ulonglong> dwCRCFull at incorrect offset");
 //! \endcond
@@ -549,6 +563,9 @@ struct page_trailer<ulonglong>
     ulong crc;             //!< CRC of this page, as calculated by the \ref compute_crc function
     block_id_disk bid;     //!< The id of this page
 };
+//! \cond static_asserts
+static_assert(sizeof(page_trailer<ulonglong>) == 16, "page_trailer<ulonglong> incorrect size");
+//! \endcond
 
 //! \brief The ANSI store version of the page trailer
 //!
@@ -567,6 +584,9 @@ struct page_trailer<ulong>
     block_id_disk bid;
     ulong crc;
 };
+//! \cond static_asserts
+static_assert(sizeof(page_trailer<ulong>) == 12, "page_trailer<ulong> incorrect size");
+//! \endcond
 
 //! \brief Generic page structure
 //! \tparam T \ref ulonglong for a unicode store, \ref ulong for an ANSI store
@@ -749,6 +769,10 @@ struct bt_entry
     bt_key key;               //!< The key of the page in ref
     block_reference<T> ref;   //!< A reference to a lower level page
 };
+//! \cond static_asserts
+static_assert(sizeof(bt_entry<ulong>) == 12, "bt_entry<ulong> incorrect size");
+static_assert(sizeof(bt_entry<ulonglong>) == 24, "bt_entry<ulonglong> incorrect size");
+//! \endcond
 
 //! \brief NBT Leaf Entry
 //!
@@ -767,6 +791,10 @@ struct nbt_leaf_entry
     block_id_disk sub;   //!< The block id of the subnode block
     node_id parent_nid;  //!< The parent node id
 };
+//! \cond static_asserts
+static_assert(sizeof(nbt_leaf_entry<ulong>) == 16, "nbt_leaf_entry<ulong> incorrect size");
+static_assert(sizeof(nbt_leaf_entry<ulonglong>) == 32, "nbt_leaf_entry<ulonglong> incorrect size");
+//! \endcond
 
 //! \brief BBT Leaf Entry
 //!
@@ -781,6 +809,10 @@ struct bbt_leaf_entry
     ushort size;            //!< The unaligned size of this block
     ushort ref_count;       //!< The reference count of this block
 };
+//! \cond static_asserts
+static_assert(sizeof(bbt_leaf_entry<ulong>) == 12, "bbt_leaf_entry<ulong> incorrect size");
+static_assert(sizeof(bbt_leaf_entry<ulonglong>) == 24, "bbt_leaf_entry<ulonglong> incorrect size");
+//! \endcond
 
 //! \brief The fundamental page structure which forms the basis of the two BTrees
 //!
@@ -810,6 +842,14 @@ struct bt_page
 
     page_trailer<T> trailer;   //!< The page trailer
 };
+//! \cond static_asserts
+typedef bt_page<ulong, bt_entry<ulong> > bt_page_ulong;
+typedef bt_page<ulonglong, bt_entry<ulonglong> > bt_page_ulonglong;
+static_assert(offsetof(bt_page_ulong, num_entries) == 496, "bt_page<ulong, bt_entry<ulong> > num_entries at incorrect offset");
+static_assert(offsetof(bt_page_ulonglong, num_entries) == 488, "bt_page<ulonglong, bt_entry<ulonglong> > num_entries at incorrect offset");
+static_assert(offsetof(bt_page_ulong, trailer) == 500, "bt_page<ulong, bt_entry<ulong> > trailer at incorrect offset");
+static_assert(offsetof(bt_page_ulonglong, trailer) == 496, "bt_page<ulonglong, bt_entry<ulonglong> > trailer at incorrect offset");
+//! \endcond
 
 //! \brief NBT non-leaf page
 //!
@@ -824,8 +864,6 @@ struct nbt_nonleaf_page : public bt_page<T, bt_entry<T> >
 //! \cond static_asserts
 static_assert(sizeof(nbt_nonleaf_page<ulong>) == page_size, "nbt_nonleaf_page<ulong> incorrect size");
 static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_page<ulonglong> incorrect size");
-static_assert(offsetof(nbt_nonleaf_page<ulong>, num_entries) == 496, "nbt_nonleaf_page<ulong> num_entries at incorrect offset");
-static_assert(offsetof(nbt_nonleaf_page<ulonglong>, num_entries) == 488, "nbt_nonleaf_page<ulonglong> num_entries at incorrect offset");
 //! \endcond
 
 //! \brief BBT non-leaf page
@@ -977,6 +1015,9 @@ struct block_trailer<ulonglong>
     ulong crc;           //!< CRC of this block, as calculated by the \ref compute_crc function
     block_id_disk bid;   //!< The id of this block
 };
+//! \cond static_asserts
+static_assert(sizeof(block_trailer<ulonglong>) == 16, "block_trailer<ulonglong> incorrect size");
+//! \endcond
 
 //! \brief ANSI store version of the block trailer
 //!
@@ -995,6 +1036,9 @@ struct block_trailer<ulong>
     block_id_disk bid;
     ulong crc;
 };
+//! \cond static_asserts
+static_assert(sizeof(block_trailer<ulong>) == 12, "block_trailer<ulong> incorrect size");
+//! \endcond
 
 //! \brief External block definition
 //!
@@ -1082,6 +1126,10 @@ struct sub_leaf_entry
     block_id_disk data; //!< Data block of this subnode
     block_id_disk sub;  //!< Subnode block of this subnode. Yes, subnodes can and do themselves had subnodes.
 };
+//! \cond static_asserts
+static_assert(sizeof(sub_leaf_entry<ulong>) == 12, "sub_leaf_entry<ulong> incorrect size");
+static_assert(sizeof(sub_leaf_entry<ulonglong>) == 24, "sub_leaf_entry<ulonglong> incorrect size");
+//! \endcond
 
 //! \brief Entries on a nonleaf \ref sub_block
 //!
@@ -1098,6 +1146,10 @@ struct sub_nonleaf_entry
     node_id nid_key;             //!< Key of the subnode block
     block_id_disk sub_block_bid; //!< Id of the subnode block
 };
+//! \cond static_asserts
+static_assert(sizeof(sub_nonleaf_entry<ulong>) == 8, "sub_nonleaf_entry<ulong> incorrect size");
+static_assert(sizeof(sub_nonleaf_entry<ulonglong>) == 16, "sub_nonleaf_entry<ulonglong> incorrect size");
+//! \endcond
 
 //! \brief Subnode Blocks
 //!
@@ -1285,6 +1337,10 @@ struct bth_nonleaf_entry
     K key;        //!< Key of the lower level page
     heap_id page; //!< Heap id of the lower level page
 };
+//! \cond static_asserts
+static_assert(sizeof(bth_nonleaf_entry<ulong>) == 8, "bth_nonleaf_entry<ulong> incorrect size");
+static_assert(sizeof(bth_nonleaf_entry<ulonglong>) == 16, "bth_nonleaf_entry<ulonglong> incorrect size");
+//! \endcond
 
 //! \brief Entries which make up a "leaf" BTH allocation
 //!

@@ -334,6 +334,9 @@ struct guid
     short data3;
     byte data4[8];
 };
+//! \cond static_asserts
+static_assert(sizeof(guid) == 16, "guid incorrect size");
+//! \endcond
 
 //! \brief The NULL guid
 //! \ingroup primitive
