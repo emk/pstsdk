@@ -33,7 +33,7 @@ struct block_reference
 
     block_id_disk bid; //!< The id of the referenced object
     location ib;       //!< The location on disk (index byte) of the referenced object
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(block_reference<ulong>) == 8, "block_reference<ulong> incorrect size");
 static_assert(sizeof(block_reference<ulonglong>) == 16, "block_reference<ulonglong> incorrect size");
@@ -124,7 +124,7 @@ struct root
     byte fAMapValid;            //!< Indicates if the AMap pages are valid or not
     byte bARVec;                //!< Indicates which AddRef vector is used
     ushort cARVec;              //!< Number of elements in the AddRef vector
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(root<ulong>) == 40, "root<ulong> incorrect size");
 static_assert(sizeof(root<ulonglong>) == 80, "root<ulonglong> incorrect size");
@@ -151,7 +151,7 @@ const uint hlmagic = 0x4e444221;
 template<typename T>
 struct header
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \endcond
 
 //! \brief The Unicode header structure
@@ -199,7 +199,7 @@ struct header<ulonglong>
     byte rgbVersionEncoded[3];
     byte bLockSemaphore;               //!< Implementation specific
     byte rgbLock[header_lock_entries]; //!< Implementation specific
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(header<ulonglong>) == 568, "header<ulonglong> incorrect size");
 static_assert(offsetof(header<ulonglong>, rgnid) == 44, "header<ulonglong> rgnid at incorrect offset");
@@ -249,7 +249,7 @@ struct header<ulong>
     byte rgbVersionEncoded[3];
     byte bLockSemaphore;
     byte rgbLock[header_lock_entries];
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(header<ulong>) == 512, "header<ulong> incorrect size");
 static_assert(offsetof(header<ulong>, rgnid) == 36, "header<ulong> rgnid at incorrect offset");
@@ -260,7 +260,7 @@ static_assert(offsetof(header<ulong>, rgbFM) == 204, "header<ulong> rgbFM at inc
 template<typename T>
 struct header_crc_locations
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \endcond
 
 //! \brief The byte offsets used to calculate the CRCs in an ANSI PST
@@ -272,7 +272,7 @@ struct header_crc_locations<ulong>
     static const size_t start = offsetof(header<ulong>, wMagicClient);
     static const size_t end = offsetof(header<ulong>, bLockSemaphore);
     static const size_t length = end - start;
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief The byte offsets used to calculate the CRCs in a Unicode PST file
 //! \sa [MS-PST] 2.2.2.6/dwCRCPartial
@@ -287,7 +287,7 @@ struct header_crc_locations<ulonglong>
     static const size_t full_start = offsetof(header<ulonglong>, wMagicClient);
     static const size_t full_end = offsetof(header<ulonglong>, dwCRCFull);
     static const size_t full_length = full_end - full_start;
-};
+} PSTSDK_MS_STRUCT;
 
 //
 // utility functions
@@ -544,7 +544,7 @@ enum page_type
 template<typename T>
 struct page_trailer
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \endcond
 
 //! \brief The Unicode store version of the page trailer
@@ -562,7 +562,7 @@ struct page_trailer<ulonglong>
     ushort signature;      //!< Signature of this page, as calculated by the \ref compute_signature function
     ulong crc;             //!< CRC of this page, as calculated by the \ref compute_crc function
     block_id_disk bid;     //!< The id of this page
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(page_trailer<ulonglong>) == 16, "page_trailer<ulonglong> incorrect size");
 //! \endcond
@@ -583,7 +583,7 @@ struct page_trailer<ulong>
     ushort signature;
     block_id_disk bid;
     ulong crc;
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(page_trailer<ulong>) == 12, "page_trailer<ulong> incorrect size");
 //! \endcond
@@ -599,7 +599,7 @@ struct page
 
     byte data[page_data_size]; //!< space used for actual data
     page_trailer<T> trailer;   //!< The page trailer for this page
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(page<ulong>) == page_size, "page<ulong> incorrect size");
 static_assert(sizeof(page<ulonglong>) == page_size, "page<ulonglong> incorrect size");
@@ -629,7 +629,7 @@ const size_t first_amap_page_location = 0x4400;
 template<typename T>
 struct amap_page : public page<T>
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(amap_page<ulong>) == page_size, "amap_page<ulong> incorrect size");
 static_assert(sizeof(amap_page<ulonglong>) == page_size, "amap_page<ulonglong> incorrect size");
@@ -648,7 +648,7 @@ static_assert(sizeof(amap_page<ulonglong>) == page_size, "amap_page<ulonglong> i
 template<typename T>
 struct pmap_page : public page<T>
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(pmap_page<ulong>) == page_size, "pmap_page<ulong> incorrect size");
 static_assert(sizeof(pmap_page<ulonglong>) == page_size, "pmap_page<ulonglong> incorrect size");
@@ -666,7 +666,7 @@ static_assert(sizeof(pmap_page<ulonglong>) == page_size, "pmap_page<ulonglong> i
 template<typename T>
 struct fmap_page : public page<T>
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(fmap_page<ulong>) == page_size, "fmap_page<ulong> incorrect size");
 static_assert(sizeof(fmap_page<ulonglong>) == page_size, "fmap_page<ulonglong> incorrect size");
@@ -688,7 +688,7 @@ static_assert(sizeof(fmap_page<ulonglong>) == page_size, "fmap_page<ulonglong> i
 template<typename T>
 struct fpmap_page : public page<T>
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(fpmap_page<ulong>) == page_size, "fpmap_page<ulong> incorrect size");
 static_assert(sizeof(fpmap_page<ulonglong>) == page_size, "fpmap_page<ulonglong> incorrect size");
@@ -727,7 +727,7 @@ struct dlist_page
         byte _ignore[extra_space];
     };
     page_trailer<T> trailer;          //!< The page trailer
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(dlist_page<ulong>) == page_size, "dlist_page<ulong> incorrect size");
 static_assert(sizeof(dlist_page<ulonglong>) == page_size, "dlist_page<ulonglong> incorrect size");
@@ -768,7 +768,7 @@ struct bt_entry
 
     bt_key key;               //!< The key of the page in ref
     block_reference<T> ref;   //!< A reference to a lower level page
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(bt_entry<ulong>) == 12, "bt_entry<ulong> incorrect size");
 static_assert(sizeof(bt_entry<ulonglong>) == 24, "bt_entry<ulonglong> incorrect size");
@@ -790,7 +790,7 @@ struct nbt_leaf_entry
     block_id_disk data;  //!< The block id of the data block
     block_id_disk sub;   //!< The block id of the subnode block
     node_id parent_nid;  //!< The parent node id
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(nbt_leaf_entry<ulong>) == 16, "nbt_leaf_entry<ulong> incorrect size");
 static_assert(sizeof(nbt_leaf_entry<ulonglong>) == 32, "nbt_leaf_entry<ulonglong> incorrect size");
@@ -808,7 +808,7 @@ struct bbt_leaf_entry
     block_reference<T> ref; //!< A reference to this block on disk
     ushort size;            //!< The unaligned size of this block
     ushort ref_count;       //!< The reference count of this block
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(bbt_leaf_entry<ulong>) == 12, "bbt_leaf_entry<ulong> incorrect size");
 static_assert(sizeof(bbt_leaf_entry<ulonglong>) == 24, "bbt_leaf_entry<ulonglong> incorrect size");
@@ -841,7 +841,7 @@ struct bt_page
     byte level;                //!< The level of this page. A level of zero indicates a leaf.
 
     page_trailer<T> trailer;   //!< The page trailer
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 typedef bt_page<ulong, bt_entry<ulong> > bt_page_ulong;
 typedef bt_page<ulonglong, bt_entry<ulonglong> > bt_page_ulonglong;
@@ -860,7 +860,7 @@ static_assert(offsetof(bt_page_ulonglong, trailer) == 496, "bt_page<ulonglong, b
 template<typename T>
 struct nbt_nonleaf_page : public bt_page<T, bt_entry<T> >
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(nbt_nonleaf_page<ulong>) == page_size, "nbt_nonleaf_page<ulong> incorrect size");
 static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_page<ulonglong> incorrect size");
@@ -876,7 +876,7 @@ static_assert(sizeof(nbt_nonleaf_page<ulonglong>) == page_size, "nbt_nonleaf_pag
 template<typename T>
 struct bbt_nonleaf_page : public bt_page<T, bt_entry<T> >
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(bbt_nonleaf_page<ulong>) == page_size, "bbt_nonleaf_page<ulong> incorrect size");
 static_assert(sizeof(bbt_nonleaf_page<ulonglong>) == page_size, "bbt_nonleaf_page<ulonglong> incorrect size");
@@ -892,7 +892,7 @@ static_assert(sizeof(bbt_nonleaf_page<ulonglong>) == page_size, "bbt_nonleaf_pag
 template<typename T>
 struct nbt_leaf_page : public bt_page<T, nbt_leaf_entry<T> >
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(nbt_leaf_page<ulong>) == page_size, "nbt_leaf_page<ulong> incorrect size");
 static_assert(sizeof(nbt_leaf_page<ulonglong>) == page_size, "nbt_leaf_page<ulonglong> incorrect size");
@@ -908,7 +908,7 @@ static_assert(sizeof(nbt_leaf_page<ulonglong>) == page_size, "nbt_leaf_page<ulon
 template<typename T>
 struct bbt_leaf_page : public bt_page<T, bbt_leaf_entry<T> >
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(bbt_leaf_page<ulong>) == page_size, "bbt_leaf_page<ulong> incorrect size");
 static_assert(sizeof(bbt_leaf_page<ulonglong>) == page_size, "bbt_leaf_page<ulonglong> incorrect size");
@@ -993,7 +993,7 @@ bool bid_is_internal(T bid) { return !bid_is_external(bid); }
 template<typename T>
 struct block_trailer
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \endcond
 
 //! \brief Unicode store version of the block trailer
@@ -1014,7 +1014,7 @@ struct block_trailer<ulonglong>
     ushort signature;    //!< Signature of this block, as calculated by the \ref compute_signature function
     ulong crc;           //!< CRC of this block, as calculated by the \ref compute_crc function
     block_id_disk bid;   //!< The id of this block
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(block_trailer<ulonglong>) == 16, "block_trailer<ulonglong> incorrect size");
 //! \endcond
@@ -1035,7 +1035,7 @@ struct block_trailer<ulong>
     ushort signature;
     block_id_disk bid;
     ulong crc;
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(block_trailer<ulong>) == 12, "block_trailer<ulong> incorrect size");
 //! \endcond
@@ -1053,13 +1053,13 @@ struct external_block
 {
     static const size_t max_size = max_block_disk_size - sizeof(block_trailer<T>);
     byte data[1];   //!< Data contained in this block
-};
+} PSTSDK_MS_STRUCT;
 
 //! \cond empty
 template<typename T>
 struct extended_block
 {
-};
+} PSTSDK_MS_STRUCT;
 //! \endcond
 
 //! \brief Unicode store version of the extended block
@@ -1086,7 +1086,7 @@ struct extended_block<ulonglong>
     ushort count;          //!< Number of entries in the bid array
     ulong total_size;      //!< Total logical size of this block
     block_id_disk bid[1];  //!< Array of blocks this block points to
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief ANSI store version of the extended block
 //!
@@ -1108,7 +1108,7 @@ struct extended_block<ulong>
     ushort count;
     ulong total_size;
     block_id_disk bid[1];
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief Entries on a leaf \ref sub_block
 //!
@@ -1125,7 +1125,7 @@ struct sub_leaf_entry
     node_id nid;        //!< Subnode id
     block_id_disk data; //!< Data block of this subnode
     block_id_disk sub;  //!< Subnode block of this subnode. Yes, subnodes can and do themselves had subnodes.
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(sub_leaf_entry<ulong>) == 12, "sub_leaf_entry<ulong> incorrect size");
 static_assert(sizeof(sub_leaf_entry<ulonglong>) == 24, "sub_leaf_entry<ulonglong> incorrect size");
@@ -1145,7 +1145,7 @@ struct sub_nonleaf_entry
 
     node_id nid_key;             //!< Key of the subnode block
     block_id_disk sub_block_bid; //!< Id of the subnode block
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(sub_nonleaf_entry<ulong>) == 8, "sub_nonleaf_entry<ulong> incorrect size");
 static_assert(sizeof(sub_nonleaf_entry<ulonglong>) == 16, "sub_nonleaf_entry<ulonglong> incorrect size");
@@ -1167,7 +1167,7 @@ struct sub_block
     byte level;         //!< One for non-leaf, zero for leaf
     ushort count;       //!< Number of entries in the entry array
     EntryType entry[1]; //!< Array of entries
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief Subnode non-leaf block
 //!
@@ -1179,7 +1179,7 @@ struct sub_block
 template<typename T>
 struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T> >
 {
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief Subnode leaf block
 //!
@@ -1191,7 +1191,7 @@ struct sub_nonleaf_block : public sub_block<T, sub_nonleaf_entry<T> >
 template<typename T>
 struct sub_leaf_block : public sub_block<T, sub_leaf_entry<T> >
 {
-};
+} PSTSDK_MS_STRUCT;
 
 //
 // heap structures
@@ -1262,7 +1262,7 @@ struct heap_first_header
     byte client_signature;   //!< Client defined signature, see \ref heap_client_signature
     heap_id root_id;         //!< Root allocation. This has specific meaning to the owner of this heap.
     byte page_fill_levels[fill_level_size]; //!< Fill level of this and next seven heap blocks (4 bits each), see \ref heap_fill_level
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief Header structure on non-first/non-fill blocks
 //! \sa [MS-PST] 2.3.1.3
@@ -1270,7 +1270,7 @@ struct heap_first_header
 struct heap_page_header
 {
     ushort page_map_offset; //!< offset of the start of the page map
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief Header structure on non-first/fill blocks
 //! \sa [MS-PST] 2.3.1.4
@@ -1281,7 +1281,7 @@ struct heap_page_fill_header
 
     ushort page_map_offset; //!< Offset of the start of the page map
     byte page_fill_levels[fill_level_size]; //!< Fill level of this and next 127 heap blocks
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief Provides a map of the allocations on a heap block
 //!
@@ -1301,7 +1301,7 @@ struct heap_page_map
     ushort num_allocs; //!< Number of allocations on this block
     ushort num_frees;  //!< Number of empty allocations on this
     ushort allocs[1];  //!< The offset of each allocation
-};
+} PSTSDK_MS_STRUCT;
 
 //
 // bth structures
@@ -1321,7 +1321,7 @@ struct bth_header
     byte entry_size;    //!< Entry size in bytes
     byte num_levels;    //!< Number of levels
     heap_id root;       //!< Root of the actual tree structure
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief Entries which make up a "non-leaf" BTH allocation
 //!
@@ -1336,7 +1336,7 @@ struct bth_nonleaf_entry
 {
     K key;        //!< Key of the lower level page
     heap_id page; //!< Heap id of the lower level page
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(bth_nonleaf_entry<ulong>) == 8, "bth_nonleaf_entry<ulong> incorrect size");
 static_assert(sizeof(bth_nonleaf_entry<ulonglong>) == 16, "bth_nonleaf_entry<ulonglong> incorrect size");
@@ -1354,7 +1354,7 @@ struct bth_leaf_entry
 {
     K key;   //!< Key instance
     V value; //!< Value instance
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief BTH node
 //!
@@ -1372,7 +1372,7 @@ template<typename EntryType>
 struct bth_node
 {
     EntryType entries[1]; //!< Array of entries
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief BTH Leaf node
 //!
@@ -1384,7 +1384,7 @@ struct bth_node
 template<typename K, typename V>
 struct bth_leaf_node : bth_node<bth_leaf_entry<K,V> >
 {
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief BTH Nonleaf node
 //!
@@ -1396,7 +1396,7 @@ struct bth_leaf_node : bth_node<bth_leaf_entry<K,V> >
 template<typename K>
 struct bth_nonleaf_node : bth_node<bth_nonleaf_entry<K> >
 {
-};
+} PSTSDK_MS_STRUCT;
 
 //
 // pc structures
@@ -1429,7 +1429,7 @@ struct sub_object
 {
     node_id nid; //$< The subnode id containing the data for the object
     ulong size;  //$< The size of the object
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief Multi-valued, variable length property TOC
 //!
@@ -1442,7 +1442,7 @@ struct mv_toc
 {
     ulong count;      //$< Number of entries in the TOC
     ulong offsets[1]; //$< Array of offsets for the start of each entry
-};
+} PSTSDK_MS_STRUCT;
 
 //
 // tc structures
@@ -1547,7 +1547,7 @@ struct nameid
         ulong string_offset;    //!< offset into the string stream of the name of this prop
     };
     ulong index;                //!< Bits 16-31 are the index into the entry stream. Bits 1-16 are the index into the guid stream. Bit 0 indicates if this is a string or id based prop
-};
+} PSTSDK_MS_STRUCT;
 
 //! \brief A modified nameid structure used in the hash buckets
 //!
@@ -1561,7 +1561,7 @@ struct nameid_hash_entry
 {
     ulong hash_base;            //!< For numeric named props, this is just the id. Hash value of string props.
     ulong index;                //!< Bits 16-31 are the index into the entry stream. Bits 1-16 are the index into the guid stream. Bit 0 indicates if this is a string or id based prop
-};
+} PSTSDK_MS_STRUCT;
 //! \cond static_asserts
 static_assert(sizeof(nameid) == 8, "nameid incorrect size");
 static_assert(sizeof(nameid_hash_entry) == 8, "nameid incorrect size");
