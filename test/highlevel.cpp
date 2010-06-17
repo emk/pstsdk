@@ -106,7 +106,7 @@ void test_table(const pstsdk::table& tc)
                 else if(tc[i].get_prop_type(proplist[j]) == prop_type_guid)
                 {
                     guid g = tc[i].read_prop<guid>(proplist[j]);
-                    g;
+                    (void) g;
                 }
                 else
                 {
