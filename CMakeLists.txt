@@ -26,6 +26,10 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+# Use iconv if we have it.  This is required on non-Win32 platforms,
+# because we don't necessarily know the encoding of wchar_t.
+find_library(ICONV_LIBRARY NAMES iconv)
+
 # Compile our unit tests.
 add_subdirectory(test)
 

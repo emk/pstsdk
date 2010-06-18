@@ -147,8 +147,7 @@ private:
     guid read_guid(ushort guid_index) const;
     ushort get_guid_index(const guid& g) const;
     std::wstring read_wstring(ulong string_offset) const;
-    ulong compute_hash_base(const named_prop& n) const 
-        { return n.is_string() ? disk::compute_crc(&(n.get_name())[0], n.get_name().length() * sizeof(wchar_t)) : n.get_id(); }
+    ulong compute_hash_base(const named_prop& n) const; 
     ulong compute_hash_value(ushort guid_index, const named_prop& n) const
         { return (n.is_string() ? ((guid_index << 1) | 1) : (guid_index << 1)) ^ compute_hash_base(n); }
     prop_id get_bucket_prop(ulong hash_value) const
@@ -223,10 +222,22 @@ inline std::wstring pstsdk::name_id_map::read_wstring(ulong string_offset) const
     ulong size;
     m_string_stream.read((char*)&size, sizeof(size));
 
-    std::vector<char> buffer(size);
-    m_string_stream.read(&buffer[0], size);
+    std::vector<byte> buffer(size);
+    m_string_stream.read(reinterpret_cast<char *>(&buffer[0]), size);
 
-    return std::wstring(reinterpret_cast<wchar_t*>(&buffer[0]), size/sizeof(wchar_t));
+    return bytes_to_wstring(buffer);
+}
+
+inline pstsdk::ulong pstsdk::name_id_map::compute_hash_base(const named_prop& n) const {
+    if(n.is_string())
+    {
+        std::vector<byte> bytes(wstring_to_bytes(n.get_name()));
+        return disk::compute_crc(&bytes[0], bytes.size());
+    }
+    else
+    {
+        return n.get_id();
+    }
 }
 
 inline bool pstsdk::name_id_map::named_prop_exists(const named_prop& p) const
