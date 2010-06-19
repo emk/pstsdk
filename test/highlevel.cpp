@@ -92,7 +92,7 @@ void test_table(const pstsdk::table& tc)
                 }
                 else if(tc[i].get_prop_type(proplist[j]) == prop_type_long)
                 {
-                    wcout << "\t" << hex << proplist[j] << ": " << dec << tc[i].read_prop<long>(proplist[j]) << endl;
+                    wcout << "\t" << hex << proplist[j] << ": " << dec << tc[i].read_prop<slong>(proplist[j]) << endl;
                 }
                 else if(tc[i].get_prop_type(proplist[j]) == prop_type_boolean)
                 {
@@ -138,7 +138,7 @@ void test_attachment_table(const pstsdk::node& message, const pstsdk::table& tc)
                 }
                 else if(pc.get_prop_type(proplist[i]) == prop_type_long)
                 {
-                    wcout << "\t" << hex << proplist[i] << ": " << dec << pc.read_prop<long>(proplist[i]) << endl;
+                    wcout << "\t" << hex << proplist[i] << ": " << dec << pc.read_prop<slong>(proplist[i]) << endl;
                 }
                 else if(pc.get_prop_type(proplist[i]) == prop_type_boolean)
                 {

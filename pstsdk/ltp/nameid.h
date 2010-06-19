@@ -80,7 +80,7 @@ public:
     //! This will open the name_id_map node for the store
     //! \param db The store to get the named property mapping for
     name_id_map(const shared_db_ptr& db) 
-        : m_bag(db->lookup_node(nid_name_id_map)), m_buckets(m_bag.read_prop<long>(0x1)), m_entry_stream(m_bag.open_prop_stream(0x3)), m_guid_stream(m_bag.open_prop_stream(0x2)), m_string_stream(m_bag.open_prop_stream(0x4)) { }
+        : m_bag(db->lookup_node(nid_name_id_map)), m_buckets(m_bag.read_prop<slong>(0x1)), m_entry_stream(m_bag.open_prop_stream(0x3)), m_guid_stream(m_bag.open_prop_stream(0x2)), m_string_stream(m_bag.open_prop_stream(0x4)) { }
 
     //! \brief Query if a given named prop exists
     //! \param[in] g The namespace guid for the named prop

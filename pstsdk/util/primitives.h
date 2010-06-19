@@ -65,8 +65,9 @@ namespace pstsdk
  */
 typedef boost::uint32_t uint;
 typedef boost::uint32_t ulong;
+typedef boost::int32_t slong;
 typedef boost::uint64_t ulonglong;
-typedef boost::int64_t longlong;
+typedef boost::int64_t slonglong;
 typedef boost::uint8_t byte;
 typedef boost::uint16_t ushort;
 /*! @} */

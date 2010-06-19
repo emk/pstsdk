@@ -96,7 +96,7 @@ public:
     //! \brief Get the number of messages in this folder
     //! \returns The number of messages
     size_t get_message_count() const
-        { return m_bag.read_prop<long>(0x3602); }
+        { return m_bag.read_prop<slong>(0x3602); }
 
     // lower layer access
     //! \brief Get the property bag backing this folder
@@ -254,14 +254,14 @@ public:
     //! \brief Get the number of sub folders in this folder
     //! \returns The number of subfolders
     size_t get_subfolder_count() const
-        { return m_bag.read_prop<long>(0x3603); }
+        { return m_bag.read_prop<slong>(0x3603); }
     //! \copydoc search_folder::get_message_count()
     size_t get_message_count() const
-        { return m_bag.read_prop<long>(0x3602); }
+        { return m_bag.read_prop<slong>(0x3602); }
     //! \brief Get the number of associated messages in this folder
     //! \returns The number of associated messages
     size_t get_associated_message_count() const
-        { return m_bag.read_prop<long>(0x3617); }
+        { return m_bag.read_prop<slong>(0x3617); }
 
     // lower layer access
     //! \copydoc search_folder::get_property_bag()

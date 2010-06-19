@@ -276,7 +276,7 @@ public:
     // \brief Get the total size of this message
     //! \returns The message size
     size_t size() const
-        { return m_bag.read_prop<long>(0xe08); }
+        { return m_bag.read_prop<slong>(0xe08); }
     //! \brief Get the number of attachments on this message
     //! \returns The number of attachments
     size_t get_attachment_count() const;

@@ -147,7 +147,7 @@ public:
     virtual hnid_stream_device open_prop_stream(prop_id id) = 0;
 
 // GCC has time_t defined as a typedef of a long, so calling
-// read_prop<long> activates the time_t specialization. I'm
+// read_prop<slong> activates the time_t specialization. I'm
 // turning them into first class member functions in GCC for now until
 // I figure out a portable way to deal with time.
 #ifdef __GNUC__
