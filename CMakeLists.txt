@@ -15,7 +15,9 @@ enable_testing()
 include_directories("${PROJECT_SOURCE_DIR}")
 
 # Set up our compiler flags.
-if(CMAKE_COMPILER_IS_GNUCC)
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "/DPSTSDK_VALIDATION_LEVEL_FULL /EHsc /nologo /W4 /WX")
+elseif(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_CXX_FLAGS "-Wall -Werror -g -DPSTSDK_VALIDATION_LEVEL_FULL -std=c++0x")
 endif()
 
