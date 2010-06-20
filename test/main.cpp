@@ -12,6 +12,8 @@ int main()
 {
     using namespace std;
     try {
+        cout << "test_util();" << endl;
+        test_util();
         cout << "test_btree();" << endl;
         test_btree();
         cout << "test_disk();" << endl;

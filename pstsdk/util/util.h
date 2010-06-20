@@ -109,6 +109,18 @@ double time_t_to_vt_date(time_t time);
 //! \ingroup util
 bool test_bit(const byte* pbytes, ulong bit);
 
+//! \brief Convert an array of bytes to a std::wstring
+//! \param[in] bytes The bytes to convert
+//! \returns A std::wstring
+//! \ingroup util
+std::wstring bytes_to_wstring(const std::vector<byte> &bytes);
+
+//! \brief Convert a std::wstring to an array of bytes
+//! \param[in] wstr The std::wstring to convert
+//! \returns An array of bytes
+//! \ingroup util
+std::vector<byte> wstring_to_bytes(const std::wstring &wstr);
+
 } // end pstsdk namespace
 
 inline pstsdk::file::file(const std::wstring& filename)
@@ -201,5 +213,90 @@ inline bool pstsdk::test_bit(const byte* pbytes, ulong bit)
 {
     return (*(pbytes + (bit >> 3)) & (0x80 >> (bit & 7))) != 0;
 }
+
+#if defined(_WIN32) || defined(__MINGW32__)
+
+// We know that std::wstring is always UCS-2LE on Windows.
+
+inline std::wstring pstsdk::bytes_to_wstring(const std::vector<byte> &bytes)
+{
+    if(bytes.size() == 0)
+        return std::wstring();
+
+    return std::wstring(reinterpret_cast<const wchar_t *>(&bytes[0]), bytes.size()/sizeof(wchar_t));
+}
+
+inline std::vector<pstsdk::byte> pstsdk::wstring_to_bytes(const std::wstring &wstr)
+{
+    if(wstr.size() == 0)
+        return std::vector<byte>();
+
+    const byte *begin = reinterpret_cast<const byte *>(&wstr[0]);
+    return std::vector<byte>(begin, begin + wstr.size()*sizeof(wchar_t));
+}
+
+#else // !(defined(_WIN32) || defined(__MINGW32__))
+
+// We're going to have to do this the hard way, since we don't know how
+// big wchar_t really is, or what encoding it uses.
+#include <iconv.h>
+
+inline std::wstring pstsdk::bytes_to_wstring(const std::vector<byte> &bytes)
+{
+    if(bytes.size() == 0)
+        return std::wstring();
+
+    // Up to one wchar_t for every 2 bytes, if there are no surrogate pairs.
+    if(bytes.size() % 2 != 0)
+        throw std::runtime_error("Cannot interpret odd number of bytes as UTF-16LE");
+    std::wstring out(bytes.size() / 2, L'\0');
+
+    iconv_t cd(::iconv_open("WCHAR_T", "UTF-16LE"));
+    if(cd == (iconv_t)(-1)) {
+        perror("bytes_to_wstring");
+        throw std::runtime_error("Unable to convert from UTF-16LE to wstring");
+    }
+
+    const char *inbuf = reinterpret_cast<const char *>(&bytes[0]);
+    size_t inbytesleft = bytes.size();
+    char *outbuf = reinterpret_cast<char *>(&out[0]);
+    size_t outbytesleft = out.size() * sizeof(wchar_t);
+    size_t result = ::iconv(cd, const_cast<char **>(&inbuf), &inbytesleft, &outbuf, &outbytesleft);
+    ::iconv_close(cd);
+    if(result == (size_t)(-1) || inbytesleft > 0 || outbytesleft % sizeof(wchar_t) != 0)
+        throw std::runtime_error("Failed to convert from UTF-16LE to wstring");
+
+    out.resize(out.size() - (outbytesleft / sizeof(wchar_t)));
+    return out;
+}
+
+inline std::vector<pstsdk::byte> pstsdk::wstring_to_bytes(const std::wstring &wstr)
+{
+    if(wstr.size() == 0)
+        return std::vector<byte>();
+
+    // Up to 4 bytes per character if all codepoints are surrogate pairs.
+    std::vector<byte> out(wstr.size() * 4);
+
+    iconv_t cd(::iconv_open("UTF-16LE", "WCHAR_T"));
+    if(cd == (iconv_t)(-1)) {
+        perror("wstring_to_bytes");
+        throw std::runtime_error("Unable to convert from wstring to UTF-16LE");
+    }
+
+    const char *inbuf = reinterpret_cast<const char *>(&wstr[0]);
+    size_t inbytesleft = wstr.size() * sizeof(wchar_t);
+    char *outbuf = reinterpret_cast<char *>(&out[0]);
+    size_t outbytesleft = out.size();
+    size_t result = ::iconv(cd, const_cast<char **>(&inbuf), &inbytesleft, &outbuf, &outbytesleft);
+    ::iconv_close(cd);
+    if(result == (size_t)(-1) || inbytesleft > 0)
+        throw std::runtime_error("Failed to convert from wstring to UTF-16LE");
+
+    out.resize(out.size() - outbytesleft);
+    return out;
+}
+
+#endif // !(defined(_WIN32) || defined(__MINGW32__))
 
 #endif

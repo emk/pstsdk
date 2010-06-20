@@ -49,7 +49,7 @@ int main()
     // dump out the bucket count
     //
     // The bucket count is stored in property 0x0001
-    cout << "Bucket Count: " << names.read_prop<long>(0x1) << endl;
+    cout << "Bucket Count: " << names.read_prop<slong>(0x1) << endl;
 
     //
     // dump out the guid stream
@@ -131,7 +131,7 @@ int main()
     // in the entry array, except the first field contains the crc of the string instead
     // of the string offset. For named props based on identifiers the value is identical.
     cout << endl << "Buckets:" << endl;
-    prop_id max_bucket = (prop_id)(0x1000 + names.read_prop<long>(0x1));
+    prop_id max_bucket = (prop_id)(0x1000 + names.read_prop<slong>(0x1));
     for(prop_id p = 0x1000; p < max_bucket; ++p)
     {
         cout << "[" << setw(4) << hex << p << "] ";

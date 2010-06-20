@@ -45,6 +45,18 @@
 #define PSTSDK_VALIDATION_LEVEL_WEAK
 #endif
 
+// Many of the low-level data structures in pstsdk rely on being laid out
+// in the fashion preferred by Visual C++.  For example, these structures
+// need to align ulonglong to the nearest 8 bytes.  Under GCC, we can force
+// this layout behavior on Mac and Linux systems by appending an
+// appropriate attribute declaration to the structure.  We're also tried
+// '#pragma ms_struct on', but it fails on at least some Linux systems.
+#ifdef __GNUC__
+#define PSTSDK_MS_STRUCT __attribute__((ms_struct))
+#else
+#define PSTSDK_MS_STRUCT
+#endif
+
 namespace pstsdk
 {
 
@@ -53,8 +65,9 @@ namespace pstsdk
  */
 typedef boost::uint32_t uint;
 typedef boost::uint32_t ulong;
+typedef boost::int32_t slong;
 typedef boost::uint64_t ulonglong;
-typedef boost::int64_t longlong;
+typedef boost::int64_t slonglong;
 typedef boost::uint8_t byte;
 typedef boost::uint16_t ushort;
 /*! @} */
@@ -333,7 +346,10 @@ struct guid
     short data2;
     short data3;
     byte data4[8];
-};
+} PSTSDK_MS_STRUCT;
+//! \cond static_asserts
+static_assert(sizeof(guid) == 16, "guid incorrect size");
+//! \endcond
 
 //! \brief The NULL guid
 //! \ingroup primitive

@@ -147,7 +147,7 @@ public:
     virtual hnid_stream_device open_prop_stream(prop_id id) = 0;
 
 // GCC has time_t defined as a typedef of a long, so calling
-// read_prop<long> activates the time_t specialization. I'm
+// read_prop<slong> activates the time_t specialization. I'm
 // turning them into first class member functions in GCC for now until
 // I figure out a portable way to deal with time.
 #ifdef __GNUC__
@@ -332,10 +332,7 @@ inline std::wstring const_property_object::read_prop<std::wstring>(prop_id id) c
     }
     else
     {
-        if(buffer.size())
-            return std::wstring(reinterpret_cast<wchar_t*>(&buffer[0]), buffer.size()/sizeof(wchar_t));
-        else
-            return std::wstring();
+        return bytes_to_wstring(buffer);
     }
 }
 
@@ -354,10 +351,7 @@ inline std::vector<std::wstring> const_property_object::read_prop_array<std::wst
         }
         else
         {
-            if(buffer[i].size())
-                results.push_back(std::wstring(reinterpret_cast<wchar_t*>(&(buffer[i])[0]), buffer[i].size()/sizeof(wchar_t)));
-            else
-                results.push_back(std::wstring());
+            results.push_back(bytes_to_wstring(buffer[i]));
         }
     }
 
@@ -377,7 +371,7 @@ inline std::string const_property_object::read_prop<std::string>(prop_id id) con
     {
         if(buffer.size())
         {
-            std::wstring s(reinterpret_cast<wchar_t*>(&buffer[0]), buffer.size()/sizeof(wchar_t));
+            std::wstring s(bytes_to_wstring(buffer));
             return std::string(s.begin(), s.end());
         }
         return std::string();
@@ -400,7 +394,7 @@ inline std::vector<std::string> const_property_object::read_prop_array<std::stri
         {
             if(buffer[i].size())
             {
-                std::wstring s(reinterpret_cast<wchar_t*>(&(buffer[i])[0]), buffer[i].size()/sizeof(wchar_t));
+                std::wstring s(bytes_to_wstring(buffer[i]));
                 results.push_back(std::string(s.begin(), s.end()));
             }
             results.push_back(std::string());
