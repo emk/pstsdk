@@ -843,12 +843,18 @@ struct bt_page
     page_trailer<T> trailer;   //!< The page trailer
 } PSTSDK_MS_STRUCT;
 //! \cond static_asserts
-typedef bt_page<ulong, bt_entry<ulong> > bt_page_ulong;
-typedef bt_page<ulonglong, bt_entry<ulonglong> > bt_page_ulonglong;
-static_assert(offsetof(bt_page_ulong, num_entries) == 496, "bt_page<ulong, bt_entry<ulong> > num_entries at incorrect offset");
-static_assert(offsetof(bt_page_ulonglong, num_entries) == 488, "bt_page<ulonglong, bt_entry<ulonglong> > num_entries at incorrect offset");
-static_assert(offsetof(bt_page_ulong, trailer) == 500, "bt_page<ulong, bt_entry<ulong> > trailer at incorrect offset");
-static_assert(offsetof(bt_page_ulonglong, trailer) == 496, "bt_page<ulonglong, bt_entry<ulonglong> > trailer at incorrect offset");
+namespace detail {
+    // We can't pass types containing "," to offsetof, because it's a
+    // preprocessor macro, and it doesn't really understand how to parse an
+    // argument list.  So we declare some aliases in a "detail" namespace
+    // where they won't pollute the header.
+    typedef bt_page<ulong, bt_entry<ulong> > bt_page_ulong;
+    typedef bt_page<ulonglong, bt_entry<ulonglong> > bt_page_ulonglong;
+}
+static_assert(offsetof(detail::bt_page_ulong, num_entries) == 496, "bt_page<ulong, bt_entry<ulong> > num_entries at incorrect offset");
+static_assert(offsetof(detail::bt_page_ulonglong, num_entries) == 488, "bt_page<ulonglong, bt_entry<ulonglong> > num_entries at incorrect offset");
+static_assert(offsetof(detail::bt_page_ulong, trailer) == 500, "bt_page<ulong, bt_entry<ulong> > trailer at incorrect offset");
+static_assert(offsetof(detail::bt_page_ulonglong, trailer) == 496, "bt_page<ulonglong, bt_entry<ulonglong> > trailer at incorrect offset");
 //! \endcond
 
 //! \brief NBT non-leaf page
