@@ -32,11 +32,11 @@ typedef std::tr1::shared_ptr<const table_impl> const_table_ptr;
 //@}
 
 //! \brief Open the specified node as a table
-//! \param n The node to copy and interpret as a TC
+//! \param[in] n The node to copy and interpret as a TC
 //! \ingroup ltp_objectrelated
 table_ptr open_table(const node& n);
 //! \brief Open the specified node as a table
-//! \param n The node to alias and interpret as a TC
+//! \param[in] n The node to alias and interpret as a TC
 //! \ingroup ltp_objectrelated
 table_ptr open_table(const node&, alias_tag);
 
@@ -183,6 +183,7 @@ public:
     //! \brief Open a stream over a property in a given row
     //! \throws key_not_found<prop_id> If the specified property does not exist on the specified row
     //! \throws out_of_range If the specified row offset is beyond the size of this table
+    //! \note This operation is only valid for variable length properties
     //! \param[in] row The offset into the table
     //! \param[in] id The prop_id to find the cell value of
     //! \returns A device which can be used to construct a stream object

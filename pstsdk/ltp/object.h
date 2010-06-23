@@ -101,12 +101,12 @@ public:
     //! \returns A vector of all properties on this object
     virtual std::vector<prop_id> get_prop_list() const = 0;
     //! \brief Get the property type of a given prop_id
-    //! \param id The prop_id
+    //! \param[in] id The prop_id
     //! \throws key_not_found<prop_id> If the specified property is not present
     //! \returns The type of the prop_id
     virtual prop_type get_prop_type(prop_id id) const = 0;
     //! \brief Indicates the existance of a given property on this object
-    //! \param id The prop_id
+    //! \param[in] id The prop_id
     //! \returns true if the property exists
     virtual bool prop_exists(prop_id id) const = 0;
 
@@ -115,7 +115,7 @@ public:
     //! It is the callers responsibility to ensure the prop_id is of or 
     //! convertable to the requested type.
     //! \tparam T The type to interpret he property as
-    //! \param id The prop_id
+    //! \param[in] id The prop_id
     //! \throws key_not_found<prop_id> If the specified property is not present
     //! \returns The property value
     template<typename T>
@@ -126,7 +126,7 @@ public:
     //! It is the callers responsibility to ensure the prop_id is of or 
     //! convertable to the requested type.
     //! \tparam T The type to interpret he property as
-    //! \param id The prop_id
+    //! \param[in] id The prop_id
     //! \throws key_not_found<prop_id> If the specified property is not present
     //! \returns A vector of the property values
     //! \sa [MS-PST] 2.3.3.4
@@ -141,7 +141,8 @@ public:
     //! prop_stream nstream(po->open_prop_stream(0x3001));
     //! \endcode
     //! Which can then be used as any iostream would be.
-    //! \param id The prop_id
+    //! \note This is operation is only valid for variable length properties
+    //! \param[in] id The prop_id
     //! \throws key_not_found<prop_id> If the specified property is not present
     //! \returns A stream device for the requested property
     virtual hnid_stream_device open_prop_stream(prop_id id) = 0;

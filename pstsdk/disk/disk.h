@@ -955,7 +955,7 @@ size_t align_disk(size_t size);
 
 //! \brief Aligns a block size to the slot size
 //!
-//! Round \ref size up to the next largest multiple of \ref bytes_per_slot
+//! Round size up to the next largest multiple of \ref bytes_per_slot
 //! \param[in] size Block size
 //! \returns The block size, aligned to slot size
 //! \sa [MS-PST] 2.2.2.7.7.3

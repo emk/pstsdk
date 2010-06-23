@@ -51,6 +51,7 @@ svn export . ..\pstsdk_%1
 
 del ..\pstsdk_%1\Doxyfile
 del ..\pstsdk_%1\release.bat
+del ..\pstsdk_%1\.gitignore
 del /q ..\pstsdk_%1\doc\*.pdf
 del ..\pstsdk_%1\pstsdk\ndb\context.h
 
