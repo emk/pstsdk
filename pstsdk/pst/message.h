@@ -101,7 +101,7 @@ private:
 //! \param[in] attach The attachment to write
 //! \returns The output stream
 //! \ingroup pst_messagerelated
-std::ostream& operator<<(std::ostream& out, const attachment& attach)
+inline std::ostream& operator<<(std::ostream& out, const attachment& attach)
 {
     std::vector<byte> data = attach.get_bytes();
     out.write(reinterpret_cast<char*>(&data[0]), data.size());
