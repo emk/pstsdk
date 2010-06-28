@@ -69,6 +69,7 @@ public:
     prop_type get_prop_type(prop_id id) const
         { return (prop_type)m_pbth->lookup(id).type; }
     bool prop_exists(prop_id id) const;
+    size_t size(prop_id id) const;
     hnid_stream_device open_prop_stream(prop_id id);
     
     //! \brief Get the node underlying this property_bag
@@ -215,6 +216,17 @@ inline std::vector<pstsdk::byte> pstsdk::property_bag::get_value_variable(prop_i
     }
 
     return buffer;
+}
+
+
+inline size_t pstsdk::property_bag::size(prop_id id) const
+{
+    heapnode_id h_id = (heapnode_id)get_value_4(id);
+
+    if(is_subnode_id(h_id))
+        return node(m_pbth->get_node().lookup(h_id)).size();
+    else
+        return m_pbth->get_heap_ptr()->size(h_id);
 }
 
 inline pstsdk::hnid_stream_device pstsdk::property_bag::open_prop_stream(prop_id id)

@@ -60,6 +60,8 @@ void test_prop_stream(pstsdk::const_property_object& obj, pstsdk::prop_id id)
     pstsdk::byte b;
     size_t pos = 0;
 
+    assert(contents.size() == obj.size(id));
+
     stream.unsetf(std::ios::skipws);
     while(stream >> b)
         assert(b == contents[pos++]);

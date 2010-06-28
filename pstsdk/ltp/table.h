@@ -71,6 +71,7 @@ public:
     std::vector<prop_id> get_prop_list() const;
     prop_type get_prop_type(prop_id id) const;
     bool prop_exists(prop_id id) const;
+    size_t size(prop_id id) const;
     hnid_stream_device open_prop_stream(prop_id id);
 
 private:
@@ -212,6 +213,12 @@ public:
     //! \param[in] id The prop_id
     //! \returns true if the property exists
     virtual bool prop_exists(ulong row, prop_id id) const = 0;
+    //! \brief Return the size of a property for a given row
+    //! \note This operation is only valid for variable length properties
+    //! \param[in] row The offset into the table
+    //! \param[in] id The prop_id
+    //! \returns The vector.size() if read_prop were called
+    virtual size_t row_prop_size(ulong row, prop_id id) const = 0;
 };
 
 //! \brief Implementation of an ANSI TC (64k rows) and a unicode TC
@@ -245,6 +252,7 @@ public:
     row_id get_row_id(ulong row) const;
     size_t size() const;
     bool prop_exists(ulong row, prop_id id) const;
+    size_t row_prop_size(ulong row, prop_id id) const;
 
 private:
     friend table_ptr open_table(const node& n);
@@ -420,6 +428,11 @@ inline std::vector<pstsdk::prop_id> pstsdk::const_table_row::get_prop_list() con
     return props;
 }
 
+inline size_t pstsdk::const_table_row::size(prop_id id) const
+{
+    return m_table->row_prop_size(m_position, id);
+}
+
 inline pstsdk::prop_type pstsdk::const_table_row::get_prop_type(prop_id id) const
 {
     return m_table->get_prop_type(id);
@@ -593,7 +606,18 @@ inline pstsdk::ulonglong pstsdk::basic_table<T>::get_cell_value(ulong row, prop_
 
     return value;
 }
-    
+
+template<typename T>
+inline size_t pstsdk::basic_table<T>::row_prop_size(ulong row, prop_id id) const
+{
+    heapnode_id hid = static_cast<heapnode_id>(get_cell_value(row, id));
+
+    if(is_subnode_id(hid))
+        return get_node().lookup(hid).size();
+    else
+        return m_prows->get_heap_ptr()->size(hid);
+}
+
 template<typename T>
 inline std::vector<pstsdk::byte> pstsdk::basic_table<T>::read_cell(ulong row, prop_id id) const
 {

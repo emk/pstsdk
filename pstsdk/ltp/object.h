@@ -109,6 +109,11 @@ public:
     //! \param[in] id The prop_id
     //! \returns true if the property exists
     virtual bool prop_exists(prop_id id) const = 0;
+    //! \brief Returns the total size of a variable length property
+    //! \note This operation is only valid for variable length properties
+    //! \param[in] id The prop_id
+    //! \returns The vector.size() if read_prop was called for this prop
+    virtual size_t size(prop_id id) const = 0;
 
     //! \brief Read a property as a given type
     //!

@@ -40,7 +40,7 @@ public:
     std::wstring get_filename() const;
     //! \brief Get the attachment data, as a blob
     //!
-    //! You might want to consider open_byte_stream if size()
+    //! You might want to consider open_byte_stream if content_size()
     //! is too large for your tastes.
     //! \returns A vector of bytes
     std::vector<byte> get_bytes() const
@@ -57,9 +57,19 @@ public:
     hnid_stream_device open_byte_stream()
         { return m_bag.open_prop_stream(0x3701); }
     //! \brief Read the size of this attachment
-    //! \returns The size of the attachment, in bytes
+    //!
+    //! The size returned here includes metadata, and as such will be
+    //! larger than just the byte stream.
+    //! \sa attachment::content_size()
+    //! \returns The size of the attachment object, in bytes
     size_t size() const
         { return m_bag.read_prop<uint>(0xe20); }
+    //! \brief Read the size of the content in this attachment
+    //!
+    //! The size here is just for the binary data of the attachment.
+    //! \returns The size of the data stream of the attachment, in bytes
+    size_t content_size() const
+        { return m_bag.size(0x3701); }
     //! \brief Returns if this attachment is actually an embedded message
     //!
     //! If an attachment is a message, one should use open_as_message() to
@@ -159,10 +169,18 @@ public:
     //! \returns The email address
     std::wstring get_email_address() const
         { return m_row.read_prop<std::wstring>(0x39fe); }
-    //! \brief Get the name of the recipients accoutn
+    //! \brief Checks to see if this recipient has an email address
+    //! \returns true if get_email_address() doesn't throw
+    bool has_email_address() const
+        { return m_row.prop_exists(0x39fe); }
+    //! \brief Get the name of the recipients account
     //! \returns The account name
     std::wstring get_account_name() const
         { return m_row.read_prop<std::wstring>(0x3a00); }
+    //! \brief Checks to see if this recipient has an account name
+    //! \returns true if get_account_name() doesn't throw
+    bool has_account_name() const
+        { return m_row.prop_exists(0x3a00); }
 
     // lower layer access
     //! \brief Get the property row underying this recipient object
@@ -243,6 +261,10 @@ public:
     //! \brief Get the subject of this message
     //! \returns The message subject
     std::wstring get_subject() const;
+    //! \brief Check to see if a subject is set on this message
+    //! \returns true if a subject is set on this message
+    bool has_subject() const
+        { return m_bag.prop_exists(0x37); }
     //! \brief Get the body of this message
     //! \returns The message body as a string
     std::wstring get_body() const
@@ -258,6 +280,14 @@ public:
     //! \returns The message body as a stream
     hnid_stream_device open_body_stream()
         { return m_bag.open_prop_stream(0x1000); }
+    //! \brief Size of the body, in bytes
+    //! \returns The size of the body
+    size_t body_size() const
+        { return m_bag.size(0x1000); }
+    //! \brief Checks to see if this message has a body
+    //! \returns true if the body prop exists
+    bool has_body() const
+        { return m_bag.prop_exists(0x1000); }
     //! \brief Get the HTML body of this message
     //! \returns The HTML message body as a string
     std::wstring get_html_body() const
@@ -273,6 +303,14 @@ public:
     //! \returns The message body as a stream
     hnid_stream_device open_html_body_stream()
         { return m_bag.open_prop_stream(0x1013); }
+    //! \brief Size of the HTML body, in bytes
+    //! \returns The size of the HTML body
+    size_t html_body_size() const
+        { return m_bag.size(0x1013); }
+    //! \brief Checks to see if this message has a HTML body
+    //! \returns true if the HTML body property exists
+    bool has_html_body() const
+        { return m_bag.prop_exists(0x1013); }
     // \brief Get the total size of this message
     //! \returns The message size
     size_t size() const

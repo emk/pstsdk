@@ -39,6 +39,9 @@ void process_attachment(const pstsdk::attachment& a)
         std::string filename(wfilename.begin(), wfilename.end());
         ofstream newfile(filename.c_str(), ios::out | ios::binary);
         newfile << a;
+
+        std::vector<byte> contents = a.get_bytes();
+        assert(contents.size() == a.content_size());
     }
 }
 
