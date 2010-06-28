@@ -55,7 +55,12 @@ public:
     //! \param[in] db The database context
     //! \param[in] pi Information about this page
     page(const shared_db_ptr& db, const page_info& pi)
-        : m_db(db), m_pid(pi.id), m_address(pi.address) { }
+        : m_modified(false), m_db(db), m_pid(pi.id), m_address(pi.address) { }
+
+    page(const page& other)
+        : m_modified(false), m_db(other.m_db), m_pid(0), m_address(0) { }
+
+    virtual ~page() { }
 
     //! \brief Get the page id
     //! \returns The page id
@@ -65,8 +70,11 @@ public:
     //! \returns The address of this page, or 0 for a new page
     ulonglong get_address() const { return m_address; }
 
+    void touch();
+
 protected:
     shared_db_ptr get_db_ptr() const { return shared_db_ptr(m_db); }
+    bool m_modified;        //!< Tells if the page is modified or not
     weak_db_ptr m_db;       //!< The database context we're a member of
     page_id m_pid;          //!< Page id
     ulonglong m_address;    //!< Address of this page
@@ -97,14 +105,34 @@ public:
     //! \param[in] pi Information about this page
     //! \param[in] level 0 for a leaf, or distance from leaf
     bt_page(const shared_db_ptr& db, const page_info& pi, ushort level)
-        : page(db, pi), m_level(level) { }
+        : page(db, pi), m_level(level), m_max_entries(0) { }
+
+    virtual ~bt_page() { }
+
+    //! brief Inserts a new element into the page
+    //! \param[in] key The key of new element to be inserted
+    //! \param[in] val The value of new element to be inserted
+    //! \returns A pair of new pages with the new element inserted
+    virtual std::pair<std::shared_ptr<bt_page<K,V> >, std::tr1::shared_ptr<bt_page<K,V> > > insert(const K& key, const V& val);
+
+    //! brief Modifies an existing element
+    //! \param[in] key The key of element to be modified
+    //! \param[in] val The new value of the element to be modified
+    //! \returns A new page with the specified element modified
+    virtual std::tr1::shared_ptr<bt_page<K,V> > modify(const K& key, const V& val);
+
+    //! brief Deletes an existing element
+    //! \param[in] key The key of element to be removed
+    //! \returns A new page with the specified element removed
+    virtual std::tr1::shared_ptr<bt_page<K,V> > remove(const K& key);
 
     //! \brief Returns the level of this bt_page
     //! \returns The level of this page
     ushort get_level() const { return m_level; }
 
 private:
-    ushort m_level; //!< Our level
+    ushort m_level;         //!< Our level
+    size_t m_max_entries;   //!< Maximum number of entries page can hold
 };
 
 //! \brief Contains references to other bt_pages
@@ -134,6 +162,14 @@ public:
     bt_nonleaf_page(const shared_db_ptr& db, const page_info& pi, ushort level, const std::vector<std::pair<K, page_info> >& subpi)
         : bt_page<K,V>(db, pi, level), m_page_info(subpi), m_child_pages(m_page_info.size()) { }
 #endif
+
+    bt_nonleaf_page(const shared_db_ptr& db, ushort level, std::vector<std::pair<K, page_info> > subpi)
+        : bt_page<K,V>(db, page_info(), level), m_page_info(subpi), m_child_pages()
+    { touch(); }
+
+    virtual std::pair<std::shared_ptr<bt_page>, std::tr1::shared_ptr<bt_page<K,V> > > insert(const K& key, const V& val);
+    virtual std::tr1::shared_ptr<bt_page<K,V> > modify(const K& key, const V& val);
+    virtual std::tr1::shared_ptr<bt_page<K,V> > remove(const K& key);
 
     // btree_node_nonleaf implementation
     const K& get_key(uint pos) const { return m_page_info[pos].first; }
@@ -169,6 +205,14 @@ public:
         : bt_page<K,V>(db, pi, 0), m_page_data(data) { }
 #endif
 
+    bt_leaf_page(const shared_db_ptr& db, std::vector<std::pair<K,V> > data)
+        : bt_page<K,V>(db, page_info(), 0), m_page_data(data)
+    { touch(); }
+
+    virtual std::pair<std::shared_ptr<bt_page<K,V> >, std::tr1::shared_ptr<bt_page<K,V> > > insert(const K& key, const V& val);
+    virtual std::tr1::shared_ptr<bt_page<K,V> > modify(const K& key, const V& val);
+    virtual std::tr1::shared_ptr<bt_page<K,V> > remove(const K& key);
+
     // btree_node_leaf implementation
     const V& get_value(uint pos) const
         { return m_page_data[pos].second; }
@@ -180,6 +224,17 @@ public:
 private:
     std::vector<std::pair<K,V> > m_page_data; //!< The key/value pairs on this leaf page
 };
+
+inline void page::touch()
+{
+    if(!m_modified)
+    {
+        m_modified = true;
+        //m_pid = 0;
+        m_address = 0;
+    }
+}
+
 //! \cond dont_show_these_member_function_specializations
 template<>
 inline bt_page<block_id, block_info>* bt_nonleaf_page<block_id, block_info>::get_child(uint pos)
@@ -225,6 +280,134 @@ inline const bt_page<node_id, node_info>* bt_nonleaf_page<node_id, node_info>::g
     return m_child_pages[pos].get();
 }
 //! \endcond
+
+template<typename K, typename V>
+inline std::pair<std::shared_ptr<bt_page<K,V> >, std::tr1::shared_ptr<bt_page<K,V> > > bt_nonleaf_page<K, V>::insert(const K& key, const V& val)
+{
+    return std::pair<std::shared_ptr<bt_page<K,V> >, std::tr1::shared_ptr<bt_page<K,V> > >(std::tr1::shared_ptr<bt_page<K, V> >(0), std::tr1::shared_ptr<bt_page<K, V> >(0));
+}
+
+template<typename K, typename V>
+inline std::tr1::shared_ptr<bt_page<K, V> > bt_nonleaf_page<K, V>::modify(const K& key, const V& val)
+{
+    int pos = this->binary_search(key);
+    if(pos == -1)
+    {
+        throw key_not_found<K>(key);
+    }
+    if(this->get_key(pos) != key)
+    {
+        throw key_not_found<K>(key);
+    }
+
+    std::tr1::shared_ptr<bt_page<K, V> > result(this->get_child(pos)->modify(key, val));
+    page_info pi;
+    pi.id = result->get_page_id();
+    pi.address = result->get_address();
+    this->m_page_info[pos] = std::pair<K, page_info>(key, pi);
+    this->m_child_pages[pos] = result;
+
+    return shared_from_this();
+}
+
+template<typename K, typename V>
+inline std::tr1::shared_ptr<bt_page<K, V> > bt_nonleaf_page<K, V>::remove(const K& key)
+{
+    int pos = this->binary_search(key);
+    if(pos == -1)
+    {
+        throw key_not_found<K>(key);
+    }
+    if(this->get_key(pos) != key)
+    {
+        throw key_not_found<K>(key);
+    }
+
+    std::tr1::shared_ptr<bt_page<K, V> > result(this->get_child(pos)->remove(key));
+    if(result.get() == 0)
+    {
+        this->m_page_info.erase(this->m_page_info.begin() + pos);
+        this->m_child_pages.erase(this->m_child_pages.begin() + pos);
+        if(this->m_page_info.size() == 0)
+        {
+            return std::tr1::shared_ptr<bt_page<K, V> >(0);
+        }
+    }
+    else
+    {
+        page_info pi;
+        pi.id = result->get_page_id();
+        pi.address = result->get_address();
+        this->m_page_info[pos] = std::pair<K, page_info>(key, pi);
+        this->m_child_pages[pos] = result;
+    }
+
+    return shared_from_this();
+}
+
+template<typename K, typename V>
+inline std::pair<std::shared_ptr<bt_page<K,V> >, std::tr1::shared_ptr<bt_page<K,V> > > bt_leaf_page<K, V>::insert(const K& key, const V& val)
+{
+    return std::pair<std::shared_ptr<bt_page<K,V> >, std::tr1::shared_ptr<bt_page<K,V> > >(std::tr1::shared_ptr<bt_page<K, V> >(0), std::tr1::shared_ptr<bt_page<K, V> >(0));
+}
+
+template<typename K, typename V>
+inline std::tr1::shared_ptr<bt_page<K, V> > bt_leaf_page<K, V>::modify(const K& key, const V& val)
+{
+    std::tr1::shared_ptr<bt_leaf_page<K, V> > copiedPage = shared_from_this();
+    if(copiedPage.use_count() > 2)
+    {
+        std::tr1::shared_ptr<bt_leaf_page<K, V> > cnewPage(new bt_leaf_page<K, V>(*this));
+        return cnewPage->modify(key, val);
+    }
+
+    touch(); // mutate ourselves inplace
+
+    int pos = this->binary_search(key);
+    if(pos == -1)
+    {
+        throw key_not_found<K>(key);
+    }
+    if(this->get_key(pos) != key)
+    {
+        throw key_not_found<K>(key);
+    }
+    this->m_page_data[pos].second = val;
+
+    return copiedPage;
+}
+
+template<typename K, typename V>
+inline std::tr1::shared_ptr<bt_page<K, V> > bt_leaf_page<K, V>::remove(const K& key)
+{
+    std::tr1::shared_ptr<bt_leaf_page<K, V> > copiedPage = shared_from_this();
+    if(copiedPage.use_count() > 2)
+    {
+        std::tr1::shared_ptr<bt_leaf_page<K, V> > cnewPage(new bt_leaf_page<K, V>(*this));
+        return cnewPage->remove(key);
+    }
+
+    touch(); // mutate ourselves inplace
+
+    int pos = this->binary_search(key);
+    if(pos == -1)
+    {
+        throw key_not_found<K>(key);
+    }
+    if(this->get_key(pos) != key)
+    {
+        throw key_not_found<K>(key);
+    }
+    this->m_page_data.erase(this->m_page_data.begin() + pos);
+
+    if(this->num_values() == 0)
+    {
+        return std::tr1::shared_ptr<bt_page<K, V> >(0);
+    }
+
+    return copiedPage;
+}
+
 } // end namespace
 
 #ifdef _MSC_VER
