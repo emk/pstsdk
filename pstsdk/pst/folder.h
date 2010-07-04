@@ -63,7 +63,7 @@ class search_folder
 public:
     //! \brief Message iterator type; a transform iterator over a table row iterator
     typedef boost::transform_iterator<message_transform_row, const_table_row_iter> message_iterator;
-    
+
     //! \brief Construct a search folder object
     //! \param[in] db The database pointer
     //! \param[in] n A search folder node
@@ -77,7 +77,7 @@ public:
     search_folder(search_folder&& other)
         : m_db(std::move(other.m_db)), m_bag(std::move(other.m_bag)), m_contents_table(std::move(other.m_contents_table)) { }
 #endif
-    
+
     // subobject discovery/enumeration
     //! \brief Get an iterator to the first message in this folder
     //! \returns an iterator positioned on the first message in this folder
@@ -115,6 +115,11 @@ public:
     table& get_contents_table();
     //! \copydoc search_folder::get_contents_table()
     const table& get_contents_table() const;
+
+    //! \brief Get the node_id of this search folder
+    //! \returns The node_id of the search folder
+    node_id get_id() const
+        { return m_bag.get_node().get_id(); }
 
 private:
     shared_db_ptr m_db;
@@ -288,6 +293,10 @@ public:
     //! \copydoc folder::get_associated_contents_table()
     const table& get_associated_contents_table() const;
 
+    //! \brief Get the node_id of this folder
+    //! \returns The node_id of the folder
+    node_id get_id() const
+        { return m_bag.get_node().get_id(); }
 
 private:
     shared_db_ptr m_db;

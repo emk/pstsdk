@@ -97,6 +97,27 @@ public:
     //! \returns The first folder by that name found in the file
     folder open_folder(const std::wstring& name) const;
 
+    //! \brief Open a specific message in this file
+    //! \param[in] name The node_id of the message to open
+    //! \throws key_not_found<node_id> If a message of the specified id was not found in this file
+    //! \returns The message by that id found in the file
+    folder open_folder(node_id id) const
+        { return folder(m_db, m_db->lookup_node(id)); }
+
+    //! \brief Open a specific message in this file
+    //! \param[in] name The node_id of the message to open
+    //! \throws key_not_found<node_id> If a message of the specified id was not found in this file
+    //! \returns The message by that id found in the file
+    search_folder open_search_folder(node_id id) const
+        { return search_folder(m_db, m_db->lookup_node(id)); }
+
+    //! \brief Open a specific message in this file
+    //! \param[in] name The node_id of the message to open
+    //! \throws key_not_found<node_id> If a message of the specified id was not found in this file
+    //! \returns The message by that id found in the file
+    message open_message(node_id id) const
+        { return message(m_db->lookup_node(id)); }
+
     // property access
     //! \brief Get the display name of the PST
     //! \returns The display name
@@ -140,7 +161,7 @@ public:
     const name_id_map& get_name_id_map() const;
     //! \brief Get the shared database pointer used by this object
     //! \returns the shared_db_ptr
-    shared_db_ptr get_db() const 
+    shared_db_ptr get_db() const
         { return m_db; }
 
 private:

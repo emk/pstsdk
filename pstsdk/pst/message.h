@@ -237,8 +237,8 @@ public:
 #ifndef BOOST_NO_RVALUE_REFERENCES
     message(message&& other)
         : m_bag(std::move(other.m_bag)), m_attachment_table(std::move(other.m_attachment_table)), m_recipient_table(std::move(other.m_recipient_table)) { }
-#endif     
-    
+#endif
+
     // subobject discovery/enumeration
     //! \brief Get an iterator to the first message on this message
     //! \returns an iterator positioned on the first attachment on this message
@@ -340,6 +340,11 @@ public:
     const table& get_attachment_table() const;
     //! \copydoc message::get_recipient_table()
     const table& get_recipient_table() const;
+
+    //! \brief Get the node_id of this message
+    //! \returns The node_id of the message
+    node_id get_id() const
+        { return m_bag.get_node().get_id(); }
 
 private:
     message& operator=(const message&); // = delete
