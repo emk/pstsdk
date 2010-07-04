@@ -99,22 +99,22 @@ public:
 
     //! \brief Open a specific message in this file
     //! \param[in] name The node_id of the message to open
-    //! \throws key_not_found<node_id> If a message of the specified id was not found in this file
-    //! \returns The message by that id found in the file
+    //! \throws key_not_found<node_id> If a folder of the specified id was not found in this file
+    //! \returns The folder with that id found in the file
     folder open_folder(node_id id) const
         { return folder(m_db, m_db->lookup_node(id)); }
 
     //! \brief Open a specific message in this file
     //! \param[in] name The node_id of the message to open
-    //! \throws key_not_found<node_id> If a message of the specified id was not found in this file
-    //! \returns The message by that id found in the file
+    //! \throws key_not_found<node_id> If a search_folder of the specified id was not found in this file
+    //! \returns The search_folder with that id found in the file
     search_folder open_search_folder(node_id id) const
         { return search_folder(m_db, m_db->lookup_node(id)); }
 
     //! \brief Open a specific message in this file
     //! \param[in] name The node_id of the message to open
     //! \throws key_not_found<node_id> If a message of the specified id was not found in this file
-    //! \returns The message by that id found in the file
+    //! \returns The message with that id found in the file
     message open_message(node_id id) const
         { return message(m_db->lookup_node(id)); }
 
