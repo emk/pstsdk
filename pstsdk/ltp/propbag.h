@@ -79,6 +79,10 @@ public:
     //! \returns The node
     node& get_node() { return m_pbth->get_node(); }
 
+    //! \brief Get the MAPI entry id for this node's property bag.
+    //! \returns The MAPI entry id
+    std::vector<byte> get_entry_id() const;
+
 private:
     property_bag& operator=(const property_bag& other); // = delete
 
@@ -241,4 +245,25 @@ inline pstsdk::hnid_stream_device pstsdk::property_bag::open_prop_stream(prop_id
     else
         return m_pbth->get_heap_ptr()->open_stream(h_id);
 }
+
+inline std::vector<pstsdk::byte> pstsdk::property_bag::get_entry_id() const {
+    using namespace std;
+
+    // A MAPI entry id contains 4 leading 0 bytes, the data store ID, and
+    // the node ID.
+    vector<byte> entry_id(4, 0);
+
+    node store(get_node().get_db()->lookup_node(nid_message_store));
+    property_bag store_props(store);
+    vector<byte> store_id(store_props.read_prop<vector<byte> >(0x0ff9));
+    copy(store_id.begin(), store_id.end(),
+         insert_iterator<vector<byte> >(entry_id, entry_id.end()));
+
+    node_id nid(get_node().get_id());
+    for (int i = sizeof(node_id) - 1; i >= 0; --i)
+        entry_id.push_back((nid >> 8*i) & 0xff);
+    
+    return entry_id;
+}
+
 #endif

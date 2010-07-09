@@ -91,6 +91,11 @@ public:
     const property_bag& get_property_bag() const
         { return m_bag; }
 
+    //! \brief Get the MAPI entry ID of this attachment
+    //! \returns The MAPI entry ID of this attachment
+    std::vector<byte> get_entry_id() const
+        { return m_bag.get_entry_id(); }
+
 private:
     attachment& operator=(const attachment&); // = delete
     friend class message;
@@ -345,6 +350,11 @@ public:
     //! \returns The node_id of the message
     node_id get_id() const
         { return m_bag.get_node().get_id(); }
+
+    //! \brief Get the MAPI entry ID of this message
+    //! \returns The MAPI entry ID of this message
+    std::vector<byte> get_entry_id() const
+        { return m_bag.get_entry_id(); }
 
 private:
     message& operator=(const message&); // = delete
