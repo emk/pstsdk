@@ -448,8 +448,8 @@ inline std::tr1::shared_ptr<pstsdk::bth_node<K,V> > pstsdk::bth_node<K,V>::open_
         throw std::logic_error("invalid entry size");
 #endif
 
-    if(pheader->num_levels > 1)
-        return open_nonleaf(h, pheader->root, pheader->num_levels-1);
+    if(pheader->num_levels > 0)
+        return open_nonleaf(h, pheader->root, pheader->num_levels);
     else
         return open_leaf(h, pheader->root);
 }
