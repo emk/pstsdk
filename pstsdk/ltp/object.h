@@ -334,7 +334,7 @@ inline std::wstring const_property_object::read_prop<std::wstring>(prop_id id) c
     if(get_prop_type(id) == prop_type_string)
     {
         std::string s(buffer.begin(), buffer.end());
-        return std::wstring(s.begin(), s.end());
+        return codepage_1252_to_wstring(s);
     }
     else
     {
@@ -353,7 +353,7 @@ inline std::vector<std::wstring> const_property_object::read_prop_array<std::wst
         if(get_prop_type(id) == prop_type_mv_string)
         {
             std::string s(buffer[i].begin(), buffer[i].end());
-            results.push_back(std::wstring(s.begin(), s.end()));
+            results.push_back(codepage_1252_to_wstring(s));
         }
         else
         {
@@ -377,6 +377,8 @@ inline std::string const_property_object::read_prop<std::string>(prop_id id) con
     {
         if(buffer.size())
         {
+            // Note that this code does the wrong thing for non-Latin-1
+            // characters.  Use with caution.
             std::wstring s(bytes_to_wstring(buffer));
             return std::string(s.begin(), s.end());
         }
