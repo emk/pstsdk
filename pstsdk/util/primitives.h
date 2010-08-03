@@ -53,8 +53,10 @@
 // '#pragma ms_struct on', but it fails on at least some Linux systems.
 #ifdef __GNUC__
 #define PSTSDK_MS_STRUCT __attribute__((ms_struct))
+#define PSTSDK_PACK_2 __attribute__((packed, aligned(2)))
 #else
 #define PSTSDK_MS_STRUCT
+#define PSTSDK_PACK_2
 #endif
 
 namespace pstsdk

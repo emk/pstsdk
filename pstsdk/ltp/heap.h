@@ -468,7 +468,11 @@ inline std::tr1::shared_ptr<pstsdk::bth_nonleaf_node<K,V> > pstsdk::bth_node<K,V
 
     for(uint i = 0; i < num_entries; ++i)
     {
-        child_nodes.push_back(std::make_pair(pbth_nonleaf_node->entries[i].key, pbth_nonleaf_node->entries[i].page));
+        // Copy 'page' to a local variable so that it has standard
+        // alignment before we pass it by reference to make_pair (required
+        // by GCC on Mac and probably other platforms).
+        heap_id page = pbth_nonleaf_node->entries[i].page;
+        child_nodes.push_back(std::make_pair(pbth_nonleaf_node->entries[i].key, page));
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
