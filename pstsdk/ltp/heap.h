@@ -468,7 +468,8 @@ inline std::tr1::shared_ptr<pstsdk::bth_nonleaf_node<K,V> > pstsdk::bth_node<K,V
 
     for(uint i = 0; i < num_entries; ++i)
     {
-        child_nodes.push_back(std::make_pair(pbth_nonleaf_node->entries[i].key, pbth_nonleaf_node->entries[i].page));
+        heap_id page = pbth_nonleaf_node->entries[i].page;
+        child_nodes.push_back(std::make_pair(pbth_nonleaf_node->entries[i].key, page));
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES

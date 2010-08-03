@@ -1341,12 +1341,14 @@ struct bth_header
 template<typename K>
 struct bth_nonleaf_entry
 {
-    K key;        //!< Key of the lower level page
-    heap_id page; //!< Heap id of the lower level page
-} PSTSDK_MS_STRUCT;
+    K key;                       //!< Key of the lower level page
+    heap_id page PSTSDK_PACK_2;  //!< Heap id of the lower level page
+};
 #pragma pack()
 //! \cond static_asserts
 static_assert(sizeof(bth_nonleaf_entry<ushort>) == 6, "bth_nonleaf_entry<ushort> incorrect size");
+static_assert(offsetof(bth_nonleaf_entry<ushort>, key) == 0, "bth_nonleaf_entry<ushort> key at incorrect offset");
+static_assert(offsetof(bth_nonleaf_entry<ushort>, page) == 2, "bth_nonleaf_entry<ushort> page at incorrect offset");
 //! \endcond
 
 //! \brief Entries which make up a "leaf" BTH allocation
