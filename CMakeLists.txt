@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.8)
 # Declare our project name and version.
 project(pstsdk)
 set(pstsdk_VERSION_MAJOR 0)
-set(pstsdk_VERSION_MINOR 2)
+set(pstsdk_VERSION_MINOR 4)
 set(pstsdk_VERSION_PATCH 0)
 
 # Turn on testing.
