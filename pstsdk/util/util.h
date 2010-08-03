@@ -109,6 +109,12 @@ double time_t_to_vt_date(time_t time);
 //! \ingroup util
 bool test_bit(const byte* pbytes, ulong bit);
 
+//! \brief Convert a codepage 1252 string to a std::wstring
+//! \param[in] cp1252 A string in the Windows codepage 1252 encoding.
+//! \returns A std::wstring
+//! \ingroup util
+std::wstring codepage_1252_to_wstring(const std::string &cp1252);
+
 //! \brief Convert an array of bytes to a std::wstring
 //! \param[in] bytes The bytes to convert
 //! \returns A std::wstring
@@ -212,6 +218,28 @@ inline double pstsdk::time_t_to_vt_date(time_t)
 inline bool pstsdk::test_bit(const byte* pbytes, ulong bit)
 {
     return (*(pbytes + (bit >> 3)) & (0x80 >> (bit & 7))) != 0;
+}
+
+inline std::wstring pstsdk::codepage_1252_to_wstring(const std::string &cp1252)
+{
+    // http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WindowsBestFit/bestfit1252.txt
+    // has a listing of code page 1252 characters and how they map to Unicode.
+    static const wchar_t specials[32] = {
+        0x20ac, 0x0081, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
+        0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008d, 0x017d, 0x008f,
+        0x0090, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
+        0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x009d, 0x017e, 0x0178
+    };
+
+    std::wstring wstr(cp1252.size(), L'\0');
+    for (size_t i = 0; i < wstr.size(); ++i) {
+        unsigned char c(static_cast<unsigned char>(cp1252[i]));
+        if (0x80 <= c && c < 0xa0)
+            wstr[i] = specials[c - 0x80];
+        else
+            wstr[i] = c;
+    }
+    return wstr;
 }
 
 #if defined(_WIN32) || defined(__MINGW32__)
