@@ -298,6 +298,11 @@ public:
     node_id get_id() const
         { return m_bag.get_node().get_id(); }
 
+    //! \brief Get the MAPI entry ID of this folder
+    //! \returns The MAPI entry ID of this folder
+    std::vector<byte> get_entry_id() const
+        { return detail::property_bag_entry_id(m_bag); }
+
 private:
     shared_db_ptr m_db;
     property_bag m_bag;
