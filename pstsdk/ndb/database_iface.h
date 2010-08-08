@@ -120,6 +120,10 @@ class db_context : public std::tr1::enable_shared_from_this<db_context>
 public:
     virtual ~db_context() { }
 
+    //! \brief Is this database a PST?
+    //! \returns Returns true if this is PST, false if an OST or something else.
+    virtual bool is_pst() const = 0;
+
     //! \name Lookup functions
     //@{
     //! \brief Open a node

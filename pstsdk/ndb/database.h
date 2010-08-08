@@ -73,6 +73,9 @@ class database_impl : public db_context
 {
 public:
 
+    bool is_pst() const
+        { return m_header.wVerClient == disk::database_pst; }
+
     //! \name Lookup functions
     //@{
     node lookup_node(node_id nid)

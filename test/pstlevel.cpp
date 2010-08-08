@@ -89,6 +89,43 @@ void process_pst(const pstsdk::pst& p)
     process_folder(root);
 }
 
+void test_entry_id(pstsdk::pst& sample1, pstsdk::pst& submessage) {
+    using namespace std;
+    using namespace pstsdk;
+
+    // Folder "Sample1" (000000006a552b813c43f94384f18b7da2393e9582800000)
+    folder f(*(--sample1.folder_end()));
+    static const byte expected1_bytes[24] = {
+        0x00, 0x00, 0x00, 0x00, 0x6a, 0x55, 0x2b, 0x81, 0x3c, 0x43, 0xf9, 0x43,
+        0x84, 0xf1, 0x8b, 0x7d, 0xa2, 0x39, 0x3e, 0x95, 0x82, 0x80, 0x00, 0x00, 
+    };
+    vector<byte> expected1(expected1_bytes, expected1_bytes + 24);
+    assert(expected1 == f.get_entry_id());
+
+    // Message (000000006a552b813c43f94384f18b7da2393e9524002000)
+    message m(*sample1.message_begin());
+    static const byte expected2_bytes[24] = {
+        0x00, 0x00, 0x00, 0x00, 0x6a, 0x55, 0x2b, 0x81, 0x3c, 0x43, 0xf9, 0x43,
+        0x84, 0xf1, 0x8b, 0x7d, 0xa2, 0x39, 0x3e, 0x95, 0x24, 0x00, 0x20, 0x00, 
+    };
+    vector<byte> expected2(expected2_bytes, expected2_bytes + 24);
+    assert(expected2 == m.get_entry_id());
+
+    // Submessage should not have an entry ID.
+    attachment a(*submessage.message_begin()->attachment_begin());
+    message sm(a.open_as_message());
+    bool raised_exception = false;
+    try
+    {
+        sm.get_entry_id();
+    }
+    catch (key_not_found<prop_id> &)
+    {
+        raised_exception = true;
+    }
+    assert(raised_exception);
+}
+
 void test_pstlevel()
 {
     using namespace pstsdk;
@@ -107,4 +144,7 @@ void test_pstlevel()
 
     // make sure searching by name works
     process_folder(uni.open_folder(L"Folder"));
+
+    // make sure we can calculate entry_id values
+    test_entry_id(s1, submess);
 }

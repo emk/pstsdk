@@ -346,6 +346,10 @@ public:
     node_id get_id() const
         { return m_bag.get_node().get_id(); }
 
+    //! \brief Get the MAPI entry ID of this message
+    //! \returns The MAPI entry ID of this message
+    std::vector<byte> get_entry_id() const;
+
 private:
     message& operator=(const message&); // = delete
 
@@ -376,6 +380,10 @@ public:
 
 private:
     shared_db_ptr m_db;
+};
+
+namespace detail {
+    std::vector<byte> property_bag_entry_id(const property_bag& bag);
 };
 
 } // end namespace pstsdk
@@ -475,6 +483,45 @@ inline std::wstring pstsdk::message::get_subject() const
     {
         return buffer;
     }
+}
+
+inline std::vector<pstsdk::byte> pstsdk::message::get_entry_id() const
+{
+    if (m_bag.get_node().is_subnode())
+    {
+        // Submessages should not have PidTagEntryId.
+        throw key_not_found<prop_id>(0x0fff);
+    }
+    else
+    {
+        return detail::property_bag_entry_id(m_bag);
+    }
+}
+
+inline std::vector<pstsdk::byte> pstsdk::detail::property_bag_entry_id(const pstsdk::property_bag& bag)
+{
+    using namespace std;
+
+    // This function doesn't know how to handle anything other than vanilla
+    // PSTs.  OSTs, for example, require a more complex calculation.
+    if (!bag.get_node().get_db()->is_pst())
+        throw key_not_found<prop_id>(0x0fff);
+
+    // A MAPI entry id contains 4 leading 0 bytes, the data store ID, and
+    // the node ID (in little-endian byte order).
+    vector<byte> entry_id(4, 0);
+
+    node store(bag.get_node().get_db()->lookup_node(nid_message_store));
+    property_bag store_props(store);
+    vector<byte> store_id(store_props.read_prop<vector<byte> >(0x0ff9));
+    copy(store_id.begin(), store_id.end(),
+         insert_iterator<vector<byte> >(entry_id, entry_id.end()));
+
+    node_id nid(bag.get_node().get_id());
+    for (size_t i = 0; i < sizeof(node_id); ++i)
+        entry_id.push_back((nid >> 8*i) & 0xff);
+
+    return entry_id;
 }
 
 #endif

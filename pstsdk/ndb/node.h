@@ -378,7 +378,7 @@ public:
     //! \copydoc node_impl::get_parent_id()
     node_id get_parent_id() const { return m_pimpl->get_parent_id(); } 
     //! \copydoc node_impl::is_subnode()
-    bool is_subnode() { return m_pimpl->is_subnode(); } 
+    bool is_subnode() const { return m_pimpl->is_subnode(); }
 
     //! \copydoc node_impl::get_data_block()
     std::tr1::shared_ptr<data_block> get_data_block() const
